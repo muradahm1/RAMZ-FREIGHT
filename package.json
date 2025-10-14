@@ -1,0 +1,12 @@
+{
+  "name": "ramz-freight",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "cd backend && npm install --omit=dev && npm start",
+    "build": "cd backend && npm install --omit=dev"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  }
+}

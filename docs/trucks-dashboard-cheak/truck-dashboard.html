@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Truck Owner Dashboard - RAMZ-FREIGHT</title>
+    <link rel="stylesheet" href="../assets/main.css">
+    <link rel="stylesheet" href="style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- idebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>🚛 RAMZ-FREIGHT</h2>
+                <p>Truck Owner Portal</p>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <ul>
+                    <li class="nav-item active">
+                        <a href="#overview"><i class="fas fa-chart-bar"></i> Overview</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#bookings"><i class="fas fa-calendar-alt"></i> Bookings</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#my-trucks"><i class="fas fa-truck"></i> My Trucks</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#earnings"><i class="fas fa-dollar-sign"></i> Earnings</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#schedule"><i class="fas fa-clock"></i> Schedule</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#profile"><i class="fas fa-user"></i> Profile</a>
+                    </li>
+                </ul>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <img src="https://via.placeholder.com/40" alt="Profile" class="user-avatar" id="userAvatar">
+                    <div>
+                        <strong id="userName">Loading...</strong>
+                        <span id="userRole">Truck Owner</span>
+                    </div>
+                </div>
+                <button class="logout-btn" id="logoutBtn">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="content-header">
+                <div class="header-left">
+                    <h1>Dashboard Overview</h1>
+                    <p>Welcome back! Here's your activity summary.</p>
+                </div>
+                <div class="header-right">
+                    <div class="notification-bell">
+                        <i class="fas fa-bell"></i>
+                        <span class="notification-count">3</span>
+                    </div>
+                    <button class="new-booking-btn">
+                        <i class="fas fa-plus"></i> New Booking
+                    </button>
+                </div>
+            </header>
+
+            <!-- Stats Cards -->
+            <section class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon total-bookings">
+                        <i class="fas fa-calendar-check"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>24</h3>
+                        <p>Total Bookings</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon pending">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>5</h3>
+                        <p>Pending Requests</p>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon earnings">
+                        <i class="fas fa-dollar-sign"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>$2,850</h3>
+                        <p>Total Earnings</p>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon rating">
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>4.8</h3>
+                        <p>Average Rating</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Shipper Posts Section -->
+            <section class="shipper-posts">
+                <div class="section-header">
+                    <h2>Available Loads from Shippers</h2>
+                    <span class="refresh-btn" id="refreshPosts">
+                        <i class="fas fa-sync-alt"></i> Refresh
+                    </span>
+                </div>
+                
+                <div class="posts-container" id="postsContainer">
+                    <!-- Posts will be loaded here dynamically by truck-dashboard.js -->
+                </div>
+            </section>
+
+            <!-- Accepted Shipments Section -->
+            <section class="accepted-shipments">
+                <div class="section-header">
+                    <h2>My Accepted Shipments</h2>
+                </div>
+                
+                <div class="posts-container" id="acceptedContainer">
+                    <!-- Accepted shipments will be loaded here dynamically -->
+                </div>
+            </section>
+
+            <!-- Recent Bookings Table -->
+            <section class="recent-bookings">
+                <div class="section-header">
+                    <h2>Recent Bookings</h2>
+                    <a href="#bookings" class="view-all">View All</a>
+                </div>
+                
+                <div class="bookings-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Booking ID</th>
+                                <th>Customer</th>
+                                <th>Service Type</th>
+                                <th>Date & Time</th>
+                                <th>Status</th>
+                                <th>Amount</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>#FU-2847</td>
+                                <td>Sarah Johnson</td>
+                                <td>Mobile Haunt</td>
+                                <td>Oct 28, 2024 - 7:00 PM</td>
+                                <td><span class="status confirmed">Confirmed</span></td>
+                                <td>$350</td>
+                                <td>
+                                    <button class="action-btn view"><i class="fas fa-eye"></i></button>
+                                    <button class="action-btn message"><i class="fas fa-comment"></i></button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>#FU-2846</td>
+                                <td>Mike's Halloween Party</td>
+                                <td>Scare Actor Delivery</td>
+                                <td>Oct 29, 2024 - 8:00 PM</td>
+                                <td><span class="status pending">Pending</span></td>
+                                <td>$200</td>
+                                <td>
+                                    <button class="action-btn accept"><i class="fas fa-check"></i></button>
+                                    <button class="action-btn decline"><i class="fas fa-times"></i></button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>#FU-2845</td>
+                                <td>Robert Smith</td>
+                                <td>Scary Ride Service</td>
+                                <td>Oct 27, 2024 - 9:00 PM</td>
+                                <td><span class="status completed">Completed</span></td>
+                                <td>$180</td>
+                                <td>
+                                    <button class="action-btn view"><i class="fas fa-eye"></i></button>
+                                    <button class="action-btn review"><i class="fas fa-star"></i></button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- My Trucks Section -->
+            <section class="my-trucks">
+                <div class="section-header">
+                    <h2>My Trucks</h2>
+                    <button class="add-truck-btn">
+                        <i class="fas fa-plus"></i> Add New Truck
+                    </button>
+                </div>
+                
+                <div class="trucks-grid">
+                    <div class="truck-card">
+                        <div class="truck-image">
+                            <img src="https://via.placeholder.com/300x200" alt="Haunted Truck">
+                            <span class="truck-status available">Available</span>
+                        </div>
+                        <div class="truck-info">
+                            <h3>Spooky Express</h3>
+                            <p><i class="fas fa-truck"></i> Ford F-350 Super Duty</p>
+                            <p><i class="fas fa-map-marker-alt"></i> New York, NY</p>
+                            <div class="truck-stats">
+                                <span>15 Bookings</span>
+                                <span>4.9 ★</span>
+                            </div>
+                        </div>
+                        <div class="truck-actions">
+                            <button class="btn-edit"><i class="fas fa-edit"></i></button>
+                            <button class="btn-manage"><i class="fas fa-cog"></i></button>
+                        </div>
+                    </div>
+                    
+                    <div class="truck-card">
+                        <div class="truck-image">
+                            <img src="https://via.placeholder.com/300x200" alt="Haunted Truck">
+                            <span class="truck-status busy">On Job</span>
+                        </div>
+                        <div class="truck-info">
+                            <h3>Nightmare Hauler</h3>
+                            <p><i class="fas fa-truck"></i> Chevrolet Silverado 2500</p>
+                            <p><i class="fas fa-map-marker-alt"></i> Brooklyn, NY</p>
+                            <div class="truck-stats">
+                                <span>8 Bookings</span>
+                                <span>4.7 ★</span>
+                            </div>
+                        </div>
+                        <div class="truck-actions">
+                            <button class="btn-edit"><i class="fas fa-edit"></i></button>
+                            <button class="btn-manage"><i class="fas fa-cog"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+    <script src="../assets/main.js"></script>
+    <script src="truck-dashboard.js" type="module"></script>
+</body>
+</html>

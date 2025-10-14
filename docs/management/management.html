@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard - Ramz-Freight</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+  <div class="dashboard-container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <h2>Ramz-Freight</h2>
+        <p>Management Dashboard</p>
+      </div>
+      
+      <nav class="sidebar-nav">
+        <ul>
+          <li class="nav-item active">
+            <a href="#overview">
+              <i class="fas fa-chart-line"></i>
+              <span>Overview</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#shipments">
+              <i class="fas fa-truck-loading"></i>
+              <span>Shipments</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#trucks">
+              <i class="fas fa-truck"></i>
+              <span>Trucks</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#drivers">
+              <i class="fas fa-users"></i>
+              <span>Drivers</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#shippers">
+              <i class="fas fa-building"></i>
+              <span>Shippers</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#finance">
+              <i class="fas fa-money-bill-wave"></i>
+              <span>Finance</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#reports">
+              <i class="fas fa-chart-bar"></i>
+              <span>Reports</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#settings">
+              <i class="fas fa-cog"></i>
+              <span>Settings</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
+      
+      <div class="sidebar-footer">
+        <div class="user-profile">
+          <div class="user-avatar">
+            <i class="fas fa-user-circle"></i>
+          </div>
+          <div class="user-info">
+            <p class="user-name">Admin User</p>
+            <p class="user-role">System Administrator</p>
+          </div>
+        </div>
+        <button class="logout-btn" id="logoutBtn">
+          <i class="fas fa-sign-out-alt"></i>
+          <span>Logout</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- Header -->
+      <header class="dashboard-header">
+        <div class="header-left">
+          <h1>Dashboard Overview</h1>
+          <p>Welcome back! Here's what's happening today.</p>
+        </div>
+        <div class="header-right">
+          <div class="search-box">
+            <input type="text" placeholder="Search...">
+            <i class="fas fa-search"></i>
+          </div>
+          <div class="header-actions">
+            <button class="notification-btn">
+              <i class="fas fa-bell"></i>
+              <span class="notification-badge">3</span>
+            </button>
+            <button class="add-new-btn">
+              <i class="fas fa-plus"></i>
+              New Shipment
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <!-- Dashboard Content -->
+      <div class="dashboard-content">
+        <!-- Stats Cards -->
+        <section class="stats-cards">
+          <div class="stat-card">
+            <div class="stat-icon total-shipments">
+              <i class="fas fa-shipping-fast"></i>
+            </div>
+            <div class="stat-info">
+              <h3>245</h3>
+              <p>Total Shipments</p>
+            </div>
+            <div class="stat-trend up">
+              <i class="fas fa-arrow-up"></i>
+              <span>12%</span>
+            </div>
+          </div>
+          
+          <div class="stat-card">
+            <div class="stat-icon active-trucks">
+              <i class="fas fa-truck"></i>
+            </div>
+            <div class="stat-info">
+              <h3>42</h3>
+              <p>Active Trucks</p>
+            </div>
+            <div class="stat-trend up">
+              <i class="fas fa-arrow-up"></i>
+              <span>5%</span>
+            </div>
+          </div>
+          
+          <div class="stat-card">
+            <div class="stat-icon pending-shipments">
+              <i class="fas fa-clock"></i>
+            </div>
+            <div class="stat-info">
+              <h3>18</h3>
+              <p>Pending Shipments</p>
+            </div>
+            <div class="stat-trend down">
+              <i class="fas fa-arrow-down"></i>
+              <span>3%</span>
+            </div>
+          </div>
+          
+          <div class="stat-card">
+            <div class="stat-icon revenue">
+              <i class="fas fa-dollar-sign"></i>
+            </div>
+            <div class="stat-info">
+              <h3>₦1.2M</h3>
+              <p>Monthly Revenue</p>
+            </div>
+            <div class="stat-trend up">
+              <i class="fas fa-arrow-up"></i>
+              <span>8%</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- Charts and Recent Activity -->
+        <section class="charts-activity">
+          <div class="chart-container">
+            <div class="chart-header">
+              <h3>Shipment Trends</h3>
+              <select class="chart-filter">
+                <option>Last 7 Days</option>
+                <option>Last 30 Days</option>
+                <option>Last 3 Months</option>
+              </select>
+            </div>
+            <div class="chart-placeholder">
+              <div class="chart-bars">
+                <div class="bar" style="height: 70%"></div>
+                <div class="bar" style="height: 85%"></div>
+                <div class="bar" style="height: 60%"></div>
+                <div class="bar" style="height: 90%"></div>
+                <div class="bar" style="height: 75%"></div>
+                <div class="bar" style="height: 80%"></div>
+                <div class="bar" style="height: 95%"></div>
+              </div>
+              <div class="chart-labels">
+                <span>Mon</span>
+                <span>Tue</span>
+                <span>Wed</span>
+                <span>Thu</span>
+                <span>Fri</span>
+                <span>Sat</span>
+                <span>Sun</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="activity-container">
+            <div class="activity-header">
+              <h3>Recent Activity</h3>
+              <a href="#" class="view-all">View All</a>
+            </div>
+            <div class="activity-list">
+              <div class="activity-item">
+                <div class="activity-icon success">
+                  <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="activity-details">
+                  <p>Shipment #ETH-2456 delivered successfully</p>
+                  <span class="activity-time">10 minutes ago</span>
+                </div>
+              </div>
+              <div class="activity-item">
+                <div class="activity-icon warning">
+                  <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <div class="activity-details">
+                  <p>Shipment #ETH-2459 delayed due to weather</p>
+                  <span class="activity-time">1 hour ago</span>
+                </div>
+              </div>
+              <div class="activity-item">
+                <div class="activity-icon info">
+                  <i class="fas fa-info-circle"></i>
+                </div>
+                <div class="activity-details">
+                  <p>New shipper registered: Addis Manufacturing</p>
+                  <span class="activity-time">2 hours ago</span>
+                </div>
+              </div>
+              <div class="activity-item">
+                <div class="activity-icon success">
+                  <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="activity-details">
+                  <p>Payment received for shipment #ETH-2450</p>
+                  <span class="activity-time">3 hours ago</span>
+                </div>
+              </div>
+              <div class="activity-item">
+                <div class="activity-icon primary">
+                  <i class="fas fa-truck-loading"></i>
+                </div>
+                <div class="activity-details">
+                  <p>New shipment assigned to driver: Alemayehu K.</p>
+                  <span class="activity-time">5 hours ago</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Recent Shipments Table -->
+        <section class="recent-shipments">
+          <div class="section-header">
+            <h3>Recent Shipments</h3>
+            <a href="#shipments" class="view-all">View All Shipments</a>
+          </div>
+          <div class="table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Shipment ID</th>
+                  <th>Shipper</th>
+                  <th>Destination</th>
+                  <th>Driver</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>#ETH-2465</td>
+                  <td>Addis Manufacturing</td>
+                  <td>Addis Ababa to Dire Dawa</td>
+                  <td>Alemayehu K.</td>
+                  <td><span class="status-badge in-progress">In Progress</span></td>
+                  <td>
+                    <button class="action-btn view"><i class="fas fa-eye"></i></button>
+                    <button class="action-btn edit"><i class="fas fa-edit"></i></button>
+                  </td>
+                </tr>
+                <tr>
+                  <td>#ETH-2464</td>
+                  <td>Ethio Trade</td>
+                  <td>Addis Ababa to Bahir Dar</td>
+                  <td>Mekonnen T.</td>
+                  <td><span class="status-badge pending">Pending</span></td>
+                  <td>
+                    <button class="action-btn view"><i class="fas fa-eye"></i></button>
+                    <button class="action-btn edit"><i class="fas fa-edit"></i></button>
+                  </td>
+                </tr>
+                <tr>
+                  <td>#ETH-2463</td>
+                  <td>Sheba Foods</td>
+                  <td>Addis Ababa to Hawassa</td>
+                  <td>Solomon A.</td>
+                  <td><span class="status-badge delivered">Delivered</span></td>
+                  <td>
+                    <button class="action-btn view"><i class="fas fa-eye"></i></button>
+                    <button class="action-btn edit"><i class="fas fa-edit"></i></button>
+                  </td>
+                </tr>
+                <tr>
+                  <td>#ETH-2462</td>
+                  <td>Blue Nile Export</td>
+                  <td>Addis Ababa to Mekele</td>
+                  <td>Yohannes M.</td>
+                  <td><span class="status-badge in-progress">In Progress</span></td>
+                  <td>
+                    <button class="action-btn view"><i class="fas fa-eye"></i></button>
+                    <button class="action-btn edit"><i class="fas fa-edit"></i></button>
+                  </td>
+                </tr>
+                <tr>
+                  <td>#ETH-2461</td>
+                  <td>Rift Valley Logistics</td>
+                  <td>Addis Ababa to Jimma</td>
+                  <td>Dawit H.</td>
+                  <td><span class="status-badge cancelled">Cancelled</span></td>
+                  <td>
+                    <button class="action-btn view"><i class="fas fa-eye"></i></button>
+                    <button class="action-btn edit"><i class="fas fa-edit"></i></button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <script src="management.js" type="module"></script>
+</body>
+</html>
