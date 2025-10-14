@@ -1,4 +1,5 @@
 import { supabase, supabaseReady } from '../assets/supabaseClient.js';
+import { getRedirectUrl } from '../assets/pathUtils.js';
 
 function getAppBasePath() {
     const parts = (window.location.pathname || '/').split('/');
@@ -55,8 +56,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             googleBtn.disabled = true;
             googleBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Connecting...';
             
-            const basePath = getAppBasePath();
-            const redirectUrl = `${window.location.origin}${basePath}/docs/trucks-register/complete-profile.html`;
+            localStorage.setItem('post_auth_redirect', window.location.href);
+            const redirectUrl = getRedirectUrl('/docs/trucks-register/complete-profile.html');
             const { data, error } = await supabase.auth.signInWithOAuth({
                 provider: 'google',
                 options: {

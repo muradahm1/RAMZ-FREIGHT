@@ -1,4 +1,5 @@
 import { supabase, supabaseReady } from '../assets/supabaseClient.js';
+import { getRedirectUrl } from '../assets/pathUtils.js';
 
 // Compute base path dynamically so the app works when hosted under a repo subpath (GitHub Pages)
 function getAppBasePath() {
@@ -56,8 +57,9 @@ document.addEventListener('DOMContentLoaded', () => {
             googleBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Connecting...';
             
             console.log('Starting Google OAuth...');
-            const basePath = getAppBasePath();
-            const redirectUrl = `${window.location.origin}${basePath}/docs/trucks-dashboard-cheak/truck-dashboard.html`;
+            // remember where to return after auth
+            localStorage.setItem('post_auth_redirect', window.location.href);
+            const redirectUrl = getRedirectUrl('/docs/trucks-dashboard-cheak/truck-dashboard.html');
             const { data, error } = await supabase.auth.signInWithOAuth({
                 provider: 'google',
                 options: {
