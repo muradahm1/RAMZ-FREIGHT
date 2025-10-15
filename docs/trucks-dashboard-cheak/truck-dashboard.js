@@ -1,4 +1,4 @@
-import { supabase } from '../assets/supabaseClient.js';
+import { supabase, backendUrl } from '../assets/supabaseClient.js';
 import { locationTracker } from '../assets/locationTracker.js';
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -56,21 +56,23 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     /**
-     * Fetches and renders available shipments from Supabase.
+     * Fetches and renders available shipments by calling backend /shipments
      */
     async function loadAvailableLoads() {
         postsContainer.innerHTML = '<div class="loading">Loading available loads...</div>';
 
         try {
-            // Fetch shipments that are 'pending'
-            const { data: shipments, error } = await supabase
-                .from('shipments')
-                .select('*')
-                .eq('status', 'pending');
+            const sessionResp = await supabase.auth.getSession();
+            const session = sessionResp?.data?.session;
+            if (!session) throw new Error('Not authenticated');
 
-            if (error) {
-                throw error;
-            }
+            const apiUrl = (backendUrl || '').replace(/\/$/, '') + '/shipments?status=pending';
+            const response = await fetch(apiUrl, {
+                headers: { Authorization: `Bearer ${session.access_token}` }
+            });
+            if (!response.ok) throw new Error('Failed to fetch loads');
+            const json = await response.json();
+            const shipments = json?.shipments || [];
 
             if (shipments.length === 0) {
                 postsContainer.innerHTML = '<div class="loading">No available loads at the moment. Check back soon!</div>';
@@ -115,7 +117,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     /**
-     * Load accepted shipments for the current truck owner
+     * Load accepted shipments for the current truck owner (via backend)
      */
     async function loadAcceptedShipments(user) {
         if (!acceptedContainer) return;
@@ -123,20 +125,26 @@ document.addEventListener('DOMContentLoaded', () => {
         acceptedContainer.innerHTML = '<div class="loading">Loading your accepted shipments...</div>';
 
         try {
-            const { data: shipments, error } = await supabase
-                .from('shipments')
-                .select('*')
-                .eq('truck_owner_id', user.id)
-                .in('status', ['accepted', 'in_transit']);
+            const sessionResp = await supabase.auth.getSession();
+            const session = sessionResp?.data?.session;
+            if (!session) throw new Error('Not authenticated');
 
-            if (error) throw error;
+            const apiUrl = (backendUrl || '').replace(/\/$/, '') + '/shipments';
+            const response = await fetch(apiUrl, {
+                headers: { Authorization: `Bearer ${session.access_token}` }
+            });
+            if (!response.ok) throw new Error('Failed to fetch shipments');
+            const json = await response.json();
+            const shipments = json?.shipments || [];
 
-            if (shipments.length === 0) {
+            const myShipments = shipments.filter(s => s.truck_owner_id === user.id || ['accepted','in_transit'].includes(s.status));
+
+            if (myShipments.length === 0) {
                 acceptedContainer.innerHTML = '<div class="loading">No accepted shipments.</div>';
                 return;
             }
 
-            acceptedContainer.innerHTML = shipments.map(shipment => `
+            acceptedContainer.innerHTML = myShipments.map(shipment => `
                 <div class="post-card">
                     <div class="post-header">
                         <div>
@@ -232,18 +240,21 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        const { error } = await supabase
-            .from('shipments')
-            .update({ truck_owner_id: user.id, status: 'accepted' })
-            .eq('id', shipmentId);
-
-        if (error) {
-            console.error('Error accepting shipment:', error);
-            alert(`Failed to accept the load: ${error.message}`);
-        } else {
+        try {
+            const apiUrl = (backendUrl || '').replace(/\/$/, '') + `/shipments/${shipmentId}/assign`;
+            const sessionResp = await supabase.auth.getSession();
+            const session = sessionResp?.data?.session;
+            const res = await fetch(apiUrl, {
+                method: 'POST',
+                headers: { Authorization: `Bearer ${session.access_token}` }
+            });
+            if (!res.ok) throw new Error('Failed to accept load');
             alert('Load accepted successfully! You can now start the shipment.');
             loadAvailableLoads(); // Refresh the list to remove the accepted load
             loadAcceptedShipments(user);
+        } catch (err) {
+            console.error('Error accepting shipment:', err);
+            alert(`Failed to accept the load: ${err.message}`);
         }
     }
 });
