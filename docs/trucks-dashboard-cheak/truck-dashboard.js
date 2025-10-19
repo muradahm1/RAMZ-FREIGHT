@@ -1,7 +1,7 @@
-import { supabase, backendUrl } from '../assets/supabaseClient.js';
+import { supabase, backendUrl, supabaseReady } from '../assets/supabaseClient.js';
 import { locationTracker } from '../assets/locationTracker.js';
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     const userNameEl = document.getElementById('userName');
     const userRoleEl = document.getElementById('userRole');
     const userAvatarEl = document.getElementById('userAvatar');
@@ -11,14 +11,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const acceptedContainer = document.getElementById('acceptedContainer');
 
     // --- 1. Authentication Check ---
+    // Wait for Supabase to be ready
+    await supabaseReady;
+    
     // Check for existing session first
-    supabase.auth.getSession().then(({ data: { session } }) => {
-        if (session) {
-            setupDashboard(session.user);
-        } else {
-            window.location.replace('../trucks-login/trucks-login.html');
-        }
-    });
+    const { data: { session } } = await supabase.auth.getSession();
+    
+    if (session) {
+        setupDashboard(session.user);
+    } else {
+        window.location.replace('../trucks-login/trucks-login.html');
+    }
 
     // Listen for auth changes
     supabase.auth.onAuthStateChange((event, session) => {

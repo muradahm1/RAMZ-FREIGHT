@@ -1,4 +1,4 @@
-import { supabase } from '../assets/supabaseClient.js';
+import { supabase, supabaseReady } from '../assets/supabaseClient.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
     const userProfile = document.querySelector('.user-profile');
@@ -6,6 +6,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     const userAvatar = document.querySelector('.user-avatar');
     const welcomeMessage = document.getElementById('welcome-message');
 
+    // Wait for Supabase to be ready
+    await supabaseReady;
+    
     // Check for existing session first
     const { data: { session } } = await supabase.auth.getSession();
     
