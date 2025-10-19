@@ -11,12 +11,20 @@ document.addEventListener('DOMContentLoaded', () => {
     const acceptedContainer = document.getElementById('acceptedContainer');
 
     // --- 1. Authentication Check ---
-    supabase.auth.onAuthStateChange((event, session) => {
+    // Check for existing session first
+    supabase.auth.getSession().then(({ data: { session } }) => {
         if (session) {
-            // User is logged in, setup the dashboard
             setupDashboard(session.user);
         } else {
-            // User is not logged in, redirect to login
+            window.location.replace('../trucks-login/trucks-login.html');
+        }
+    });
+
+    // Listen for auth changes
+    supabase.auth.onAuthStateChange((event, session) => {
+        if (session) {
+            setupDashboard(session.user);
+        } else {
             window.location.replace('../trucks-login/trucks-login.html');
         }
     });

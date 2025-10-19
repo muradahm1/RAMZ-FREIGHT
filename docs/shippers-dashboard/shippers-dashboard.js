@@ -6,7 +6,19 @@ document.addEventListener('DOMContentLoaded', async () => {
     const userAvatar = document.querySelector('.user-avatar');
     const welcomeMessage = document.getElementById('welcome-message');
 
-    // Check authentication
+    // Check for existing session first
+    const { data: { session } } = await supabase.auth.getSession();
+    
+    if (session) {
+        if (session.user.app_metadata.provider === 'google') {
+            await createShipperProfile(session.user);
+        }
+        setupDashboard(session.user);
+    } else {
+        window.location.replace('../shippers-login/shippers-login.html');
+    }
+
+    // Listen for auth changes
     supabase.auth.onAuthStateChange(async (event, session) => {
         if (event === 'SIGNED_IN' && session?.user.app_metadata.provider === 'google') {
             await createShipperProfile(session.user);
