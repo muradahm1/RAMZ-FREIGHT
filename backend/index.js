@@ -12,19 +12,57 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 
 export const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
+// CORS middleware
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  if (req.method === 'OPTIONS') return res.sendStatus(200);
+  next();
+});
+
 app.use(express.json());
 
 // User registration endpoint (signup)
 app.post('/auth/signup', async (req, res) => {
-  const { email, password } = req.body;
+  const { email, password, fullName, phone, companyName, businessType, userType } = req.body;
   if (!email || !password) {
     return res.status(400).json({ error: 'Email and password are required.' });
   }
   try {
-    const { data, error } = await supabase.auth.signUp({ email, password });
+    const { data, error } = await supabase.auth.signUp({ 
+      email, 
+      password,
+      options: {
+        data: {
+          full_name: fullName,
+          phone: phone,
+          user_role: userType === 'shipper' ? 'shipper' : 'truck_owner'
+        }
+      }
+    });
     if (error) return res.status(400).json({ error: error.message });
+    
+    // Create profile in appropriate table
+    if (data.user && userType === 'shipper') {
+      await supabase.from('shippers').insert({
+        user_id: data.user.id,
+        full_name: fullName,
+        phone: phone,
+        company_name: companyName,
+        business_type: businessType
+      });
+    } else if (data.user && userType === 'truck') {
+      await supabase.from('truck_owners').insert({
+        user_id: data.user.id,
+        full_name: fullName,
+        phone: phone
+      });
+    }
+    
     res.json({ user: data.user });
   } catch (err) {
+    console.error('Signup error:', err);
     res.status(500).json({ error: 'Internal server error.' });
   }
 });
