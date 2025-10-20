@@ -112,6 +112,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (error) throw error;
 
+            // Check user role
+            const userRole = data.user?.user_metadata?.user_role;
+            if (userRole === 'shipper' || userRole === 'shipper_user') {
+                await supabase.auth.signOut();
+                throw new Error('This is a truck owner login. Please use the shipper login page.');
+            }
+
             // Redirect to truck dashboard on successful login
             window.location.href = '../trucks-dashboard-cheak/truck-dashboard.html'; 
 
