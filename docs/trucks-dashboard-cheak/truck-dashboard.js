@@ -32,7 +32,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     });
 
-    function setupDashboard(user) {
+    async function setupDashboard(user) {
+        // Check if profile is completed
+        if (!user.user_metadata?.profile_completed && user.app_metadata?.provider !== 'google') {
+            window.location.replace('../trucks-register/complete-profile.html');
+            return;
+        }
+
         // --- 2. Populate User Info ---
         const profileName = user.user_metadata?.full_name || user.email.split('@')[0];
         userNameEl.textContent = profileName;
