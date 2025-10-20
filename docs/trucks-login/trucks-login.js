@@ -112,8 +112,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (error) throw error;
 
-            // Redirect to a dashboard or home page on successful login
-            window.location.href = '../dashboard/dashboard.html'; 
+            // Redirect to truck dashboard on successful login
+            window.location.href = '../trucks-dashboard-cheak/truck-dashboard.html'; 
 
         } catch (err) {
             console.error('Login error:', err);
