@@ -119,8 +119,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 throw new Error('This is a truck owner login. Please use the shipper login page.');
             }
 
-            // Redirect to truck dashboard on successful login
-            window.location.href = '../trucks-dashboard-cheak/truck-dashboard.html'; 
+            // Check if profile is completed
+            const profileCompleted = data.user?.user_metadata?.profile_completed;
+            if (!profileCompleted) {
+                window.location.href = '../trucks-register/complete-profile.html';
+            } else {
+                window.location.href = '../trucks-dashboard-cheak/truck-dashboard.html';
+            } 
 
         } catch (err) {
             console.error('Login error:', err);
