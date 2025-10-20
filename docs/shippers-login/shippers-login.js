@@ -7,14 +7,6 @@ function getAppBasePath() {
     return '';
 }
 
-// Demo account functionality
-window.fillDemoAccount = function(email, password) {
-    document.getElementById('email').value = email;
-    document.getElementById('password').value = password;
-};
-
-
-
 document.addEventListener('DOMContentLoaded', () => {
     const loginForm = document.getElementById('shipperLoginForm');
     const submitBtn = document.getElementById('loginBtn');
