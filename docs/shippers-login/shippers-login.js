@@ -60,23 +60,13 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         try {
-            const response = await fetch(`${backendUrl}/auth/login`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(loginData),
+            await supabaseReady;
+            const { data, error } = await supabase.auth.signInWithPassword({
+                email: loginData.email,
+                password: loginData.password,
             });
 
-            const result = await response.json();
-
-            if (!response.ok) {
-                throw new Error(result.error || 'Login failed. Please check your credentials.');
-            }
-
-            // Store JWT token and user info
-            localStorage.setItem('authToken', result.token);
-            localStorage.setItem('user', JSON.stringify(result.user));
+            if (error) throw error;
 
             alert('Login successful! Redirecting to your dashboard...');
             window.location.href = '../shippers-dashboard/shippers-dashboard.html';
