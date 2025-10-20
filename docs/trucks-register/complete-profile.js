@@ -1,21 +1,38 @@
-import { supabase } from '../assets/supabaseClient.js';
+import { supabase, supabaseReady } from '../assets/supabaseClient.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
     const nextBtn = document.getElementById('nextToStep2');
     const prevBtn = document.getElementById('backToStep1');
     const submitBtn = document.getElementById('submitProfile');
     const form = document.getElementById('completeProfileForm');
+    // Ensure Supabase client is ready before calling auth methods
+    try {
+        await supabaseReady;
+    } catch (err) {
+        console.error('Supabase failed to initialize:', err);
+        // Allow user to interact but prevent profile submission
+        alert('Authentication service is temporarily unavailable. Please try again later.');
+        // still attach navigation handlers so UI doesn't appear broken
+    }
 
     // Check if user is authenticated and email is verified
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session || !session.user) {
-        alert('Please log in first.');
-        window.location.href = '../trucks-login/trucks-login.html';
-        return;
-    }
-    if (!session.user.email_confirmed_at) {
-        alert('Please verify your email before completing your profile. Check your inbox for the verification link.');
-        await supabase.auth.signOut();
+    try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session || !session.user) {
+            alert('Please log in first.');
+            window.location.href = '../trucks-login/trucks-login.html';
+            return;
+        }
+        if (!session.user.email_confirmed_at) {
+            alert('Please verify your email before completing your profile. Check your inbox for the verification link.');
+            await supabase.auth.signOut();
+            window.location.href = '../trucks-login/trucks-login.html';
+            return;
+        }
+    } catch (err) {
+        console.error('Error checking session:', err);
+        // If session check fails, redirect to login as a fallback
+        alert('Failed to verify authentication. Please log in again.');
         window.location.href = '../trucks-login/trucks-login.html';
         return;
     }
