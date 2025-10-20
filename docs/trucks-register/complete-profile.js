@@ -56,29 +56,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function validateStep2() {
-        const files = [
-            { id: 'idFront', error: 'id-front-error', message: 'National ID front is required' },
-            { id: 'idBack', error: 'id-back-error', message: 'National ID back is required' },
-            { id: 'drivingLicenseFront', error: 'driving-license-front-error', message: 'Driving license front is required' },
-            { id: 'drivingLicenseBack', error: 'driving-license-back-error', message: 'Driving license back is required' },
-            { id: 'carPhoto', error: 'car-photo-error', message: 'Vehicle photo is required' },
-            { id: 'carLicense', error: 'car-license-error', message: 'Vehicle license is required' }
-        ];
-
-        let isValid = true;
-        files.forEach(file => {
-            const input = document.getElementById(file.id);
-            const errorEl = document.getElementById(file.error);
-            
-            if (!input.files[0]) {
-                errorEl.textContent = file.message;
-                isValid = false;
-            } else {
-                errorEl.textContent = '';
-            }
+        // Files are optional, just clear any errors
+        const fileIds = ['idFront', 'idBack', 'drivingLicenseFront', 'drivingLicenseBack', 'carPhoto', 'carLicense'];
+        fileIds.forEach(id => {
+            const errorEl = document.getElementById(id.replace(/([A-Z])/g, '-$1').toLowerCase() + '-error');
+            if (errorEl) errorEl.textContent = '';
         });
-
-        return isValid;
+        return true;
     }
 
     function showStep(stepNumber) {
@@ -122,16 +106,11 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             const user = session.user;
 
-            // Upload files first
+            // Upload files if provided
             const fileUrls = await uploadFiles();
 
             // Generate truck number
             const truckNumber = 'TRK-' + Date.now().toString().slice(-6);
-            
-            // Check if user email is verified
-            if (!user.email_confirmed_at) {
-                throw new Error('Please verify your email before completing profile');
-            }
 
             // Save vehicle data to database
             const vehicleData = {
