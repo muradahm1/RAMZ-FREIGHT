@@ -54,17 +54,24 @@ document.addEventListener('DOMContentLoaded', async () => {
         ];
 
         let isValid = true;
+        const missingFields = [];
+        
         fields.forEach(field => {
             const input = document.getElementById(field.id);
             const errorEl = document.getElementById(field.error);
             
-            if (!input.value.trim()) {
-                errorEl.textContent = field.message;
+            if (!input || !input.value.trim()) {
+                if (errorEl) errorEl.textContent = field.message;
                 isValid = false;
+                missingFields.push(field.message);
             } else {
-                errorEl.textContent = '';
+                if (errorEl) errorEl.textContent = '';
             }
         });
+
+        if (!isValid) {
+            alert('Please fill in all required fields:\n' + missingFields.join('\n'));
+        }
 
         return isValid;
     }
