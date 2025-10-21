@@ -93,13 +93,22 @@ async function getUserFromBearer(req) {
 // Create shipment endpoint
 app.post('/shipments', async (req, res) => {
   try {
+    const auth = req.headers['authorization'] || '';
+    const match = auth.match(/^Bearer\s+(.*)$/i);
+    if (!match) return res.status(401).json({ error: 'Missing Authorization header' });
+    const token = match[1];
+
+    // Create Supabase client with user's token for RLS
+    const userSupabase = createClient(SUPABASE_URL, SUPABASE_KEY, {
+      global: { headers: { Authorization: `Bearer ${token}` } }
+    });
+
     const verification = await getUserFromBearer(req);
     if (verification.error) return res.status(401).json({ error: verification.error });
     const user = verification.user;
     if (!user || !user.id) return res.status(401).json({ error: 'Invalid user' });
 
     const payload = req.body || {};
-    // minimal validation
     if (!payload.origin_address || !payload.destination_address || !payload.pickup_datetime) {
       return res.status(400).json({ error: 'Missing required fields: origin_address, destination_address, pickup_datetime' });
     }
@@ -116,7 +125,7 @@ app.post('/shipments', async (req, res) => {
       status: 'pending'
     };
 
-    const { data, error } = await supabase.from('shipments').insert([insert]).select().maybeSingle();
+    const { data, error } = await userSupabase.from('shipments').insert([insert]).select().maybeSingle();
     if (error) return res.status(500).json({ error: error.message });
 
     res.status(201).json({ shipment: data });
