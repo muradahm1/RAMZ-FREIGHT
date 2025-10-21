@@ -50,17 +50,17 @@ async function loadShipments(currentUser) {
     shipmentSelect.innerHTML = '<option value="">Loading trackable shipments...</option>';
 
     try {
-        // Fetch shipments that belong to the shipper and are in transit
+        // Fetch shipments that belong to the shipper and are accepted or in transit
         const { data: shipments, error } = await supabase
             .from('shipments')
             .select('*')
             .eq('shipper_id', currentUser.id)
-            .eq('status', 'in_transit');
+            .in('status', ['accepted', 'in_transit']);
 
         if (error) throw error;
 
         if (shipments.length === 0) {
-            shipmentSelect.innerHTML = '<option value="">No shipments are currently in transit</option>';
+            shipmentSelect.innerHTML = '<option value="">No shipments available for tracking</option>';
             return;
         }
 
@@ -174,9 +174,9 @@ function startRealTimeTracking() {
     }
 
     // Check the status from the UI instead of re-fetching
-    const status = document.getElementById('trackingStatus').querySelector('span').textContent;
-    if (status.toLowerCase() !== 'in_transit') {
-        alert('This shipment is not currently in transit. Tracking is only available for active shipments.');
+    const status = document.getElementById('trackingStatus').querySelector('span').textContent.toLowerCase();
+    if (status !== 'in_transit' && status !== 'accepted') {
+        alert('This shipment is not ready for tracking. Tracking is only available for accepted or in-transit shipments.');
         return;
     }
 
