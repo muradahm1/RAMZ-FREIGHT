@@ -154,7 +154,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const json = await response.json();
             const shipments = json?.shipments || [];
 
-            const myShipments = shipments.filter(s => s.truck_owner_id === user.id || ['accepted','in_transit'].includes(s.status));
+            const myShipments = shipments.filter(s => s.truck_owner_id === user.id && ['accepted','in_transit'].includes(s.status));
 
             if (myShipments.length === 0) {
                 acceptedContainer.innerHTML = '<div class="loading">No accepted shipments.</div>';
