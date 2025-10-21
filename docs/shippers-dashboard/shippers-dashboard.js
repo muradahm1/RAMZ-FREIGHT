@@ -71,8 +71,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
 
         // --- 4. Load Dynamic Content ---
+        loadStats(user);
         loadActiveShipments(user);
-        loadRecentActivity();
+        loadRecentActivity(user);
         loadAvailableTrucks();
     }
 });
@@ -121,25 +122,88 @@ async function loadActiveShipments(user) {
     }
 }
 
-function loadRecentActivity() {
+async function loadRecentActivity(user) {
     const activityList = document.getElementById('activityList');
-    const sampleActivities = [
-        { icon: 'fa-check-circle', iconClass: 'success', text: 'Shipment SHP-84518 was delivered.', time: '2 hours ago' },
-        { icon: 'fa-plus-circle', iconClass: 'info', text: 'New shipment SHP-84521 created.', time: '5 hours ago' },
-        { icon: 'fa-gavel', iconClass: 'warning', text: 'You received a new bid for SHP-84520.', time: '1 day ago' }
-    ];
+    activityList.innerHTML = '<div class="no-data"><p>Loading activity...</p></div>';
 
-    activityList.innerHTML = sampleActivities.map(activity => `
-        <div class="activity-item">
-            <div class="activity-icon ${activity.type}">
-                <i class="${activity.icon}"></i>
-            </div>
-            <div class="activity-content">
-                <p>${activity.text}</p>
-                <span class="activity-time">${activity.time}</span>
-            </div>
-        </div>
-    `).join('');
+    try {
+        const { data: shipments, error } = await supabase
+            .from('shipments')
+            .select('*')
+            .eq('shipper_id', user.id)
+            .order('created_at', { ascending: false })
+            .limit(5);
+
+        if (error) throw error;
+
+        if (!shipments || shipments.length === 0) {
+            activityList.innerHTML = `
+                <div class="no-data">
+                    <i class="fas fa-clock" style="font-size: 3rem; color: var(--text-lighter); margin-bottom: 1rem;"></i>
+                    <p>No recent activity</p>
+                </div>
+            `;
+            return;
+        }
+
+        activityList.innerHTML = shipments.map(shipment => {
+            const timeAgo = getTimeAgo(new Date(shipment.created_at));
+            let icon, iconClass, text;
+            
+            if (shipment.status === 'delivered') {
+                icon = 'fa-check-circle';
+                iconClass = 'success';
+                text = `Shipment #${shipment.id.slice(-8)} was delivered`;
+            } else if (shipment.status === 'in_transit') {
+                icon = 'fa-truck';
+                iconClass = 'info';
+                text = `Shipment #${shipment.id.slice(-8)} is in transit`;
+            } else if (shipment.status === 'accepted') {
+                icon = 'fa-gavel';
+                iconClass = 'warning';
+                text = `Shipment #${shipment.id.slice(-8)} was accepted by carrier`;
+            } else {
+                icon = 'fa-plus-circle';
+                iconClass = 'info';
+                text = `Shipment #${shipment.id.slice(-8)} created`;
+            }
+
+            return `
+                <div class="activity-item">
+                    <div class="activity-icon ${iconClass}">
+                        <i class="fas ${icon}"></i>
+                    </div>
+                    <div class="activity-content">
+                        <p>${text}</p>
+                        <span class="activity-time">${timeAgo}</span>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    } catch (err) {
+        console.error('Error loading activity:', err);
+        activityList.innerHTML = '<div class="no-data" style="color: var(--danger);">Failed to load activity.</div>';
+    }
+}
+
+function getTimeAgo(date) {
+    const seconds = Math.floor((new Date() - date) / 1000);
+    const intervals = {
+        year: 31536000,
+        month: 2592000,
+        week: 604800,
+        day: 86400,
+        hour: 3600,
+        minute: 60
+    };
+
+    for (const [unit, secondsInUnit] of Object.entries(intervals)) {
+        const interval = Math.floor(seconds / secondsInUnit);
+        if (interval >= 1) {
+            return `${interval} ${unit}${interval > 1 ? 's' : ''} ago`;
+        }
+    }
+    return 'Just now';
 }
 
 async function loadAvailableTrucks() {
@@ -188,3 +252,24 @@ async function loadAvailableTrucks() {
         trucksGrid.innerHTML = '<div class="no-data" style="color: var(--danger);">Failed to load trucks.</div>';
     }
 }
+async function loadStats(user) {
+    try {
+        const { data: shipments, error } = await supabase
+            .from('shipments')
+            .select('*')
+            .eq('shipper_id', user.id);
+
+        if (error) throw error;
+
+        const activeCount = shipments.filter(s => ['pending', 'accepted', 'in_transit'].includes(s.status)).length;
+        const deliveredCount = shipments.filter(s => s.status === 'delivered').length;
+        const totalCount = shipments.length;
+
+        document.getElementById('activeCount').textContent = activeCount;
+        document.getElementById('totalCount').textContent = totalCount;
+        document.getElementById('deliveredCount').textContent = deliveredCount;
+    } catch (err) {
+        console.error('Error loading stats:', err);
+    }
+}
+
