@@ -460,13 +460,20 @@ body {
         align-items: stretch;
     }
     
+    .map-container {
+        height: 400px;
+    }
+    
     .map-overlay {
+        position: static;
         flex-direction: column;
         align-items: stretch;
+        margin-top: 1rem;
     }
     
     .info-card {
         max-width: none;
+        position: relative;
     }
     
     .timeline {
