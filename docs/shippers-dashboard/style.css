@@ -918,3 +918,158 @@ button.btn-secondary:hover {
     align-items: stretch;
   }
 }
+
+/* ===== BIDS PAGE ===== */
+.bids-filters {
+  background: var(--gradient-card);
+  border-radius: var(--border-radius);
+  padding: 2rem;
+  margin-bottom: 2rem;
+  border: 1px solid var(--gray-light);
+  box-shadow: var(--shadow-md);
+  display: flex;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+.bids-list {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.bid-card {
+  background: var(--gradient-card);
+  border-radius: var(--border-radius);
+  padding: 2rem;
+  border: 1px solid var(--gray-light);
+  box-shadow: var(--shadow-md);
+  transition: all 0.3s ease;
+}
+
+.bid-card:hover {
+  border-color: var(--primary);
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-lg);
+}
+
+.bid-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--gray-light);
+}
+
+.shipment-info h4 {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 0.5rem;
+}
+
+.shipment-info p {
+  color: var(--text-lighter);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.carrier-bid {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.carrier-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.carrier-avatar {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: var(--gradient-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  color: white;
+}
+
+.carrier-details h5 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 0.5rem;
+}
+
+.carrier-rating {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: var(--warning);
+}
+
+.carrier-rating span {
+  margin-left: 0.5rem;
+  color: var(--text-lighter);
+  font-size: 0.9rem;
+}
+
+.bid-details {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  background: var(--dark-light);
+  border-radius: var(--border-radius-sm);
+  border: 1px solid var(--gray-light);
+}
+
+.bid-price {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.price-label {
+  color: var(--text-lighter);
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.price-value {
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--primary);
+}
+
+.bid-actions {
+  display: flex;
+  gap: 1rem;
+}
+
+/* Responsive for Bids */
+@media (max-width: 768px) {
+  .bids-filters {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .bid-header {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .bid-details {
+    flex-direction: column;
+    gap: 1.5rem;
+    align-items: stretch;
+  }
+  
+  .bid-actions {
+    flex-direction: column;
+  }
+}
