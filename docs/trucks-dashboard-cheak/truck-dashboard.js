@@ -265,8 +265,13 @@ document.addEventListener('DOMContentLoaded', async () => {
                 method: 'POST',
                 headers: { Authorization: `Bearer ${session.access_token}` }
             });
-            if (!res.ok) throw new Error('Failed to accept load');
+            if (!res.ok) {
+                const errorData = await res.json();
+                throw new Error(errorData.error || 'Failed to accept load');
+            }
             alert('Load accepted successfully! You can now start the shipment.');
+            // Wait a moment for database to update
+            await new Promise(resolve => setTimeout(resolve, 500));
             loadAvailableLoads(); // Refresh the list to remove the accepted load
             loadAcceptedShipments(user);
         } catch (err) {
