@@ -87,29 +87,31 @@ async function loadActiveShipments(user) {
             .from('shipments')
             .select('*')
             .eq('shipper_id', user.id)
-            .order('created_at', { ascending: false }) // Show newest first
-            .limit(5); // Limit to the 5 most recent
+            .in('status', ['pending', 'accepted', 'in_transit'])
+            .order('created_at', { ascending: false })
+            .limit(5);
 
         if (error) throw error;
 
         if (shipments.length === 0) {
             shipmentsList.innerHTML = `
                 <div class="no-data">
-                    <i class="fas fa-box-open"></i>
-                    <p>No active shipments. <a href="../create-shipment/create-shipment.html">Create one now!</a></p>
+                    <i class="fas fa-box-open" style="font-size: 3rem; color: var(--text-lighter); margin-bottom: 1rem;"></i>
+                    <p>No active shipments. <a href="../create-shipment/create-shipment.html" style="color: var(--primary);">Create one now!</a></p>
                 </div>
             `;
         } else {
             shipmentsList.innerHTML = shipments.map(shipment => `
             <div class="shipment-card">
                 <div class="shipment-info">
-                    <h4>${shipment.goods_description}</h4>
+                    <h4>${shipment.goods_description || 'Shipment'}</h4>
                     <div class="shipment-details">
-                        <span><i class="fas fa-map-marker-alt"></i> From: ${shipment.origin_address}</span>
-                        <span><i class="fas fa-arrow-right"></i> To: ${shipment.destination_address}</span>
+                        <span><i class="fas fa-map-marker-alt"></i> ${shipment.origin_address}</span>
+                        <span><i class="fas fa-arrow-right"></i> ${shipment.destination_address}</span>
+                        <span><i class="fas fa-weight"></i> ${shipment.weight_kg || 0} kg</span>
                     </div>
                 </div>
-                <div class="shipment-status status-${shipment.status.toLowerCase()}">${shipment.status}</div>
+                <div class="shipment-status status-${shipment.status.toLowerCase()}">${shipment.status.toUpperCase()}</div>
             </div>
         `).join('');
         }
@@ -140,28 +142,49 @@ function loadRecentActivity() {
     `).join('');
 }
 
-function loadAvailableTrucks() {
+async function loadAvailableTrucks() {
     const trucksGrid = document.getElementById('trucksGrid');
-    const sampleTrucks = [
-        { name: 'Fuso Canter', type: 'Box Truck', location: 'Bole, Addis Ababa', rating: 4.8 },
-        { name: 'Sino Truck', type: 'Flatbed', location: 'Kality, Addis Ababa', rating: 4.9 },
-        { name: 'Isuzu NPR', type: 'Refrigerated', location: 'Sarbet, Addis Ababa', rating: 4.7 }
-    ];
+    trucksGrid.innerHTML = '<div class="no-data"><p>Loading available trucks...</p></div>';
 
-    trucksGrid.innerHTML = sampleTrucks.map(truck => `
-        <div class="truck-card">
-            <div class="truck-header">
-                <span class="truck-name">${truck.name}</span>
-                <span class="truck-rating"><i class="fas fa-star"></i> ${truck.rating}</span>
+    try {
+        const { data: vehicles, error } = await supabase
+            .from('vehicles')
+            .select('*')
+            .eq('status', 'approved')
+            .limit(6);
+
+        if (error) throw error;
+
+        if (!vehicles || vehicles.length === 0) {
+            trucksGrid.innerHTML = `
+                <div class="no-data">
+                    <i class="fas fa-truck" style="font-size: 3rem; color: var(--text-lighter); margin-bottom: 1rem;"></i>
+                    <p>No trucks available at the moment.</p>
+                </div>
+            `;
+            return;
+        }
+
+        trucksGrid.innerHTML = vehicles.map(truck => `
+            <div class="truck-card">
+                <div class="truck-header">
+                    <span class="truck-name">${truck.vehicle_model || 'Truck'}</span>
+                    <span class="truck-rating"><i class="fas fa-star"></i> 4.5</span>
+                </div>
+                <div class="truck-details">
+                    <div class="truck-detail"><i class="fas fa-truck"></i> ${truck.vehicle_type}</div>
+                    <div class="truck-detail"><i class="fas fa-weight"></i> ${truck.max_load_capacity} kg</div>
+                    <div class="truck-detail"><i class="fas fa-id-card"></i> ${truck.license_plate}</div>
+                </div>
+                <div class="truck-actions">
+                    <button class="btn-small btn-primary" onclick="alert('Contact feature coming soon!')">
+                        <i class="fas fa-phone"></i> Contact
+                    </button>
+                </div>
             </div>
-            <div class="truck-details">
-                <div class="truck-detail"><i class="fas fa-truck"></i> ${truck.type}</div>
-                <div class="truck-detail"><i class="fas fa-map-pin"></i> ${truck.location}</div>
-            </div>
-            <div class="truck-actions">
-                <button class="btn-small btn-secondary">View Profile</button>
-                <button class="btn-small btn-primary">Send Request</button>
-            </div>
-        </div>
-    `).join('');
+        `).join('');
+    } catch (err) {
+        console.error('Error loading trucks:', err);
+        trucksGrid.innerHTML = '<div class="no-data" style="color: var(--danger);">Failed to load trucks.</div>';
+    }
 }
