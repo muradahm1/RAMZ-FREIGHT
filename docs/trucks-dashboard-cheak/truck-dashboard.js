@@ -206,9 +206,29 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             console.log('All shipments:', shipments);
             console.log('User ID:', user.id);
+
+            // Helper to normalize possible shapes of truck owner identifier returned by the API
+            function ownerIdOf(shipment) {
+                if (!shipment) return null;
+                const v = shipment.truck_owner_id || shipment.truck_owner || null;
+                if (!v) return null;
+                // handle cases where the owner field might be an object (e.g. expanded relation)
+                if (typeof v === 'object') {
+                    return (v.id || v.user_id || v.uuid || null);
+                }
+                return String(v);
+            }
+
             const myShipments = shipments.filter(s => {
-                console.log('Checking shipment:', s.id, 'truck_owner_id:', s.truck_owner_id, 'status:', s.status);
-                return s.truck_owner_id === user.id && ['accepted','in_transit'].includes(s.status);
+                try {
+                    const sid = ownerIdOf(s);
+                    console.log('Checking shipment:', s.id, 'truck_owner_id(raw):', s.truck_owner_id, 'resolvedOwnerId:', sid, 'status:', s.status);
+                    if (!sid || !user?.id) return false;
+                    return String(sid).toLowerCase() === String(user.id).toLowerCase() && ['accepted','in_transit'].includes(s.status);
+                } catch (e) {
+                    console.warn('Error while checking shipment ownership', e);
+                    return false;
+                }
             });
             console.log('My shipments:', myShipments);
 
@@ -328,9 +348,11 @@ document.addEventListener('DOMContentLoaded', async () => {
             alert('Load accepted successfully! You can now start the shipment.');
             // Wait a moment for database to update
             await new Promise(resolve => setTimeout(resolve, 500));
-            populateDashboardStats(user);
+            // Refresh current user from Supabase to ensure id/state is current, then reload UI
+            const { data: { user: refreshedUser } } = await supabase.auth.getUser();
+            populateDashboardStats(refreshedUser || user);
             loadAvailableLoads();
-            loadAcceptedShipments(user);
+            loadAcceptedShipments(refreshedUser || user);
         } catch (err) {
             console.error('Error accepting shipment:', err);
             alert(`Failed to accept the load: ${err.message}`);
