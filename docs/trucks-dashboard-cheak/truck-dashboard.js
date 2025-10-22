@@ -130,10 +130,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (!session) throw new Error('Not authenticated');
 
             const apiUrl = (backendUrl || '').replace(/\/$/, '') + '/shipments?status=pending';
+            console.log('Fetching from:', apiUrl);
+            console.log('Backend URL:', backendUrl);
             const response = await fetch(apiUrl, {
                 headers: { Authorization: `Bearer ${session.access_token}` }
             });
-            if (!response.ok) throw new Error('Failed to fetch loads');
+            console.log('Response status:', response.status);
+            if (!response.ok) throw new Error(`Failed to fetch loads: ${response.status} ${response.statusText}`);
             const json = await response.json();
             const shipments = json?.shipments || [];
 
@@ -175,7 +178,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         } catch (err) {
             console.error('Error fetching shipments:', err);
-            postsContainer.innerHTML = '<div class="loading" style="color: var(--danger);">Failed to load available loads. Please try again.</div>';
+            console.error('Error details:', err.message);
+            postsContainer.innerHTML = `<div class="loading" style="color: var(--danger);">Failed to load available loads: ${err.message}<br>Backend: ${backendUrl}</div>`;
         }
     }
 
