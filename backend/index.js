@@ -211,6 +211,17 @@ app.post('/shipments/:id/assign', async (req, res) => {
     const { data, error } = await supabase.from('shipments').update({ truck_owner_id: user.id, status: 'accepted' }).eq('id', shipmentId).select().maybeSingle();
     if (error) return res.status(500).json({ error: error.message });
 
+    // Create notification for shipper
+    if (data && data.shipper_id) {
+      await supabase.from('notifications').insert({
+        user_id: data.shipper_id,
+        title: 'Shipment Accepted',
+        message: `Your shipment from ${data.origin_address} to ${data.destination_address} has been accepted by a truck owner.`,
+        type: 'success',
+        shipment_id: data.id
+      });
+    }
+
     res.json({ shipment: data });
   } catch (err) {
     console.error('Error in POST /shipments/:id/assign:', err);
