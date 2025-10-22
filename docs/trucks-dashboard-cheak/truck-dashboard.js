@@ -40,10 +40,17 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         // --- 2. Populate User Info ---
-        const profileName = user.user_metadata?.full_name || user.email.split('@')[0];
+        const profileName = user.user_metadata?.full_name || (user.email ? user.email.split('@')[0] : 'Driver');
         userNameEl.textContent = profileName;
-        userRoleEl.textContent = 'Truck Owner'; // Or from user_metadata if you store it
-        userAvatarEl.src = user.user_metadata?.avatar_url || `https://api.dicebear.com/8.x/initials/svg?seed=${profileName}`;
+        userRoleEl.textContent = user.user_metadata?.role || 'Truck Owner'; // Use metadata role if available
+
+        // Set avatar: prefer stored avatar_url, fall back to Dicebear initials
+        const avatarUrl = user.user_metadata?.avatar_url;
+        try {
+            userAvatarEl.src = avatarUrl || `https://api.dicebear.com/8.x/initials/svg?seed=${encodeURIComponent(profileName)}`;
+        } catch (e) {
+            userAvatarEl.src = `https://api.dicebear.com/8.x/initials/svg?seed=${encodeURIComponent(profileName)}`;
+        }
 
         // --- 3. Logout Functionality ---
         logoutBtn.addEventListener('click', async () => {
@@ -56,8 +63,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
 
         // --- 4. Load Data ---
-        loadAvailableLoads();
-        loadAcceptedShipments(user);
+    loadAvailableLoads();
+    loadAcceptedShipments(user);
+    populateDashboardStats(user);
 
         // --- 5. Event Listeners ---
         refreshBtn.addEventListener('click', () => {
@@ -69,6 +77,44 @@ document.addEventListener('DOMContentLoaded', async () => {
         postsContainer.addEventListener('click', handleBidButtonClick);
         if (acceptedContainer) {
             acceptedContainer.addEventListener('click', handleStartShipment);
+        }
+    }
+
+    /**
+     * Populate top-level dashboard statistics using backend data.
+     */
+    async function populateDashboardStats(user) {
+        try {
+            const sessionResp = await supabase.auth.getSession();
+            const session = sessionResp?.data?.session;
+            if (!session) return;
+
+            // Fetch all shipments for this truck owner or overall for stats
+            const apiUrl = (backendUrl || '').replace(/\/$/, '') + '/shipments';
+            const response = await fetch(apiUrl, { headers: { Authorization: `Bearer ${session.access_token}` } });
+            if (!response.ok) return;
+            const json = await response.json();
+            const shipments = json?.shipments || [];
+
+            // Total bookings (for this owner)
+            const myShipments = shipments.filter(s => s.truck_owner_id === user.id);
+            document.getElementById('totalBookings').textContent = myShipments.length;
+
+            // Pending requests (available loads not yet assigned)
+            const pending = shipments.filter(s => s.status === 'pending');
+            document.getElementById('pendingRequests').textContent = pending.length;
+
+            // Simple earnings estimate: sum of assigned shipments' fee field if present
+            const earnings = myShipments.reduce((sum, s) => sum + (parseFloat(s.fee) || 0), 0);
+            document.getElementById('totalEarnings').textContent = `$${earnings.toFixed(2)}`;
+
+            // Average rating placeholder: if you store ratings in shipment or separate table
+            // fallback to dash default
+            const avgRating = myShipments.length ? (myShipments.reduce((acc, s) => acc + (parseFloat(s.rating) || 0), 0) / myShipments.length) : 0;
+            document.getElementById('avgRating').textContent = avgRating ? avgRating.toFixed(1) : '—';
+
+        } catch (err) {
+            console.warn('Could not populate dashboard stats:', err);
         }
     }
 
@@ -154,7 +200,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             const json = await response.json();
             const shipments = json?.shipments || [];
 
-            const myShipments = shipments.filter(s => s.truck_owner_id === user.id && ['accepted','in_transit'].includes(s.status));
+            console.log('All shipments:', shipments);
+            console.log('User ID:', user.id);
+            const myShipments = shipments.filter(s => {
+                console.log('Checking shipment:', s.id, 'truck_owner_id:', s.truck_owner_id, 'status:', s.status);
+                return s.truck_owner_id === user.id && ['accepted','in_transit'].includes(s.status);
+            });
+            console.log('My shipments:', myShipments);
 
             if (myShipments.length === 0) {
                 acceptedContainer.innerHTML = '<div class="loading">No accepted shipments.</div>';
@@ -272,7 +324,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             alert('Load accepted successfully! You can now start the shipment.');
             // Wait a moment for database to update
             await new Promise(resolve => setTimeout(resolve, 500));
-            loadAvailableLoads(); // Refresh the list to remove the accepted load
+            populateDashboardStats(user);
+            loadAvailableLoads();
             loadAcceptedShipments(user);
         } catch (err) {
             console.error('Error accepting shipment:', err);

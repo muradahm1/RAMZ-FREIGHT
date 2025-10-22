@@ -117,7 +117,13 @@ async function loadShipmentTracking() {
         `;
         document.getElementById('driverName').textContent = truckOwnerDetails?.user_metadata?.full_name || 'N/A';
         document.getElementById('driverPhone').textContent = truckOwnerDetails?.user_metadata?.phone || 'N/A';
-        document.getElementById('vehicleInfo').textContent = 'Vehicle details not available'; // Placeholder
+        document.getElementById('vehicleInfo').textContent = truckOwnerDetails?.user_metadata?.vehicle || 'Vehicle details not available';
+
+        // Set driver photo if available
+        const driverPhotoEl = document.getElementById('driverPhoto');
+        if (driverPhotoEl) {
+            driverPhotoEl.src = truckOwnerDetails?.user_metadata?.avatar_url || `https://api.dicebear.com/8.x/initials/svg?seed=${encodeURIComponent(document.getElementById('driverName').textContent)}`;
+        }
 
         // Get latest tracking data to show current position
         const { data: latestTracking } = await supabase

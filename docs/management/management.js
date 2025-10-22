@@ -36,10 +36,51 @@ async function loadDashboardData() {
         const vehicles = vehiclesResult.status === 'fulfilled' ? vehiclesResult.value.data : [];
         
         updateStats(shipments, vehicles);
-        updateRecentShipments(shipments);
+        await updateRecentShipments(shipments);
+        await updateRecentActivity(shipments);
     } catch (error) {
         console.error('Error loading data:', error);
     }
+}
+
+async function updateRecentActivity(shipments) {
+    const activityList = document.getElementById('activityList');
+    if (!shipments?.length) {
+        activityList.innerHTML = '<div class="activity-item"><div class="activity-icon info"><i class="fas fa-info-circle"></i></div><div class="activity-details"><p>No recent activity</p><span class="activity-time">-</span></div></div>';
+        return;
+    }
+    
+    const recent = shipments.slice(-5).reverse();
+    const activities = recent.map(s => {
+        const icon = s.status === 'delivered' ? 'success' : s.status === 'pending' ? 'warning' : 'primary';
+        const iconClass = s.status === 'delivered' ? 'fa-check-circle' : s.status === 'pending' ? 'fa-clock' : 'fa-truck';
+        const message = s.status === 'delivered' ? `Shipment #${s.id.slice(-8)} delivered successfully` : 
+                       s.status === 'pending' ? `Shipment #${s.id.slice(-8)} awaiting assignment` :
+                       `Shipment #${s.id.slice(-8)} in progress`;
+        const time = getTimeAgo(s.created_at);
+        return `
+        <div class="activity-item">
+            <div class="activity-icon ${icon}">
+                <i class="fas ${iconClass}"></i>
+            </div>
+            <div class="activity-details">
+                <p>${message}</p>
+                <span class="activity-time">${time}</span>
+            </div>
+        </div>
+        `;
+    });
+    activityList.innerHTML = activities.join('');
+}
+
+function getTimeAgo(dateString) {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diff = Math.floor((now - date) / 1000);
+    if (diff < 60) return 'Just now';
+    if (diff < 3600) return `${Math.floor(diff / 60)} minutes ago`;
+    if (diff < 86400) return `${Math.floor(diff / 3600)} hours ago`;
+    return `${Math.floor(diff / 86400)} days ago`;
 }
 
 function updateStats(shipments, vehicles) {
@@ -48,31 +89,51 @@ function updateStats(shipments, vehicles) {
     const pendingShipments = shipments?.filter(s => s.status === 'pending').length || 0;
     const revenue = (totalShipments * 1500).toLocaleString();
     
-    document.querySelector('.total-shipments + .stat-info h3').textContent = totalShipments;
-    document.querySelector('.active-trucks + .stat-info h3').textContent = activeTrucks;
-    document.querySelector('.pending-shipments + .stat-info h3').textContent = pendingShipments;
-    document.querySelector('.revenue + .stat-info h3').textContent = `₦${revenue}`;
+    document.getElementById('totalShipments').textContent = totalShipments;
+    document.getElementById('activeTrucks').textContent = activeTrucks;
+    document.getElementById('pendingShipments').textContent = pendingShipments;
+    document.getElementById('monthlyRevenue').textContent = `₦${revenue}`;
 }
 
-function updateRecentShipments(shipments) {
-    const tbody = document.querySelector('.data-table tbody');
+async function updateRecentShipments(shipments) {
+    const tbody = document.getElementById('shipmentsTableBody');
     if (!shipments?.length) {
-        tbody.innerHTML = '<tr><td colspan="6">No shipments found</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">No shipments found</td></tr>';
         return;
     }
     
     const recent = shipments.slice(-5).reverse();
-    tbody.innerHTML = recent.map(s => `
+    const shippersMap = await getShippersMap();
+    const driversMap = await getDriversMap();
+    
+    tbody.innerHTML = recent.map(s => {
+        const shipperName = shippersMap[s.shipper_id] || 'Unknown Shipper';
+        const driverName = driversMap[s.driver_id] || 'Unassigned';
+        return `
         <tr>
             <td>#${s.id.slice(-8)}</td>
-            <td>Shipper</td>
-            <td>${s.origin_address} to ${s.destination_address}</td>
-            <td>Driver</td>
+            <td>${shipperName}</td>
+            <td>${s.origin_address || 'N/A'} to ${s.destination_address || 'N/A'}</td>
+            <td>${driverName}</td>
             <td><span class="status-badge ${s.status}">${s.status.toUpperCase()}</span></td>
             <td>
                 <button class="action-btn view"><i class="fas fa-eye"></i></button>
                 <button class="action-btn edit"><i class="fas fa-edit"></i></button>
             </td>
         </tr>
-    `).join('');
+    `}).join('');
+}
+
+async function getShippersMap() {
+    try {
+        const { data } = await supabase.from('shippers').select('id, company_name');
+        return data?.reduce((map, s) => ({ ...map, [s.id]: s.company_name }), {}) || {};
+    } catch { return {}; }
+}
+
+async function getDriversMap() {
+    try {
+        const { data } = await supabase.from('drivers').select('id, full_name');
+        return data?.reduce((map, d) => ({ ...map, [d.id]: d.full_name }), {}) || {};
+    } catch { return {}; }
 }
