@@ -46,6 +46,8 @@ CREATE TRIGGER on_auth_user_created
 DROP POLICY IF EXISTS "Admins can view all shipments" ON shipments;
 DROP POLICY IF EXISTS "Shippers can view own shipments" ON shipments;
 DROP POLICY IF EXISTS "Truck owners can view assigned and pending shipments" ON shipments;
+DROP POLICY IF EXISTS "Shippers can create shipments" ON shipments;
+DROP POLICY IF EXISTS "Truck owners can update assigned shipments" ON shipments;
 
 -- New secure policies using profiles table
 CREATE POLICY "Shippers can view own shipments" ON shipments
