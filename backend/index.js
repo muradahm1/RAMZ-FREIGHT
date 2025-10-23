@@ -7,10 +7,17 @@ const app = express();
 const PORT = process.env.PORT || 4000;
 
 // Replace with your actual Supabase URL and Key
-const SUPABASE_URL = 'https://sgmcuwmqmgchvnncbarb.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNnbWN1d21xbWdjaHZubmNiYXJiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkzODk5ODYsImV4cCI6MjA3NDk2NTk4Nn0.zytOCIukl2NJCq2ZSXeCo_XCOpSxH6bqV3wk9iLXqM0';
+const SUPABASE_URL = process.env.SUPABASE_URL || 'https://sgmcuwmqmgchvnncbarb.supabase.co';
+const SUPABASE_ANON_KEY = process.env.SUPABASE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNnbWN1d21xbWdjaHZubmNiYXJiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkzODk5ODYsImV4cCI6MjA3NDk2NTk4Nn0.zytOCIukl2NJCq2ZSXeCo_XCOpSxH6bqV3wk9iLXqM0';
+const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY;
 
-export const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+// Client for general operations (respects RLS)
+export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// Admin client for operations that need to bypass RLS
+export const supabaseAdmin = SUPABASE_SERVICE_KEY 
+  ? createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY)
+  : supabase;
 
 // CORS middleware
 app.use((req, res, next) => {
@@ -201,19 +208,22 @@ app.post('/shipments/:id/assign', async (req, res) => {
     const user = verification.user;
     if (!user || !user.id) return res.status(401).json({ error: 'Invalid user' });
 
+    // Use admin client to bypass RLS for this operation
+    const client = supabaseAdmin;
+
     // Load the shipment
-    const { data: existing, error: fetchErr } = await supabase.from('shipments').select('*').eq('id', shipmentId).maybeSingle();
+    const { data: existing, error: fetchErr } = await client.from('shipments').select('*').eq('id', shipmentId).maybeSingle();
     if (fetchErr) return res.status(500).json({ error: fetchErr.message });
     if (!existing) return res.status(404).json({ error: 'Shipment not found' });
     if (existing.status !== 'pending') return res.status(400).json({ error: 'Shipment is not available for assignment' });
 
-    // Assign to self
-    const { data, error } = await supabase.from('shipments').update({ truck_owner_id: user.id, status: 'accepted' }).eq('id', shipmentId).select().maybeSingle();
+    // Assign to self using admin client
+    const { data, error } = await client.from('shipments').update({ truck_owner_id: user.id, status: 'accepted' }).eq('id', shipmentId).select().maybeSingle();
     if (error) return res.status(500).json({ error: error.message });
 
     // Create notification for shipper
     if (data && data.shipper_id) {
-      await supabase.from('notifications').insert({
+      await client.from('notifications').insert({
         user_id: data.shipper_id,
         title: 'Shipment Accepted',
         message: `Your shipment from ${data.origin_address} to ${data.destination_address} has been accepted by a truck owner.`,
