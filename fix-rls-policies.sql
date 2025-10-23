@@ -58,13 +58,18 @@ USING (
   auth.uid() = truck_owner_id
 );
 
--- Policy: Truck owners can update assigned shipments
-CREATE POLICY "Truck owners update assigned shipments"
+-- Policy: Truck owners can update shipments (assign themselves or update assigned)
+CREATE POLICY "Truck owners update shipments"
 ON shipments
 FOR UPDATE
 TO authenticated
-USING (auth.uid() = truck_owner_id)
-WITH CHECK (auth.uid() = truck_owner_id);
+USING (
+  status = 'pending' OR 
+  auth.uid() = truck_owner_id
+)
+WITH CHECK (
+  auth.uid() = truck_owner_id
+);
 
 -- Policy: Admins can view all (using secure profiles table)
 CREATE POLICY "Admins view all shipments"

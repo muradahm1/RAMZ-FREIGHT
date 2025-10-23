@@ -1,4 +1,4 @@
-import { supabase } from '../assets/supabaseClient.js';
+import { supabase, supabaseReady } from '../assets/supabaseClient.js';
 import { ADMIN_CONFIG } from '../assets/adminAccess.js';
 
 // Internal Management Dashboard - Admin Access
@@ -8,6 +8,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.body.innerHTML = '<div style="text-align:center;padding:50px;"><h2>Access Denied</h2><p>Internal Admin Access Required</p></div>';
         return;
     }
+    
+    // Wait for Supabase to be ready
+    await supabaseReady;
+    
     // Set admin user info
     document.querySelector('.user-name').textContent = 'System Admin';
     document.querySelector('.user-role').textContent = 'Administrator';
