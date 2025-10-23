@@ -76,7 +76,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Use event delegation for dynamically created buttons
         postsContainer.addEventListener('click', handleBidButtonClick);
         if (acceptedContainer) {
-            acceptedContainer.addEventListener('click', handleStartShipment);
+            acceptedContainer.addEventListener('click', (e) => {
+                handleStartShipment(e);
+                handleDeliverShipment(e);
+            });
         }
     }
 
@@ -279,8 +282,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                             `<button class="start-btn" data-shipment-id="${shipment.id}">
                                 <i class="fas fa-play"></i> Start Shipment
                             </button>` :
-                            `<button class="track-btn" onclick="window.open('../live-tracking/live-tracking.html', '_blank')">
-                                <i class="fas fa-map-marked-alt"></i> View Tracking
+                            `<button class="deliver-btn" data-shipment-id="${shipment.id}">
+                                <i class="fas fa-check-circle"></i> Mark as Delivered
                             </button>`
                         }
                     </div>
@@ -324,6 +327,40 @@ document.addEventListener('DOMContentLoaded', async () => {
         } catch (err) {
             console.error('Error starting shipment:', err);
             alert(`Failed to start shipment: ${err.message}`);
+        }
+    }
+
+    /**
+     * Handle marking shipment as delivered
+     */
+    async function handleDeliverShipment(event) {
+        if (!event.target.matches('.deliver-btn, .deliver-btn *')) return;
+
+        const button = event.target.closest('.deliver-btn');
+        const shipmentId = button.dataset.shipmentId;
+
+        if (!confirm('Mark this shipment as delivered?')) {
+            return;
+        }
+
+        try {
+            // Update shipment status to delivered
+            const { error } = await supabase
+                .from('shipments')
+                .update({ status: 'delivered' })
+                .eq('id', shipmentId);
+
+            if (error) throw error;
+
+            // Stop location tracking
+            await locationTracker.stopTracking();
+            
+            alert('Shipment marked as delivered!');
+            const { data: { user } } = await supabase.auth.getUser();
+            loadAcceptedShipments(user);
+        } catch (err) {
+            console.error('Error delivering shipment:', err);
+            alert(`Failed to mark as delivered: ${err.message}`);
         }
     }
 
