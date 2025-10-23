@@ -153,7 +153,7 @@ app.get('/shipments', async (req, res) => {
     const user = verification.user;
     if (!user || !user.id) return res.status(401).json({ error: 'Invalid user' });
 
-    // Determine role: first check user.user_metadata, then profiles table
+    // Determine role
     let role = user?.user_metadata?.user_role || null;
     if (!role) {
       const { data: profile, error: profileError } = await supabase
@@ -165,33 +165,35 @@ app.get('/shipments', async (req, res) => {
       if (profileError) console.warn('profiles lookup error:', profileError.message || profileError);
     }
 
-    const statusFilter = req.query.status; // optional ?status=pending
+    const statusFilter = req.query.status;
+    
+    // Use admin client to bypass RLS for truck owners
+    const client = (role === 'truck_owner' || role === 'truck') ? supabaseAdmin : supabase;
 
-    let query = supabase.from('shipments').select('*').order('created_at', { ascending: false });
+    let query = client.from('shipments').select('*').order('created_at', { ascending: false });
 
     if (role === 'shipper' || role === 'shipper_user') {
       query = query.eq('shipper_id', user.id);
     } else if (role === 'truck_owner' || role === 'truck') {
-      // truck owners should see shipments assigned to them and pending/unassigned shipments
-      // We'll fetch shipments where truck_owner_id == user.id OR status == 'pending'
-      // Supabase JS doesn't allow OR easily without rpc; use filter via or()
-      // Example: .or(`truck_owner_id.eq.${user.id},status.eq.pending`)
-      query = supabase.from('shipments').select('*').or(`truck_owner_id.eq.${user.id},status.eq.pending`).order('created_at', { ascending: false });
+      // Truck owners see: their assigned shipments OR pending shipments
+      query = query.or(`truck_owner_id.eq.${user.id},status.eq.pending`);
     } else if (role === 'manager' || role === 'admin' || role === 'management') {
-      // no additional filters; managers see all
+      // Managers see all
     } else {
-      // default to no access
       return res.status(403).json({ error: 'Insufficient permissions to view shipments' });
     }
 
     if (statusFilter) {
-      // apply status filter on top (note: for truck_owner case, re-run a refined query)
       query = query.filter('status', 'eq', statusFilter);
     }
 
     const { data, error } = await query;
-    if (error) return res.status(500).json({ error: error.message });
+    if (error) {
+      console.error('Query error:', error);
+      return res.status(500).json({ error: error.message });
+    }
 
+    console.log(`User ${user.id} (${role}) fetched ${data?.length || 0} shipments`);
     res.json({ shipments: data });
   } catch (err) {
     console.error('Error in GET /shipments:', err);
