@@ -222,15 +222,28 @@ document.addEventListener('DOMContentLoaded', async () => {
             const myShipments = shipments.filter(s => {
                 try {
                     const sid = ownerIdOf(s);
-                    console.log('Checking shipment:', s.id, 'truck_owner_id(raw):', s.truck_owner_id, 'resolvedOwnerId:', sid, 'status:', s.status);
+                    const userIdStr = String(user.id).trim();
+                    const shipmentOwnerStr = String(sid || '').trim();
+                    
+                    console.log('=== Checking Shipment ===');
+                    console.log('Shipment ID:', s.id);
+                    console.log('truck_owner_id (raw):', s.truck_owner_id);
+                    console.log('Resolved Owner ID:', sid);
+                    console.log('Current User ID:', user.id);
+                    console.log('Status:', s.status);
+                    console.log('Match?', shipmentOwnerStr === userIdStr, '&& Status OK?', ['accepted','in_transit'].includes(s.status));
+                    console.log('========================');
+                    
                     if (!sid || !user?.id) return false;
-                    return String(sid).toLowerCase() === String(user.id).toLowerCase() && ['accepted','in_transit'].includes(s.status);
+                    return shipmentOwnerStr === userIdStr && ['accepted','in_transit'].includes(s.status);
                 } catch (e) {
                     console.warn('Error while checking shipment ownership', e);
                     return false;
                 }
             });
-            console.log('My shipments:', myShipments);
+            console.log('Total shipments fetched:', shipments.length);
+            console.log('My accepted shipments:', myShipments.length);
+            console.log('My shipments data:', myShipments);
 
             if (myShipments.length === 0) {
                 acceptedContainer.innerHTML = '<div class="loading">No accepted shipments.</div>';
