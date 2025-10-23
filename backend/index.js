@@ -106,7 +106,7 @@ app.post('/shipments', async (req, res) => {
     const token = match[1];
 
     // Create Supabase client with user's token for RLS
-    const userSupabase = createClient(SUPABASE_URL, SUPABASE_KEY, {
+    const userSupabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
       global: { headers: { Authorization: `Bearer ${token}` } }
     });
 
