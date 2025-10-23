@@ -196,7 +196,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             const session = sessionResp?.data?.session;
             if (!session) throw new Error('Not authenticated');
 
+            // Don't filter by status - get all shipments and filter client-side
             const apiUrl = (backendUrl || '').replace(/\/$/, '') + '/shipments';
+            console.log('Fetching accepted shipments from:', apiUrl);
             const response = await fetch(apiUrl, {
                 headers: { Authorization: `Bearer ${session.access_token}` }
             });
