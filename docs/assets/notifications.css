@@ -35,17 +35,17 @@
 
 /* Notification Panel */
 .notification-panel {
-    position: fixed;
-    top: 70px;
-    right: 20px;
-    width: 380px;
-    max-height: 500px;
-    background: white;
-    border-radius: 12px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
-    z-index: 1000;
-    overflow: hidden;
-    animation: slideIn 0.3s ease;
+    position: fixed !important;
+    top: 70px !important;
+    right: 20px !important;
+    width: 380px !important;
+    max-height: 500px !important;
+    background: white !important;
+    border-radius: 12px !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15) !important;
+    z-index: 10000 !important;
+    overflow: hidden !important;
+    animation: slideIn 0.3s ease !important;
 }
 
 @keyframes slideIn {
@@ -60,18 +60,19 @@
 }
 
 .notification-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 16px 20px;
-    border-bottom: 1px solid #eee;
-    background: #f8f9fa;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    padding: 16px 20px !important;
+    border-bottom: 1px solid #eee !important;
+    background: #f8f9fa !important;
 }
 
 .notification-header h3 {
-    margin: 0;
-    font-size: 18px;
-    color: #333;
+    margin: 0 !important;
+    font-size: 18px !important;
+    color: #333 !important;
+    font-weight: 600 !important;
 }
 
 .close-notifications {
@@ -95,79 +96,82 @@
 }
 
 .notification-list {
-    max-height: 440px;
-    overflow-y: auto;
+    max-height: 440px !important;
+    overflow-y: auto !important;
+    background: white !important;
 }
 
 .notification-item {
-    display: flex;
-    gap: 12px;
-    padding: 16px 20px;
-    border-bottom: 1px solid #f0f0f0;
-    transition: background-color 0.3s;
+    display: flex !important;
+    gap: 12px !important;
+    padding: 16px 20px !important;
+    border-bottom: 1px solid #f0f0f0 !important;
+    transition: background-color 0.3s !important;
+    background: white !important;
 }
 
 .notification-item:hover {
-    background-color: #f8f9fa;
+    background-color: #f8f9fa !important;
 }
 
 .notification-item.unread {
-    background-color: #f0f7ff;
+    background-color: #f0f7ff !important;
 }
 
 .notification-icon {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
+    width: 40px !important;
+    height: 40px !important;
+    border-radius: 50% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex-shrink: 0 !important;
 }
 
 .notification-icon.success {
-    background-color: #d4edda;
-    color: #28a745;
+    background-color: #d4edda !important;
+    color: #28a745 !important;
 }
 
 .notification-icon.info {
-    background-color: #d1ecf1;
-    color: #17a2b8;
+    background-color: #d1ecf1 !important;
+    color: #17a2b8 !important;
 }
 
 .notification-icon.warning {
-    background-color: #fff3cd;
-    color: #ffc107;
+    background-color: #fff3cd !important;
+    color: #ffc107 !important;
 }
 
 .notification-content {
-    flex: 1;
+    flex: 1 !important;
 }
 
 .notification-content h4 {
-    margin: 0 0 4px 0;
-    font-size: 14px;
-    font-weight: 600;
-    color: #333;
+    margin: 0 0 4px 0 !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    color: #333 !important;
 }
 
 .notification-content p {
-    margin: 0 0 6px 0;
-    font-size: 13px;
-    color: #666;
-    line-height: 1.4;
+    margin: 0 0 6px 0 !important;
+    font-size: 13px !important;
+    color: #666 !important;
+    line-height: 1.4 !important;
 }
 
 .notification-time {
-    font-size: 11px;
-    color: #999;
+    font-size: 11px !important;
+    color: #999 !important;
 }
 
 .no-notifications {
-    padding: 40px 20px;
-    text-align: center;
-    color: #999;
-    font-size: 14px;
+    padding: 40px 20px !important;
+    text-align: center !important;
+    color: #999 !important;
+    font-size: 14px !important;
+    background: white !important;
 }
 
 /* Mobile Responsive */

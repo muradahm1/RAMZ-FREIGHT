@@ -35,58 +35,57 @@ export class NotificationManager {
 
     generateNotifications(shipments) {
         const notifications = [];
-        const now = new Date();
 
         shipments.forEach(shipment => {
             const createdAt = new Date(shipment.created_at);
-            const isRecent = (now - createdAt) < 24 * 60 * 60 * 1000; // Last 24 hours
+            const updatedAt = new Date(shipment.updated_at || shipment.created_at);
 
             if (this.userRole === 'shipper') {
                 // Notifications for shippers
-                if (shipment.status === 'accepted' && isRecent) {
+                if (shipment.status === 'accepted') {
                     notifications.push({
                         id: `${shipment.id}-accepted`,
                         type: 'success',
                         title: 'Shipment Accepted',
                         message: `Your shipment "${shipment.goods_description}" has been accepted by a carrier`,
-                        time: createdAt,
+                        time: updatedAt,
                         read: false,
                         shipmentId: shipment.id
                     });
-                } else if (shipment.status === 'picked_up' && isRecent) {
+                } else if (shipment.status === 'picked_up') {
                     notifications.push({
                         id: `${shipment.id}-picked_up`,
                         type: 'info',
                         title: 'Items Picked Up',
                         message: `Your shipment "${shipment.goods_description}" has been picked up`,
-                        time: createdAt,
+                        time: updatedAt,
                         read: false,
                         shipmentId: shipment.id
                     });
-                } else if (shipment.status === 'in_transit' && isRecent) {
+                } else if (shipment.status === 'in_transit') {
                     notifications.push({
                         id: `${shipment.id}-in_transit`,
                         type: 'info',
                         title: 'Shipment In Transit',
                         message: `Your shipment "${shipment.goods_description}" is on the way`,
-                        time: createdAt,
+                        time: updatedAt,
                         read: false,
                         shipmentId: shipment.id
                     });
-                } else if (shipment.status === 'delivered' && isRecent) {
+                } else if (shipment.status === 'delivered') {
                     notifications.push({
                         id: `${shipment.id}-delivered`,
                         type: 'success',
                         title: 'Shipment Delivered',
                         message: `Your shipment "${shipment.goods_description}" has been delivered`,
-                        time: createdAt,
+                        time: updatedAt,
                         read: false,
                         shipmentId: shipment.id
                     });
                 }
             } else if (this.userRole === 'truck_owner') {
                 // Notifications for truck owners
-                if (shipment.status === 'pending' && isRecent && !shipment.truck_owner_id) {
+                if (shipment.status === 'pending' && !shipment.truck_owner_id) {
                     notifications.push({
                         id: `${shipment.id}-new`,
                         type: 'info',
