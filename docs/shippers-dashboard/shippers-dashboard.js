@@ -1,4 +1,5 @@
 import { supabase, supabaseReady } from '../assets/supabaseClient.js';
+import { notificationManager } from '../assets/notifications.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
     const userProfile = document.querySelector('.user-profile');
@@ -75,59 +76,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         loadActiveShipments(user);
         loadRecentActivity(user);
         loadAvailableTrucks();
-        loadNotifications(user);
+        notificationManager.init(user.id, 'shipper');
     }
 
-    async function loadNotifications(user) {
-        try {
-            const { data: notifications, error } = await supabase
-                .from('notifications')
-                .select('*')
-                .eq('user_id', user.id)
-                .eq('read', false)
-                .order('created_at', { ascending: false })
-                .limit(5);
 
-            if (error) throw error;
-
-            if (notifications && notifications.length > 0) {
-                notifications.forEach(notif => {
-                    showNotification(notif.title, notif.message, notif.type, notif.id);
-                });
-            }
-        } catch (err) {
-            console.error('Error loading notifications:', err);
-        }
-    }
-
-    function showNotification(title, message, type = 'info', notifId) {
-        const notification = document.createElement('div');
-        notification.className = `notification notification-${type}`;
-        notification.innerHTML = `
-            <strong>${title}</strong>
-            <p>${message}</p>
-        `;
-        notification.style.cssText = `
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: white;
-            padding: 15px 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            max-width: 350px;
-            z-index: 9999;
-            border-left: 4px solid ${type === 'success' ? '#4CAF50' : '#2196F3'};
-        `;
-        document.body.appendChild(notification);
-        
-        // Mark as read after showing
-        if (notifId) {
-            supabase.from('notifications').update({ read: true }).eq('id', notifId).then();
-        }
-        
-        setTimeout(() => notification.remove(), 5000);
-    }
 });
 
 

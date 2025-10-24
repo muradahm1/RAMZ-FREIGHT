@@ -1,5 +1,6 @@
 import { supabase, backendUrl, supabaseReady } from '../assets/supabaseClient.js';
 import { locationTracker } from '../assets/locationTracker.js';
+import { notificationManager } from '../assets/notifications.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
     const userNameEl = document.getElementById('userName');
@@ -66,6 +67,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     loadAvailableLoads();
     loadAcceptedShipments(user);
     populateDashboardStats(user);
+    notificationManager.init(user.id, 'truck_owner');
 
         // --- 5. Event Listeners ---
         refreshBtn.addEventListener('click', () => {
