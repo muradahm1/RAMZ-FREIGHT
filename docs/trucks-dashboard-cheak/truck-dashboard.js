@@ -77,6 +77,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         postsContainer.addEventListener('click', handleBidButtonClick);
         if (acceptedContainer) {
             acceptedContainer.addEventListener('click', (e) => {
+                handlePickupShipment(e);
                 handleStartShipment(e);
                 handleDeliverShipment(e);
             });
@@ -230,17 +231,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                     const userIdStr = String(user.id).trim();
                     const shipmentOwnerStr = String(sid || '').trim();
                     
-                    console.log('=== Checking Shipment ===');
-                    console.log('Shipment ID:', s.id);
-                    console.log('truck_owner_id (raw):', s.truck_owner_id);
-                    console.log('Resolved Owner ID:', sid);
-                    console.log('Current User ID:', user.id);
-                    console.log('Status:', s.status);
-                    console.log('Match?', shipmentOwnerStr === userIdStr, '&& Status OK?', ['accepted','in_transit'].includes(s.status));
-                    console.log('========================');
-                    
                     if (!sid || !user?.id) return false;
-                    return shipmentOwnerStr === userIdStr && ['accepted','in_transit'].includes(s.status);
+                    return shipmentOwnerStr === userIdStr && ['accepted','picked_up','in_transit'].includes(s.status);
                 } catch (e) {
                     console.warn('Error while checking shipment ownership', e);
                     return false;
@@ -255,40 +247,50 @@ document.addEventListener('DOMContentLoaded', async () => {
                 return;
             }
 
-            acceptedContainer.innerHTML = myShipments.map(shipment => `
-                <div class="post-card">
-                    <div class="post-header">
-                        <div>
-                            <h3 class="post-title">${shipment.goods_description}</h3>
-                            <div class="post-meta">
-                                <span><i class="fas fa-map-marker-alt"></i> ${shipment.origin_address} to ${shipment.destination_address}</span>
-                                <span><i class="fas fa-weight-hanging"></i> ${shipment.weight_kg} kg</span>
+            acceptedContainer.innerHTML = myShipments.map(shipment => {
+                let actionButton = '';
+                if (shipment.status === 'accepted') {
+                    actionButton = `<button class="pickup-btn" data-shipment-id="${shipment.id}">
+                        <i class="fas fa-box-open"></i> Mark as Picked Up
+                    </button>`;
+                } else if (shipment.status === 'picked_up') {
+                    actionButton = `<button class="start-btn" data-shipment-id="${shipment.id}">
+                        <i class="fas fa-truck"></i> Mark as In Transit
+                    </button>`;
+                } else if (shipment.status === 'in_transit') {
+                    actionButton = `<button class="deliver-btn" data-shipment-id="${shipment.id}">
+                        <i class="fas fa-check-circle"></i> Mark as Delivered
+                    </button>`;
+                }
+                
+                return `
+                    <div class="post-card">
+                        <div class="post-header">
+                            <div>
+                                <h3 class="post-title">${shipment.goods_description}</h3>
+                                <div class="post-meta">
+                                    <span><i class="fas fa-map-marker-alt"></i> ${shipment.origin_address} to ${shipment.destination_address}</span>
+                                    <span><i class="fas fa-weight-hanging"></i> ${shipment.weight_kg} kg</span>
+                                </div>
+                            </div>
+                            <span class="status-badge status-${shipment.status}">${shipment.status.replace('_', ' ').toUpperCase()}</span>
+                        </div>
+                        <div class="post-details">
+                            <div class="detail-item">
+                                <i class="fas fa-box"></i>
+                                <span>Goods Type: <strong>${shipment.goods_type}</strong></span>
+                            </div>
+                            <div class="detail-item">
+                                <i class="fas fa-calendar-alt"></i>
+                                <span>Pickup: <strong>${new Date(shipment.pickup_datetime).toLocaleString()}</strong></span>
                             </div>
                         </div>
-                        <span class="status-badge status-${shipment.status}">${shipment.status.replace('_', ' ').toUpperCase()}</span>
-                    </div>
-                    <div class="post-details">
-                        <div class="detail-item">
-                            <i class="fas fa-box"></i>
-                            <span>Goods Type: <strong>${shipment.goods_type}</strong></span>
-                        </div>
-                        <div class="detail-item">
-                            <i class="fas fa-calendar-alt"></i>
-                            <span>Pickup: <strong>${new Date(shipment.pickup_datetime).toLocaleString()}</strong></span>
+                        <div class="bid-section">
+                            ${actionButton}
                         </div>
                     </div>
-                    <div class="bid-section">
-                        ${shipment.status === 'accepted' ? 
-                            `<button class="start-btn" data-shipment-id="${shipment.id}">
-                                <i class="fas fa-play"></i> Start Shipment
-                            </button>` :
-                            `<button class="deliver-btn" data-shipment-id="${shipment.id}">
-                                <i class="fas fa-check-circle"></i> Mark as Delivered
-                            </button>`
-                        }
-                    </div>
-                </div>
-            `).join('');
+                `;
+            }).join('');
 
         } catch (err) {
             console.error('Error fetching accepted shipments:', err);
@@ -297,7 +299,37 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     /**
-     * Handle starting a shipment
+     * Handle marking shipment as picked up
+     */
+    async function handlePickupShipment(event) {
+        if (!event.target.matches('.pickup-btn, .pickup-btn *')) return;
+
+        const button = event.target.closest('.pickup-btn');
+        const shipmentId = button.dataset.shipmentId;
+
+        if (!confirm('Have you picked up the items from the shipper?')) {
+            return;
+        }
+
+        try {
+            const { error } = await supabase
+                .from('shipments')
+                .update({ status: 'picked_up' })
+                .eq('id', shipmentId);
+
+            if (error) throw error;
+            
+            alert('Shipment marked as picked up!');
+            const { data: { user } } = await supabase.auth.getUser();
+            loadAcceptedShipments(user);
+        } catch (err) {
+            console.error('Error marking as picked up:', err);
+            alert(`Failed to mark as picked up: ${err.message}`);
+        }
+    }
+
+    /**
+     * Handle starting shipment (in transit)
      */
     async function handleStartShipment(event) {
         if (!event.target.matches('.start-btn, .start-btn *')) return;
@@ -305,12 +337,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         const button = event.target.closest('.start-btn');
         const shipmentId = button.dataset.shipmentId;
 
-        if (!confirm('Are you ready to start this shipment? This will begin live tracking.')) {
+        if (!confirm('Are you on the way to deliver? This will begin live tracking.')) {
             return;
         }
 
         try {
-            // Update shipment status
             const { error } = await supabase
                 .from('shipments')
                 .update({ status: 'in_transit' })
@@ -321,7 +352,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             // Start location tracking
             await locationTracker.startTracking(shipmentId);
             
-            alert('Shipment started! Live tracking is now active.');
+            alert('Shipment in transit! Live tracking is now active.');
             const { data: { user } } = await supabase.auth.getUser();
             loadAcceptedShipments(user);
         } catch (err) {
