@@ -1,4 +1,9 @@
 export function initHamburgerMenu(menuItems, userInfo) {
+    // Check if hamburger already exists
+    if (document.querySelector('.hamburger-menu-icon')) {
+        return { logoutBtn: document.querySelector('#menuLogoutBtn'), close: () => {} };
+    }
+    
     // Create hamburger icon
     const hamburger = document.createElement('div');
     hamburger.className = 'hamburger-menu-icon';
@@ -55,9 +60,12 @@ export function initHamburgerMenu(menuItems, userInfo) {
     document.body.appendChild(overlay);
     document.body.appendChild(slideMenu);
 
-    // Add hamburger to header
+    // Add hamburger to header (prioritize header-actions for shipper, header-right for truck)
     const headerActions = document.querySelector('.header-actions') || document.querySelector('.header-right');
     if (headerActions) {
+        // Remove any existing hamburger icons first
+        const existingHamburger = headerActions.querySelector('.hamburger-menu-icon');
+        if (existingHamburger) existingHamburger.remove();
         headerActions.insertBefore(hamburger, headerActions.firstChild);
     }
 

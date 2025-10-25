@@ -1,6 +1,6 @@
 /* Hamburger Icon */
 .hamburger-menu-icon {
-    display: none;
+    display: flex;
     flex-direction: column;
     gap: 5px;
     cursor: pointer;
@@ -40,7 +40,7 @@
     right: -100%;
     width: 320px;
     height: 100vh;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
     box-shadow: -5px 0 25px rgba(0, 0, 0, 0.3);
     z-index: 10001;
     transition: right 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
@@ -207,12 +207,8 @@
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
 }
 
-/* Show hamburger on mobile */
+/* Responsive adjustments */
 @media (max-width: 768px) {
-    .hamburger-menu-icon {
-        display: flex;
-    }
-    
     .slide-menu {
         width: 280px;
     }
