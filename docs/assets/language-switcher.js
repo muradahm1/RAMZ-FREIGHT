@@ -29,8 +29,13 @@ export function createLanguageSwitcher() {
 
 // Auto-add to header
 document.addEventListener('DOMContentLoaded', () => {
-    const headerActions = document.querySelector('.header-actions') || document.querySelector('.header-right');
-    if (headerActions) {
-        headerActions.insertBefore(createLanguageSwitcher(), headerActions.firstChild);
+    const langContainer = document.getElementById('langSwitcher');
+    if (langContainer) {
+        langContainer.appendChild(createLanguageSwitcher());
+    } else {
+        const headerActions = document.querySelector('.header-actions') || document.querySelector('.header-right');
+        if (headerActions) {
+            headerActions.insertBefore(createLanguageSwitcher(), headerActions.firstChild);
+        }
     }
 });
