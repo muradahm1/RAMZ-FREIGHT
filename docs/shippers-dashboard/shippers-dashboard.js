@@ -1,5 +1,6 @@
 import { supabase, supabaseReady } from '../assets/supabaseClient.js';
 import { notificationManager } from '../assets/notifications.js';
+import { initHamburgerMenu } from '../assets/hamburger-menu.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
     const userProfile = document.querySelector('.user-profile');
@@ -77,6 +78,23 @@ document.addEventListener('DOMContentLoaded', async () => {
         loadRecentActivity(user);
         loadAvailableTrucks();
         notificationManager.init(user.id, 'shipper');
+        
+        // --- 5. Initialize Hamburger Menu ---
+        const menuItems = [
+            { href: 'shippers-dashboard.html', icon: 'fas fa-home', title: 'Home', desc: 'Dashboard overview', active: true },
+            { href: '../create-shipment/create-shipment.html', icon: 'fas fa-plus-circle', title: 'Create Shipment', desc: 'Start new shipment' },
+            { href: '../live-tracking/live-tracking.html', icon: 'fas fa-satellite', title: 'Track Shipment', desc: 'Live tracking' },
+            { href: 'bids.html', icon: 'fas fa-gavel', title: 'View Bids', desc: 'Carrier offers' },
+            { href: 'shipment-history.html', icon: 'fas fa-history', title: 'History', desc: 'Past shipments' },
+            { href: 'shipper-settings.html', icon: 'fas fa-cog', title: 'Settings', desc: 'Account settings' }
+        ];
+        const menu = initHamburgerMenu(menuItems, { name: profileName, role: 'Shipper Portal' });
+        menu.logoutBtn.addEventListener('click', async () => {
+            if (confirm('Are you sure you want to log out?')) {
+                await supabase.auth.signOut();
+                menu.close();
+            }
+        });
     }
 
 

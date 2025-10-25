@@ -1,6 +1,7 @@
 import { supabase, backendUrl, supabaseReady } from '../assets/supabaseClient.js';
 import { locationTracker } from '../assets/locationTracker.js';
 import { notificationManager } from '../assets/notifications.js';
+import { initHamburgerMenu } from '../assets/hamburger-menu.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
     const userNameEl = document.getElementById('userName');
@@ -68,6 +69,25 @@ document.addEventListener('DOMContentLoaded', async () => {
     loadAcceptedShipments(user);
     populateDashboardStats(user);
     notificationManager.init(user.id, 'truck_owner');
+    
+        // --- 5. Initialize Hamburger Menu ---
+        const menuItems = [
+            { href: 'truck-dashboard.html', icon: 'fas fa-chart-bar', title: 'Dashboard', desc: 'Overview', active: true },
+            { href: '#bookings', icon: 'fas fa-calendar-alt', title: 'Bookings', desc: 'Manage bookings' },
+            { href: '#my-trucks', icon: 'fas fa-truck', title: 'My Trucks', desc: 'Vehicle management' },
+            { href: '#earnings', icon: 'fas fa-dollar-sign', title: 'Earnings', desc: 'Financial overview' },
+            { href: '#schedule', icon: 'fas fa-clock', title: 'Schedule', desc: 'Delivery schedule' },
+            { href: '#profile', icon: 'fas fa-user', title: 'Profile', desc: 'Account settings' }
+        ];
+        const menu = initHamburgerMenu(menuItems, { name: profileName, role: 'Truck Owner Portal' });
+        menu.logoutBtn.addEventListener('click', async () => {
+            const { error } = await supabase.auth.signOut();
+            if (error) {
+                console.error('Error logging out:', error);
+                alert('Failed to log out.');
+            }
+            menu.close();
+        });
 
         // --- 5. Event Listeners ---
         refreshBtn.addEventListener('click', () => {
