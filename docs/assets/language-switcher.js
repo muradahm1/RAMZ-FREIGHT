@@ -1,0 +1,36 @@
+import { setLanguage, getLanguage } from './translations.js';
+
+export function createLanguageSwitcher() {
+    const switcher = document.createElement('div');
+    switcher.className = 'language-switcher';
+    switcher.innerHTML = `
+        <button class="lang-btn" data-lang="en">EN</button>
+        <button class="lang-btn" data-lang="am">አማ</button>
+        <button class="lang-btn" data-lang="om">OM</button>
+    `;
+    
+    const currentLang = getLanguage();
+    switcher.querySelectorAll('.lang-btn').forEach(btn => {
+        if (btn.dataset.lang === currentLang) {
+            btn.classList.add('active');
+        }
+        
+        btn.addEventListener('click', () => {
+            const lang = btn.dataset.lang;
+            setLanguage(lang);
+            
+            switcher.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        });
+    });
+    
+    return switcher;
+}
+
+// Auto-add to header
+document.addEventListener('DOMContentLoaded', () => {
+    const headerActions = document.querySelector('.header-actions') || document.querySelector('.header-right');
+    if (headerActions) {
+        headerActions.insertBefore(createLanguageSwitcher(), headerActions.firstChild);
+    }
+});
