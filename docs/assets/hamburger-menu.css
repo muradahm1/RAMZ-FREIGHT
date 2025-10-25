@@ -1,6 +1,6 @@
-/* Hamburger Icon */
+/* Hamburger Icon - Visible on ALL devices */
 .hamburger-menu-icon {
-    display: flex;
+    display: flex !important;
     flex-direction: column;
     gap: 5px;
     cursor: pointer;
@@ -207,10 +207,66 @@
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
 }
 
-/* Responsive adjustments */
-@media (max-width: 768px) {
+/* Responsive adjustments for all devices */
+
+/* Large Desktop (1920px+) */
+@media (min-width: 1920px) {
+    .hamburger-menu-icon {
+        padding: 12px;
+    }
+    .hamburger-menu-icon span {
+        width: 28px;
+        height: 3.5px;
+    }
+}
+
+/* Desktop (1024px - 1919px) */
+@media (min-width: 1024px) and (max-width: 1919px) {
     .slide-menu {
-        width: 280px;
+        width: 340px;
+    }
+}
+
+/* Tablet (768px - 1023px) */
+@media (min-width: 768px) and (max-width: 1023px) {
+    .slide-menu {
+        width: 300px;
+    }
+}
+
+/* Mobile (below 768px) */
+@media (max-width: 767px) {
+    .slide-menu {
+        width: 85vw;
+        max-width: 320px;
+    }
+    
+    .hamburger-menu-icon {
+        padding: 8px;
+    }
+    
+    .menu-item {
+        padding: 15px 20px;
+    }
+    
+    .slide-menu-header h2 {
+        font-size: 20px;
+    }
+}
+
+/* Small Mobile (below 480px) */
+@media (max-width: 480px) {
+    .slide-menu {
+        width: 90vw;
+        max-width: 280px;
+    }
+    
+    .menu-item-title {
+        font-size: 15px;
+    }
+    
+    .menu-item-desc {
+        font-size: 11px;
     }
 }
 
