@@ -97,11 +97,27 @@ async function loadShipmentTracking() {
             .eq('id', shipmentId)
             .single();
 
-        // Get truck owner details from auth.users
+        // Get truck owner and vehicle details
         let truckOwnerDetails = null;
+        let vehicleDetails = null;
         if (shipment && shipment.truck_owner_id) {
-            const { data: userData } = await supabase.auth.admin.getUserById(shipment.truck_owner_id);
-            truckOwnerDetails = userData?.user;
+            const { data: ownerData } = await supabase
+                .from('truck_owners')
+                .select('*')
+                .eq('user_id', shipment.truck_owner_id)
+                .single();
+            
+            const { data: authData } = await supabase.auth.admin.getUserById(shipment.truck_owner_id);
+            truckOwnerDetails = { ...ownerData, ...authData?.user?.user_metadata };
+            
+            if (shipment.vehicle_id) {
+                const { data: vehicle } = await supabase
+                    .from('vehicles')
+                    .select('*')
+                    .eq('id', shipment.vehicle_id)
+                    .single();
+                vehicleDetails = vehicle;
+            }
         }
 
         if (error) throw error;
@@ -115,14 +131,16 @@ async function loadShipmentTracking() {
             <p><strong>From:</strong> ${shipment.origin_address}</p>
             <p><strong>To:</strong> ${shipment.destination_address}</p>
         `;
-        document.getElementById('driverName').textContent = truckOwnerDetails?.user_metadata?.full_name || 'N/A';
-        document.getElementById('driverPhone').textContent = truckOwnerDetails?.user_metadata?.phone || 'N/A';
-        document.getElementById('vehicleInfo').textContent = truckOwnerDetails?.user_metadata?.vehicle || 'Vehicle details not available';
+        document.getElementById('driverName').textContent = truckOwnerDetails?.full_name || 'N/A';
+        document.getElementById('driverPhone').textContent = truckOwnerDetails?.phone || 'N/A';
+        document.getElementById('vehicleInfo').textContent = vehicleDetails 
+            ? `${vehicleDetails.vehicle_model} (${vehicleDetails.license_plate})` 
+            : 'Vehicle details not available';
 
         // Set driver photo if available
         const driverPhotoEl = document.getElementById('driverPhoto');
         if (driverPhotoEl) {
-            driverPhotoEl.src = truckOwnerDetails?.user_metadata?.avatar_url || `https://api.dicebear.com/8.x/initials/svg?seed=${encodeURIComponent(document.getElementById('driverName').textContent)}`;
+            driverPhotoEl.src = truckOwnerDetails?.avatar_url || `https://api.dicebear.com/8.x/initials/svg?seed=${encodeURIComponent(truckOwnerDetails?.full_name || 'Driver')}`;
         }
 
         // Get latest tracking data to show current position
