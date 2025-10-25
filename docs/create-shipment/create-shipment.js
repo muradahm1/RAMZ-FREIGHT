@@ -3,6 +3,9 @@ import { supabase, supabaseReady, backendUrl } from '../assets/supabaseClient.js
 document.addEventListener('DOMContentLoaded', async () => {
     const form = document.getElementById('createShipmentForm');
     const submitBtn = document.getElementById('submitBtn');
+    let map = null;
+    let marker = null;
+    let pickingFor = null;
 
     // Wait for the Supabase client to be ready (handles CDN or module case)
     try {
@@ -24,6 +27,39 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Set min date for pickup to today
     const today = new Date().toISOString().split('T')[0];
     document.getElementById('pickupDate').setAttribute('min', today);
+    
+    // Map picker buttons
+    document.getElementById('pickOriginBtn').addEventListener('click', () => showMap('origin'));
+    document.getElementById('pickDestinationBtn').addEventListener('click', () => showMap('destination'));
+    
+    function showMap(type) {
+        pickingFor = type;
+        const mapContainer = document.getElementById('mapContainer');
+        mapContainer.style.display = 'block';
+        
+        if (!map) {
+            map = L.map('mapContainer').setView([9.03, 38.74], 13);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+            
+            map.on('click', (e) => {
+                if (marker) map.removeLayer(marker);
+                marker = L.marker([e.latlng.lat, e.latlng.lng]).addTo(map);
+                
+                fetch(`https://nominatim.openstreetmap.org/reverse?lat=${e.latlng.lat}&lon=${e.latlng.lng}&format=json`)
+                    .then(r => r.json())
+                    .then(data => {
+                        const address = data.display_name;
+                        if (pickingFor === 'origin') {
+                            document.getElementById('origin').value = address;
+                        } else {
+                            document.getElementById('destination').value = address;
+                        }
+                        mapContainer.style.display = 'none';
+                    });
+            });
+        }
+        setTimeout(() => map.invalidateSize(), 100);
+    }
 
     // --- Form Submission Handler ---
     form.addEventListener('submit', async (e) => {
@@ -41,7 +77,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             weight_kg: parseFloat(formData.get('weight')) || 0,
             goods_type: formData.get('goodsType'),
             pickup_datetime: `${formData.get('pickupDate')}T${formData.get('pickupTime')}`,
-            special_instructions: formData.get('specialInstructions')
+            special_instructions: formData.get('specialInstructions'),
+            payment_amount: parseFloat(formData.get('paymentAmount')) || 0
         };
 
         const access_token = session.access_token;

@@ -129,6 +129,7 @@ app.post('/shipments', async (req, res) => {
       goods_type: payload.goods_type || null,
       pickup_datetime: payload.pickup_datetime ? new Date(payload.pickup_datetime).toISOString() : null,
       special_instructions: payload.special_instructions || null,
+      payment_amount: payload.payment_amount || null,
       status: 'pending'
     };
 
