@@ -15,13 +15,18 @@ export function createLanguageSwitcher() {
             btn.classList.add('active');
         }
         
-        btn.addEventListener('click', () => {
+        // Add both click and touchend for mobile support
+        const handleLanguageChange = (e) => {
+            e.preventDefault();
             const lang = btn.dataset.lang;
             setLanguage(lang);
             
             switcher.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
-        });
+        };
+        
+        btn.addEventListener('click', handleLanguageChange);
+        btn.addEventListener('touchend', handleLanguageChange);
     });
     
     return switcher;

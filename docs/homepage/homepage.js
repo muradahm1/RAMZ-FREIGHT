@@ -2,14 +2,19 @@
 const hamburger = document.getElementById('hamburger');
 const navMenu = document.getElementById('nav-menu');
 
-hamburger.addEventListener('click', () => {
+// Add both click and touchend for mobile support
+const toggleMenu = (e) => {
+  e.preventDefault();
   hamburger.classList.toggle('active');
   navMenu.classList.toggle('active');
   
   // Update aria-expanded attribute
   const isExpanded = hamburger.getAttribute('aria-expanded') === 'true';
   hamburger.setAttribute('aria-expanded', !isExpanded);
-});
+};
+
+hamburger.addEventListener('click', toggleMenu);
+hamburger.addEventListener('touchend', toggleMenu);
 
 // Close mobile menu when clicking on a link
 document.querySelectorAll('.nav-menu a').forEach(link => {

@@ -15,6 +15,9 @@
     font-size: 13px;
     font-weight: 600;
     transition: all 0.3s;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
 }
 
 .lang-btn:hover {

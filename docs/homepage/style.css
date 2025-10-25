@@ -156,6 +156,8 @@ img {
   width: 30px;
   height: 24px;
   cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .hamburger span {
