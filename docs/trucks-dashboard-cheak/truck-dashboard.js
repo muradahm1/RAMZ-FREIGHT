@@ -89,10 +89,48 @@ document.addEventListener('DOMContentLoaded', async () => {
             menu.close();
         });
 
-        // --- 5. Event Listeners ---
+        // --- 6. Event Listeners for All Buttons ---
+        
+        // Refresh button
         refreshBtn.addEventListener('click', () => {
             loadAvailableLoads();
             loadAcceptedShipments(user);
+            populateDashboardStats(user);
+        });
+        
+        // New Booking button
+        const newBookingBtn = document.querySelector('.new-booking-btn');
+        if (newBookingBtn) {
+            newBookingBtn.addEventListener('click', () => {
+                document.querySelector('.shipper-posts').scrollIntoView({ behavior: 'smooth' });
+                loadAvailableLoads();
+            });
+        }
+        
+        // Stat cards - make clickable
+        document.querySelectorAll('.stat-card').forEach((card, index) => {
+            card.style.cursor = 'pointer';
+            card.style.transition = 'transform 0.2s, box-shadow 0.2s';
+            card.addEventListener('mouseenter', () => {
+                card.style.transform = 'translateY(-5px)';
+                card.style.boxShadow = '0 8px 20px rgba(0,0,0,0.15)';
+            });
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = 'translateY(0)';
+                card.style.boxShadow = '';
+            });
+            card.addEventListener('click', () => {
+                if (index === 0) {
+                    document.querySelector('.accepted-shipments').scrollIntoView({ behavior: 'smooth' });
+                } else if (index === 1) {
+                    document.querySelector('.shipper-posts').scrollIntoView({ behavior: 'smooth' });
+                    loadAvailableLoads();
+                } else if (index === 2) {
+                    alert(`Total Earnings: ${card.querySelector('h3').textContent}\n\nDetailed earnings report coming soon!`);
+                } else if (index === 3) {
+                    alert(`Average Rating: ${card.querySelector('h3').textContent}\n\nView detailed ratings coming soon!`);
+                }
+            });
         });
 
         // Use event delegation for dynamically created buttons
