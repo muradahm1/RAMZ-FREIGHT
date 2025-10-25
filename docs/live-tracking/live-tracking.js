@@ -237,22 +237,51 @@ function startRealTimeTracking() {
             // Smooth marker movement
             truckMarker.setLatLng(newPos);
             
-            // Update UI
-            document.getElementById('currentSpeed').textContent = `${(latest.speed || 0).toFixed(0)} km/h`;
+            // Update speed
+            const speedKmh = (latest.speed || 0) * 3.6;
+            document.getElementById('currentSpeed').textContent = `${speedKmh.toFixed(0)} km/h`;
             
             // Auto-pan to keep truck in view
             if (!map.getBounds().contains(newPos)) {
                 map.panTo(newPos);
             }
             
-            // Calculate progress using Leaflet's distance calculation
+            // Calculate progress and distances
             if (routePolyline) {
                 const route = routePolyline.getLatLngs();
-                const totalDistance = route[0].distanceTo(route[route.length - 1]);
-                const traveledDistance = route[0].distanceTo(newPos);
+                const origin = route[0];
+                const destination = route[route.length - 1];
+                
+                const totalDistance = origin.distanceTo(destination) / 1000; // km
+                const traveledDistance = origin.distanceTo(newPos) / 1000; // km
+                const remainingDistance = newPos.distanceTo(destination) / 1000; // km
+                
                 const progress = Math.min(traveledDistance / totalDistance, 1);
                 
+                // Update progress bar
                 document.getElementById('progressFill').style.width = `${progress * 100}%`;
+                
+                // Update distance traveled
+                const distTraveledEl = document.getElementById('distanceTraveled');
+                if (distTraveledEl) {
+                    distTraveledEl.textContent = `${traveledDistance.toFixed(1)} km`;
+                }
+                
+                // Calculate ETA
+                if (speedKmh > 0) {
+                    const hoursRemaining = remainingDistance / speedKmh;
+                    const minutesRemaining = Math.round(hoursRemaining * 60);
+                    const etaEl = document.getElementById('estimatedArrival');
+                    if (etaEl) {
+                        if (minutesRemaining < 60) {
+                            etaEl.textContent = `${minutesRemaining} min`;
+                        } else {
+                            const hours = Math.floor(minutesRemaining / 60);
+                            const mins = minutesRemaining % 60;
+                            etaEl.textContent = `${hours}h ${mins}m`;
+                        }
+                    }
+                }
                 
                 if (progress > 0.95) {
                     clearInterval(trackingInterval);
