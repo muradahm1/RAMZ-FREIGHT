@@ -20,8 +20,8 @@ class LocationTracker {
 
         const options = {
             enableHighAccuracy: true,
-            timeout: 5000,
-            maximumAge: 10000
+            timeout: 10000,
+            maximumAge: 0
         };
 
         this.watchId = navigator.geolocation.watchPosition(

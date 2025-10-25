@@ -152,32 +152,45 @@ async function loadShipmentTracking() {
             .limit(1);
 
         // --- ROUTE SETUP ---
-        // Use placeholder coordinates for major Ethiopian cities
-        const cityCoords = {
-            "Addis Ababa": [9.02, 38.74],
-            "Adama": [8.54, 39.27],
-            "Hawassa": [7.05, 38.47],
-            "Mekelle": [13.49, 39.47],
-            "Gondar": [12.6, 37.46],
-            "Dire Dawa": [9.59, 41.86],
-            "Bahir Dar": [11.59, 37.38]
-        };
-        const originCoord = cityCoords[shipment.origin_address] || cityCoords["Addis Ababa"];
-        const destCoord = cityCoords[shipment.destination_address] || cityCoords["Adama"];
-        const route = [originCoord, destCoord];
-
-        // Update map
+        // Geocode addresses to get actual coordinates
+        const originCoord = await geocodeAddress(shipment.origin_address);
+        const destCoord = await geocodeAddress(shipment.destination_address);
+        
+        // Only draw route line from pickup to destination
         if (routePolyline) map.removeLayer(routePolyline);
-        routePolyline = L.polyline(route, { color: '#ff6b35' }).addTo(map);
+        routePolyline = L.polyline([originCoord, destCoord], { 
+            color: '#ff6b35',
+            weight: 4,
+            opacity: 0.7
+        }).addTo(map);
+        
+        // Add markers for pickup and destination
+        L.marker(originCoord, {
+            icon: L.icon({
+                iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
+                iconSize: [25, 41],
+                iconAnchor: [12, 41]
+            })
+        }).addTo(map).bindPopup('Pickup');
+        
+        L.marker(destCoord, {
+            icon: L.icon({
+                iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
+                iconSize: [25, 41],
+                iconAnchor: [12, 41]
+            })
+        }).addTo(map).bindPopup('Destination');
+        
         map.fitBounds(routePolyline.getBounds().pad(0.1));
         
-        // Set initial truck position
-        const initialPos = latestTracking?.length > 0 
-            ? L.latLng(latestTracking[0].latitude, latestTracking[0].longitude)
-            : L.latLng(route[0]);
-        
-        truckMarker.setLatLng(initialPos);
-        map.setView(initialPos, 10);
+        // Set truck position from GPS data
+        if (latestTracking?.length > 0) {
+            const truckPos = L.latLng(latestTracking[0].latitude, latestTracking[0].longitude);
+            truckMarker.setLatLng(truckPos);
+            map.setView(truckPos, 13);
+        } else {
+            truckMarker.setLatLng(originCoord);
+        }
 
         // Update status
         const statusBadge = document.getElementById('trackingStatus');
@@ -250,6 +263,19 @@ function startRealTimeTracking() {
             console.error('Error in tracking:', err);
         }
     }, 3000);
+}
+
+async function geocodeAddress(address) {
+    try {
+        const response = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(address)}&format=json&limit=1`);
+        const data = await response.json();
+        if (data && data.length > 0) {
+            return [parseFloat(data[0].lat), parseFloat(data[0].lon)];
+        }
+    } catch (err) {
+        console.error('Geocoding error:', err);
+    }
+    return [9.03, 38.74]; // Default to Addis Ababa
 }
 
 function resetUI() {
