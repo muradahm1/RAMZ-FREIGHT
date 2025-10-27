@@ -52,7 +52,7 @@ class LocationTracker {
     async updateLocation(position) {
         if (!this.currentShipmentId || !this.isTracking) return;
 
-        const { latitude, longitude, speed, heading } = position.coords;
+        const { latitude, longitude, speed } = position.coords;
 
         try {
             const { error } = await supabase
@@ -61,8 +61,7 @@ class LocationTracker {
                     shipment_id: this.currentShipmentId,
                     latitude: latitude,
                     longitude: longitude,
-                    speed: speed || 0,
-                    heading: heading || 0
+                    speed: speed || 0
                 });
 
             if (error) {

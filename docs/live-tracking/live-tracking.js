@@ -4,6 +4,7 @@ let map;
 let truckMarker;
 let routePolyline;
 let trackingInterval;
+let realtimeChannel;
 
 // --- Mock Data for Simulation ---
 document.addEventListener('DOMContentLoaded', async () => {
@@ -236,7 +237,24 @@ function startRealTimeTracking() {
         return;
     }
 
-    clearInterval(trackingInterval); // Ensure no multiple intervals
+    clearInterval(trackingInterval);
+    if (realtimeChannel) {
+        supabase.removeChannel(realtimeChannel);
+    }
+
+    // Subscribe to realtime updates
+    realtimeChannel = supabase
+        .channel(`tracking:${shipmentId}`)
+        .on('postgres_changes', 
+            { event: 'INSERT', schema: 'public', table: 'shipment_tracking', filter: `shipment_id=eq.${shipmentId}` },
+            (payload) => {
+                console.log('Realtime tracking update:', payload.new);
+                updateTruckPosition(payload.new);
+            }
+        )
+        .subscribe();
+
+    console.log('Realtime tracking started for shipment:', shipmentId);
 
     // Start real-time tracking with Leaflet
     trackingInterval = setInterval(async () => {
@@ -354,6 +372,58 @@ function startRealTimeTracking() {
             console.error('Error in tracking:', err);
         }
     }, 3000);
+}
+
+async function updateTruckPosition(trackingData) {
+    const newPos = L.latLng(trackingData.latitude, trackingData.longitude);
+    truckMarker.setLatLng(newPos);
+    
+    const speedKmh = (trackingData.speed || 0) * 3.6;
+    document.getElementById('currentSpeed').textContent = `${speedKmh.toFixed(0)} km/h`;
+    
+    const shipmentId = document.getElementById('shipmentSelect').value;
+    const { data: currentShipment } = await supabase
+        .from('shipments')
+        .select('origin_address, destination_address, status')
+        .eq('id', shipmentId)
+        .single();
+    
+    const pickupCoord = await geocodeAddress(currentShipment.origin_address);
+    const destCoord = await geocodeAddress(currentShipment.destination_address);
+    
+    const distToPickup = newPos.distanceTo(L.latLng(pickupCoord)) / 1000;
+    const distToDest = newPos.distanceTo(L.latLng(destCoord)) / 1000;
+    
+    let truckStatus = 'En route to pickup';
+    if (currentShipment.status === 'in_transit') {
+        truckStatus = 'En route to destination';
+    } else if (distToPickup < 0.5) {
+        truckStatus = 'Near pickup location';
+    }
+    
+    const timestamp = new Date(trackingData.timestamp).toLocaleString();
+    truckMarker.getPopup().setContent(`
+        <div style="min-width: 220px;">
+            <h4 style="margin: 0 0 10px 0; color: #ff6b35;"><i class="fas fa-truck"></i> Truck Current Location</h4>
+            <p style="margin: 5px 0;"><strong>Status:</strong> ${truckStatus}</p>
+            <p style="margin: 5px 0;"><strong>Speed:</strong> ${speedKmh.toFixed(0)} km/h</p>
+            <p style="margin: 5px 0;"><strong>To Pickup:</strong> ${distToPickup.toFixed(1)} km</p>
+            <p style="margin: 5px 0;"><strong>To Destination:</strong> ${distToDest.toFixed(1)} km</p>
+            <p style="margin: 5px 0; font-size: 0.85em; color: #888;"><strong>Last Update:</strong> ${timestamp}</p>
+        </div>
+    `);
+    
+    document.getElementById('trackingDetails').innerHTML = `
+        <p><strong>From:</strong> ${currentShipment.origin_address}</p>
+        <p><strong>To:</strong> ${currentShipment.destination_address}</p>
+        <p style="color: #ff6b35; margin-top: 10px;"><strong>Truck Location:</strong></p>
+        <p>📍 Distance to Pickup: ${distToPickup.toFixed(1)} km</p>
+        <p>📍 Distance to Destination: ${distToDest.toFixed(1)} km</p>
+    `;
+    
+    if (!map.getBounds().contains(newPos)) {
+        map.panTo(newPos);
+    }
 }
 
 async function geocodeAddress(address) {
