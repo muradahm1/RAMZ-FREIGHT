@@ -11,15 +11,15 @@ CREATE TABLE IF NOT EXISTS profiles (
 -- Enable RLS
 ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
 
--- Drop existing profile policies
-DROP POLICY IF EXISTS "Users can view own profile" ON profiles;
-DROP POLICY IF EXISTS "Users can update own profile" ON profiles;
-
 -- Policy: Users can view their own profile
+-- Ensure idempotency: drop existing policy if present
+DROP POLICY IF EXISTS "Users can view own profile" ON profiles;
 CREATE POLICY "Users can view own profile" ON profiles
   FOR SELECT USING (auth.uid() = id);
 
 -- Policy: Users can update their own profile (but NOT user_role)
+-- Ensure idempotency: drop existing policy if present
+DROP POLICY IF EXISTS "Users can update own profile" ON profiles;
 CREATE POLICY "Users can update own profile" ON profiles
   FOR UPDATE USING (auth.uid() = id);
 
@@ -46,12 +46,10 @@ CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
--- Drop ALL existing shipments policies
+-- Update shipments RLS policies to use profiles table instead of user_metadata
 DROP POLICY IF EXISTS "Admins can view all shipments" ON shipments;
 DROP POLICY IF EXISTS "Shippers can view own shipments" ON shipments;
 DROP POLICY IF EXISTS "Truck owners can view assigned and pending shipments" ON shipments;
-DROP POLICY IF EXISTS "Shippers can create shipments" ON shipments;
-DROP POLICY IF EXISTS "Truck owners can update assigned shipments" ON shipments;
 
 -- New secure policies using profiles table
 CREATE POLICY "Shippers can view own shipments" ON shipments

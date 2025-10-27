@@ -22,33 +22,33 @@
     <div class="registration-section">
       <div class="registration-card">
         <header>
-          <h2>Create Your Account</h2>
-          <p>Step 1: Basic Information</p>
+          <h2 data-translate="createAccountTitle">Create Your Account</h2>
+          <p data-translate="createAccountSubtitle">Step 1: Basic Information</p>
         </header>
 
         <main>
           <form id="truckRegisterForm" class="form">
             <div class="form-group">
-              <input type="email" id="basicEmail" placeholder="Enter email address" required>
-              <label for="basicEmail">Email Address</label>
+              <input type="email" id="basicEmail" placeholder="Enter email address" required data-translate="emailPlaceholder">
+              <label for="basicEmail" data-translate="emailLabel">Email Address</label>
               <div class="error-message" id="email-error"></div>
             </div>
             
             <div class="form-group">
-              <input type="password" id="basicPassword" placeholder="Create password" required>
-              <label for="basicPassword">Password</label>
+              <input type="password" id="basicPassword" placeholder="Create password" required data-translate="passwordPlaceholder">
+              <label for="basicPassword" data-translate="passwordLabel">Password</label>
               <div class="error-message" id="password-error"></div>
             </div>
             
             <div class="form-group">
-              <input type="password" id="confirmPassword" placeholder="Confirm password" required>
-              <label for="confirmPassword">Confirm Password</label>
+              <input type="password" id="confirmPassword" placeholder="Confirm password" required data-translate="passwordPlaceholder">
+              <label for="confirmPassword" data-translate="passwordLabel">Confirm Password</label>
               <div class="error-message" id="confirm-password-error"></div>
             </div>
             
             <div class="form-actions">
               <button type="submit" class="btn-submit" id="submitRegistration">
-                <span class="btn-text">Create Account</span>
+                <span class="btn-text" data-translate="createAccountButton">Create Account</span>
                 <div class="btn-loader"></div>
               </button>
             </div>

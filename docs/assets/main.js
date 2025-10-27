@@ -73,6 +73,56 @@ document.addEventListener('DOMContentLoaded', function() {
 
 	// Initialize floating labels on any page that uses them
 	initializeFloatingLabels();
+
+	// Dynamically load translations and language switcher if not already loaded
+	try {
+		if (!window.appTranslations) {
+			// determine base URL of this script
+			const script = document.querySelector('script[src$="/assets/main.js"]') || document.currentScript;
+			const base = script && script.src ? script.src.replace(/\/[^\/]*$/, '/') : '/docs/assets/';
+			import(base + 'translations.js').then(mod => {
+				// translations module runs auto-translate on load; expose globally
+				window.appTranslations = window.appTranslations || mod;
+				return import(base + 'language-switcher.js');
+			}).catch(err => {
+				console.warn('Could not load translations or language-switcher dynamically:', err);
+			});
+		}
+	} catch (e) {
+		console.warn('Error while injecting translations dynamically', e);
+	}
+
+	// Inject a favicon link into the page head so all pages including this script get the icon.
+	try {
+		const script = document.querySelector('script[src$="/assets/main.js"]') || document.currentScript;
+		const base = script && script.src ? script.src.replace(/\/[^\/]*$/, '/') : './';
+		// prefer a PNG icon in the project root assets/images if present, fallback to docs icon
+		const pngFallback = base.replace(/docs\/assets\/$/, '') + 'assets/images/icon.png';
+		const faviconHref = (async () => {
+			try {
+				// try to fetch the PNG (fast HEAD) to see if it exists
+				const resp = await fetch(pngFallback, { method: 'HEAD' });
+				if (resp && resp.ok) return pngFallback;
+			} catch (e) {
+				// ignore
+			}
+			return base + 'icons/favicon.svg';
+		})();
+
+		(async () => {
+			const href = await faviconHref;
+			if (!document.querySelector('link[rel="icon"]')) {
+				const link = document.createElement('link');
+				link.rel = 'icon';
+				link.href = href;
+				// set type based on extension
+				link.type = href.endsWith('.png') ? 'image/png' : 'image/svg+xml';
+				document.head.appendChild(link);
+			}
+		})();
+	} catch (e) {
+		console.warn('Unable to inject favicon:', e);
+	}
 });
 
 // Example: Responsive mobile menu toggle (if you have a nav)

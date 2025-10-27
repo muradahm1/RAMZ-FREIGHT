@@ -194,7 +194,9 @@ img {
 /* Hero Section */
 .hero {
   height: 100vh;
-  background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('../images/background.jpg') no-repeat center center/cover;
+  /* use an SVG background bundled in the docs folder; place an image at docs/images/background.svg */
+  /* Use the shared assets image placed at project root: assets/images/background.jpg */
+  background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('../../assets/images/background.jpg') no-repeat center center/cover;
   display: flex;
   align-items: center;
   text-align: center;

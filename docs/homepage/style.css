@@ -188,12 +188,89 @@ img {
 /* Hero Section */
 .hero {
   height: 100vh;
-  background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('../images/background.jpg') no-repeat center center/cover;
+  /* Use the project-wide background image placed in assets/images */
+  background: linear-gradient(rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0.55)), url('../../assets/images/background.jpg') no-repeat center center/cover;
   display: flex;
   align-items: center;
   text-align: center;
   color: var(--light);
   padding-top: 80px;
+}
+
+/* Overlay layer that contains the glass card */
+.overlay {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 0;
+}
+
+/* Frosted / liquid glass card */
+.glass-card {
+  width: 100%;
+  max-width: 920px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03));
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 18px;
+  padding: 2.25rem 2.5rem;
+  box-shadow: 0 8px 40px rgba(5, 10, 15, 0.6);
+  -webkit-backdrop-filter: blur(12px) saturate(1.1);
+  backdrop-filter: blur(12px) saturate(1.1);
+  color: var(--light);
+  display: block;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+/* subtle glossy border highlight */
+.glass-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: 18px;
+  padding: 1px; /* allows inner gradient to show */
+  background: linear-gradient(90deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+  mix-blend-mode: overlay;
+}
+
+.glass-card h1 {
+  font-size: 2.6rem;
+  margin-bottom: 0.5rem;
+}
+
+.glass-card p {
+  font-size: 1.15rem;
+  margin-bottom: 1.25rem;
+  opacity: 0.95;
+}
+
+.glass-card .buttons {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+
+/* slightly adjust big button styling on glass */
+.glass-card .big-btn {
+  padding: 0.85rem 1.6rem;
+  font-size: 1.05rem;
+  border-radius: 10px;
+}
+
+/* Responsive tweaks */
+@media (max-width: 800px) {
+  .glass-card {
+    padding: 1.5rem 1.25rem;
+    margin: 0 1rem;
+  }
+  .glass-card h1 { font-size: 1.8rem; }
+  .glass-card p { font-size: 1rem; }
+  .glass-card .buttons { flex-direction: column; gap: 0.75rem; }
+  .glass-card .big-btn { width: 100%; }
 }
 
 .hero h1 {

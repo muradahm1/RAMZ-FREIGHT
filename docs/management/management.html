@@ -121,7 +121,7 @@
               <i class="fas fa-shipping-fast"></i>
             </div>
             <div class="stat-info">
-              <h3 id="totalShipments">0</h3>
+              <h3>245</h3>
               <p>Total Shipments</p>
             </div>
             <div class="stat-trend up">
@@ -135,7 +135,7 @@
               <i class="fas fa-truck"></i>
             </div>
             <div class="stat-info">
-              <h3 id="activeTrucks">0</h3>
+              <h3>42</h3>
               <p>Active Trucks</p>
             </div>
             <div class="stat-trend up">
@@ -149,7 +149,7 @@
               <i class="fas fa-clock"></i>
             </div>
             <div class="stat-info">
-              <h3 id="pendingShipments">0</h3>
+              <h3>18</h3>
               <p>Pending Shipments</p>
             </div>
             <div class="stat-trend down">
@@ -163,7 +163,7 @@
               <i class="fas fa-dollar-sign"></i>
             </div>
             <div class="stat-info">
-              <h3 id="monthlyRevenue">₦0</h3>
+              <h3>₦1.2M</h3>
               <p>Monthly Revenue</p>
             </div>
             <div class="stat-trend up">
@@ -211,14 +211,50 @@
               <h3>Recent Activity</h3>
               <a href="#" class="view-all">View All</a>
             </div>
-            <div class="activity-list" id="activityList">
+            <div class="activity-list">
+              <div class="activity-item">
+                <div class="activity-icon success">
+                  <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="activity-details">
+                  <p>Shipment #ETH-2456 delivered successfully</p>
+                  <span class="activity-time">10 minutes ago</span>
+                </div>
+              </div>
+              <div class="activity-item">
+                <div class="activity-icon warning">
+                  <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <div class="activity-details">
+                  <p>Shipment #ETH-2459 delayed due to weather</p>
+                  <span class="activity-time">1 hour ago</span>
+                </div>
+              </div>
               <div class="activity-item">
                 <div class="activity-icon info">
                   <i class="fas fa-info-circle"></i>
                 </div>
                 <div class="activity-details">
-                  <p>Loading recent activity...</p>
-                  <span class="activity-time">Just now</span>
+                  <p>New shipper registered: Addis Manufacturing</p>
+                  <span class="activity-time">2 hours ago</span>
+                </div>
+              </div>
+              <div class="activity-item">
+                <div class="activity-icon success">
+                  <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="activity-details">
+                  <p>Payment received for shipment #ETH-2450</p>
+                  <span class="activity-time">3 hours ago</span>
+                </div>
+              </div>
+              <div class="activity-item">
+                <div class="activity-icon primary">
+                  <i class="fas fa-truck-loading"></i>
+                </div>
+                <div class="activity-details">
+                  <p>New shipment assigned to driver: Alemayehu K.</p>
+                  <span class="activity-time">5 hours ago</span>
                 </div>
               </div>
             </div>
@@ -243,9 +279,61 @@
                   <th>Actions</th>
                 </tr>
               </thead>
-              <tbody id="shipmentsTableBody">
+              <tbody>
                 <tr>
-                  <td colspan="6" style="text-align: center;">Loading shipments...</td>
+                  <td>#ETH-2465</td>
+                  <td>Addis Manufacturing</td>
+                  <td>Addis Ababa to Dire Dawa</td>
+                  <td>Alemayehu K.</td>
+                  <td><span class="status-badge in-progress">In Progress</span></td>
+                  <td>
+                    <button class="action-btn view"><i class="fas fa-eye"></i></button>
+                    <button class="action-btn edit"><i class="fas fa-edit"></i></button>
+                  </td>
+                </tr>
+                <tr>
+                  <td>#ETH-2464</td>
+                  <td>Ethio Trade</td>
+                  <td>Addis Ababa to Bahir Dar</td>
+                  <td>Mekonnen T.</td>
+                  <td><span class="status-badge pending">Pending</span></td>
+                  <td>
+                    <button class="action-btn view"><i class="fas fa-eye"></i></button>
+                    <button class="action-btn edit"><i class="fas fa-edit"></i></button>
+                  </td>
+                </tr>
+                <tr>
+                  <td>#ETH-2463</td>
+                  <td>Sheba Foods</td>
+                  <td>Addis Ababa to Hawassa</td>
+                  <td>Solomon A.</td>
+                  <td><span class="status-badge delivered">Delivered</span></td>
+                  <td>
+                    <button class="action-btn view"><i class="fas fa-eye"></i></button>
+                    <button class="action-btn edit"><i class="fas fa-edit"></i></button>
+                  </td>
+                </tr>
+                <tr>
+                  <td>#ETH-2462</td>
+                  <td>Blue Nile Export</td>
+                  <td>Addis Ababa to Mekele</td>
+                  <td>Yohannes M.</td>
+                  <td><span class="status-badge in-progress">In Progress</span></td>
+                  <td>
+                    <button class="action-btn view"><i class="fas fa-eye"></i></button>
+                    <button class="action-btn edit"><i class="fas fa-edit"></i></button>
+                  </td>
+                </tr>
+                <tr>
+                  <td>#ETH-2461</td>
+                  <td>Rift Valley Logistics</td>
+                  <td>Addis Ababa to Jimma</td>
+                  <td>Dawit H.</td>
+                  <td><span class="status-badge cancelled">Cancelled</span></td>
+                  <td>
+                    <button class="action-btn view"><i class="fas fa-eye"></i></button>
+                    <button class="action-btn edit"><i class="fas fa-edit"></i></button>
+                  </td>
                 </tr>
               </tbody>
             </table>
@@ -254,7 +342,7 @@
       </div>
     </main>
   </div>
-
+  <script src="../assets/main.js"></script>
   <script src="management.js" type="module"></script>
 </body>
 </html>

@@ -7,26 +7,28 @@
 }
 
 .lang-btn {
-    padding: 6px 12px;
+    padding: 8px 14px;
     background: white;
     border: 2px solid #ddd;
     border-radius: 6px;
     cursor: pointer;
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 600;
-    transition: all 0.3s;
+    transition: all 0.2s;
     touch-action: manipulation;
-    -webkit-tap-highlight-color: transparent;
+    -webkit-tap-highlight-color: rgba(255, 107, 53, 0.2);
     user-select: none;
+    -webkit-user-select: none;
 }
 
-.lang-btn:hover {
+.lang-btn:active {
+    transform: scale(0.95);
     border-color: #ff6b35;
     color: #ff6b35;
 }
 
 .lang-btn.active {
-    background: #ff6b35;
-    color: white;
-    border-color: #ff6b35;
+    background: #ff6b35 !important;
+    color: white !important;
+    border-color: #ff6b35 !important;
 }

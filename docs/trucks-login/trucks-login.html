@@ -29,26 +29,26 @@
         <main>
           <form id="truckLoginForm" class="form">
             <div class="form-group">
-              <input type="email" id="loginEmail" placeholder=" " required>
-              <label for="loginEmail">Email Address</label>
+              <input type="email" id="loginEmail" placeholder=" " required data-translate="emailPlaceholder">
+              <label for="loginEmail" data-translate="emailLabel">Email Address</label>
               <div class="error-message"></div>
             </div>
             
             <div class="form-group">
-              <input type="password" id="loginPassword" placeholder=" " required>
-              <label for="loginPassword">Password</label>
+              <input type="password" id="loginPassword" placeholder=" " required data-translate="passwordPlaceholder">
+              <label for="loginPassword" data-translate="passwordLabel">Password</label>
               <div class="error-message"></div>
             </div>
             
             <div class="form-actions">
               <button type="submit" class="btn-submit" id="submitLogin">
-                <span class="btn-text">Login</span>
+                <span class="btn-text" data-translate="signInButton">Login</span>
                 <div class="btn-loader"></div>
               </button>
             </div>
             
             <div class="divider">
-              <span>or</span>
+              <span data-translate="orContinueWith">or</span>
             </div>
             
             <button type="button" id="googleBtn" class="google-btn">
@@ -60,7 +60,7 @@
               </svg>
               Continue with Google
             </button>
-            <p class="login-txt">Don't have an account? <a href="../trucks-register/trucks-register.html">Register here</a></p>
+            <p class="login-txt"><span data-translate="dontHaveAccount">Don't have an account?</span> <a href="../trucks-register/trucks-register.html" data-translate="signUpHere">Register here</a></p>
           </form>
         </main>
       </div>

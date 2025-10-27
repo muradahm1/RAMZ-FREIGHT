@@ -23,24 +23,24 @@
         <main class="login-main">
             <div class="form-wrapper">
                 <div class="form-header">
-                    <h2>Welcome Back!</h2>
-                    <p>Sign in to your shipper account</p>
+                    <h2 data-translate="loginWelcome">Welcome Back!</h2>
+                    <p data-translate="loginSubtitle">Sign in to your shipper account</p>
                 </div>
 
                 <form class="login-form" id="shipperLoginForm">
                     <!-- Login Form -->
                     <div class="form-group">
-                        <label for="email">Email Address *</label>
+                        <label for="email" data-translate="emailLabel">Email Address *</label>
                         <div class="input-wrapper">
-                            <input type="email" id="email" name="email" required placeholder="your@email.com">
+                            <input type="email" id="email" name="email" required placeholder="your@email.com" data-translate="emailPlaceholder">
                             <i class="fas fa-envelope input-icon"></i>
                         </div>
                     </div>
 
                     <div class="form-group">
-                        <label for="password">Password *</label>
+                        <label for="password" data-translate="passwordLabel">Password *</label>
                         <div class="input-wrapper">
-                            <input type="password" id="password" name="password" required placeholder="Enter your password">
+                            <input type="password" id="password" name="password" required placeholder="Enter your password" data-translate="passwordPlaceholder">
                             <i class="fas fa-lock input-icon"></i>
                             <button type="button" class="toggle-password" aria-label="Toggle password visibility">
                                 <i class="fas fa-eye" aria-hidden="true"></i>
@@ -53,13 +53,13 @@
                         <label class="checkbox-label">
                             <input type="checkbox" id="rememberMe" name="rememberMe">
                             <span class="checkmark"></span>
-                            Remember me
+                            <span data-translate="rememberMe">Remember me</span>
                         </label>
-                        <a href="forgot-password.html" class="forgot-link">Forgot password?</a>
+                        <a href="forgot-password.html" class="forgot-link" data-translate="forgotPassword">Forgot password?</a>
                     </div>
 
                     <!-- Submit Button -->
-                    <button type="submit" class="login-btn" id="loginBtn">
+                    <button type="submit" class="login-btn" id="loginBtn" data-translate="signInButton">
                         <i class="fas fa-sign-in-alt"></i>
                         Sign In
                     </button>
@@ -68,7 +68,7 @@
                 <!-- Social Login -->
                 <div class="social-login">
                     <div class="divider">
-                        <span>Or continue with</span>
+                        <span data-translate="orContinueWith">Or continue with</span>
                     </div>
                     
                     <button type="button" class="google-btn" id="googleBtn">
@@ -78,12 +78,13 @@
                 </div>
                 <!-- Registration Link -->
                 <div class="register-link">
-                    <p>Don't have an account? <a href="../shippers-register/shippers-register.html" class="link">Sign up here</a></p>
+                    <p><span data-translate="dontHaveAccount">Don't have an account?</span> <a href="../shippers-register/shippers-register.html" class="link" data-translate="signUpHere">Sign up here</a></p>
                 </div>
             </div>
         </main>
     </div>
 
+    <script src="../assets/main.js"></script>
     <script src="../assets/supabaseClient.js" type="module"></script>
     <script src="shippers-login.js" type="module"></script>
 </body>

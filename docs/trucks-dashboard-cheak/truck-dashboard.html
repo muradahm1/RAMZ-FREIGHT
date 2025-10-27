@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="../assets/notifications.css">
     <link rel="stylesheet" href="../assets/hamburger-menu.css">
+    <link rel="stylesheet" href="../assets/language-switcher.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
 <body>
@@ -16,7 +17,7 @@
         <aside class="sidebar">
             <div class="sidebar-header">
                 <h2>🚛 RAMZ-FREIGHT</h2>
-                <p>Truck Owner Portal</p>
+                <p data-translate="truckOwnerPortal">Truck Owner Portal</p>
             </div>
             
 
@@ -27,11 +28,11 @@
                     <img src="" alt="Profile" class="user-avatar" id="userAvatar">
                     <div>
                         <strong id="userName">Loading...</strong>
-                        <span id="userRole">Truck Owner</span>
+                        <span id="userRole" data-translate="truckOwner">Truck Owner</span>
                     </div>
                 </div>
                 <button class="logout-btn" id="logoutBtn">
-                    <i class="fas fa-sign-out-alt"></i> Logout
+                    <i class="fas fa-sign-out-alt"></i> <span data-translate="logout">Logout</span>
                 </button>
             </div>
         </aside>
@@ -41,8 +42,8 @@
             <!-- Header -->
             <header class="content-header">
                 <div class="header-left">
-                    <h1>Dashboard Overview</h1>
-                    <p>Welcome back! Here's your activity summary.</p>
+                    <h1 data-translate="dashboardOverview">Dashboard Overview</h1>
+                    <p data-translate="welcomeMessage">Welcome back! Here's your activity summary.</p>
                 </div>
                 <div class="header-right">
                     <div class="notification-bell">
@@ -50,7 +51,7 @@
                         <span class="notification-count" style="display: none;">0</span>
                     </div>
                     <button class="new-booking-btn">
-                        <i class="fas fa-plus"></i> New Booking
+                        <i class="fas fa-plus"></i> <span data-translate="newBooking">New Booking</span>
                     </button>
                 </div>
             </header>
@@ -63,7 +64,7 @@
                     </div>
                     <div class="stat-info">
                         <h3 id="totalBookings">—</h3>
-                        <p>Total Bookings</p>
+                        <p data-translate="totalBookings">Total Bookings</p>
                     </div>
                 </div>
                 <div class="stat-card">
@@ -72,7 +73,7 @@
                     </div>
                     <div class="stat-info">
                         <h3 id="pendingRequests">—</h3>
-                        <p>Pending Requests</p>
+                        <p data-translate="pendingRequests">Pending Requests</p>
                     </div>
                 </div>
                 
@@ -82,7 +83,7 @@
                     </div>
                     <div class="stat-info">
                         <h3 id="totalEarnings">—</h3>
-                        <p>Total Earnings</p>
+                        <p data-translate="totalEarnings">Total Earnings</p>
                     </div>
                 </div>
                 
@@ -92,7 +93,7 @@
                     </div>
                     <div class="stat-info">
                         <h3 id="avgRating">—</h3>
-                        <p>Average Rating</p>
+                        <p data-translate="averageRating">Average Rating</p>
                     </div>
                 </div>
             </section>
@@ -100,9 +101,9 @@
             <!-- Shipper Posts Section -->
             <section class="shipper-posts">
                 <div class="section-header">
-                    <h2>Available Loads from Shippers</h2>
+                    <h2 data-translate="availableLoads">Available Loads from Shippers</h2>
                     <span class="refresh-btn" id="refreshPosts">
-                        <i class="fas fa-sync-alt"></i> Refresh
+                        <i class="fas fa-sync-alt"></i> <span data-translate="refresh">Refresh</span>
                     </span>
                 </div>
                 
@@ -114,7 +115,7 @@
             <!-- Accepted Shipments Section -->
             <section class="accepted-shipments">
                 <div class="section-header">
-                    <h2>My Accepted Shipments</h2>
+                    <h2 data-translate="myAcceptedShipments">My Accepted Shipments</h2>
                 </div>
                 
                 <div class="posts-container" id="acceptedContainer">
@@ -125,21 +126,21 @@
             <!-- Recent Bookings Table -->
             <section class="recent-bookings" style="display: none;">
                 <div class="section-header">
-                    <h2>Recent Bookings</h2>
-                    <a href="#bookings" class="view-all">View All</a>
+                    <h2 data-translate="recentBookings">Recent Bookings</h2>
+                    <a href="#bookings" class="view-all" data-translate="viewAll">View All</a>
                 </div>
                 
                 <div class="bookings-table">
                     <table>
                         <thead>
                             <tr>
-                                <th>Booking ID</th>
-                                <th>Customer</th>
-                                <th>Service Type</th>
-                                <th>Date & Time</th>
-                                <th>Status</th>
-                                <th>Amount</th>
-                                <th>Actions</th>
+                                <th data-translate="bookingId">Booking ID</th>
+                                <th data-translate="customer">Customer</th>
+                                <th data-translate="serviceType">Service Type</th>
+                                <th data-translate="dateTime">Date & Time</th>
+                                <th data-translate="status">Status</th>
+                                <th data-translate="amount">Amount</th>
+                                <th data-translate="actions">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -187,9 +188,9 @@
             <!-- My Trucks Section -->
             <section class="my-trucks" style="display: none;">
                 <div class="section-header">
-                    <h2>My Trucks</h2>
+                    <h2 data-translate="myTrucks">My Trucks</h2>
                     <button class="add-truck-btn">
-                        <i class="fas fa-plus"></i> Add New Truck
+                        <i class="fas fa-plus"></i> <span data-translate="addNewTruck">Add New Truck</span>
                     </button>
                 </div>
                 
@@ -202,6 +203,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
     <script src="../assets/main.js"></script>
+    <script src="../assets/language-switcher.js" type="module"></script>
     <script src="truck-dashboard.js" type="module"></script>
 </body>
 </html>
