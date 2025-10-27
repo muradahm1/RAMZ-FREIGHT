@@ -32,14 +32,16 @@ function initMap() {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     }).addTo(map);
 
-    // Custom truck icon
-    const truckIcon = L.icon({
-        iconUrl: 'https://img.icons8.com/ios-filled/50/ff6b35/truck.png',
+    // Custom animated truck icon
+    const truckIcon = L.divIcon({
+        html: '<div class="truck-marker"><i class="fas fa-truck" style="color: #ff6b35; font-size: 32px;"></i></div>',
         iconSize: [40, 40],
-        iconAnchor: [20, 20]
+        iconAnchor: [20, 20],
+        className: 'truck-icon-wrapper'
     });
 
     truckMarker = L.marker([0, 0], { icon: truckIcon }).addTo(map);
+    truckMarker.bindPopup('<div id="truckPopup">Loading...</div>');
 }
 
 /**
@@ -240,6 +242,17 @@ function startRealTimeTracking() {
             // Update speed
             const speedKmh = (latest.speed || 0) * 3.6;
             document.getElementById('currentSpeed').textContent = `${speedKmh.toFixed(0)} km/h`;
+            
+            // Update truck popup with current location details
+            const timestamp = new Date(latest.timestamp).toLocaleString();
+            truckMarker.getPopup().setContent(`
+                <div style="min-width: 200px;">
+                    <h4 style="margin: 0 0 10px 0; color: #ff6b35;"><i class="fas fa-truck"></i> Truck Location</h4>
+                    <p style="margin: 5px 0;"><strong>Speed:</strong> ${speedKmh.toFixed(0)} km/h</p>
+                    <p style="margin: 5px 0;"><strong>Last Update:</strong> ${timestamp}</p>
+                    <p style="margin: 5px 0;"><strong>Coordinates:</strong><br>${latest.latitude.toFixed(5)}, ${latest.longitude.toFixed(5)}</p>
+                </div>
+            `)
             
             // Auto-pan to keep truck in view
             if (!map.getBounds().contains(newPos)) {
