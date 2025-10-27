@@ -158,12 +158,19 @@ async function loadShipmentTracking() {
         const originCoord = await geocodeAddress(shipment.origin_address);
         const destCoord = await geocodeAddress(shipment.destination_address);
         
-        // Only draw route line from pickup to destination
+        // Get truck's current position
+        let truckCurrentPos = originCoord;
+        if (latestTracking?.length > 0) {
+            truckCurrentPos = [latestTracking[0].latitude, latestTracking[0].longitude];
+        }
+        
+        // Draw route line from pickup to destination
         if (routePolyline) map.removeLayer(routePolyline);
         routePolyline = L.polyline([originCoord, destCoord], { 
             color: '#ff6b35',
             weight: 4,
-            opacity: 0.7
+            opacity: 0.7,
+            dashArray: '10, 10'
         }).addTo(map);
         
         // Add markers for pickup and destination
@@ -173,7 +180,7 @@ async function loadShipmentTracking() {
                 iconSize: [25, 41],
                 iconAnchor: [12, 41]
             })
-        }).addTo(map).bindPopup('Pickup');
+        }).addTo(map).bindPopup('Pickup Location');
         
         L.marker(destCoord, {
             icon: L.icon({
@@ -183,16 +190,26 @@ async function loadShipmentTracking() {
             })
         }).addTo(map).bindPopup('Destination');
         
-        map.fitBounds(routePolyline.getBounds().pad(0.1));
+        // Set truck position and calculate distances
+        truckMarker.setLatLng(truckCurrentPos);
         
-        // Set truck position from GPS data
-        if (latestTracking?.length > 0) {
-            const truckPos = L.latLng(latestTracking[0].latitude, latestTracking[0].longitude);
-            truckMarker.setLatLng(truckPos);
-            map.setView(truckPos, 13);
-        } else {
-            truckMarker.setLatLng(originCoord);
-        }
+        // Calculate distances
+        const distToPickup = L.latLng(truckCurrentPos).distanceTo(L.latLng(originCoord)) / 1000; // km
+        const distToDestination = L.latLng(truckCurrentPos).distanceTo(L.latLng(destCoord)) / 1000; // km
+        const totalRouteDistance = L.latLng(originCoord).distanceTo(L.latLng(destCoord)) / 1000; // km
+        
+        // Update tracking details with current location info
+        document.getElementById('trackingDetails').innerHTML = `
+            <p><strong>From:</strong> ${shipment.origin_address}</p>
+            <p><strong>To:</strong> ${shipment.destination_address}</p>
+            <p style="color: #ff6b35; margin-top: 10px;"><strong>Truck Location:</strong></p>
+            <p>📍 Distance to Pickup: ${distToPickup.toFixed(1)} km</p>
+            <p>📍 Distance to Destination: ${distToDestination.toFixed(1)} km</p>
+        `;
+        
+        // Fit map to show truck, pickup, and destination
+        const bounds = L.latLngBounds([truckCurrentPos, originCoord, destCoord]);
+        map.fitBounds(bounds.pad(0.15));
 
         // Update status
         const statusBadge = document.getElementById('trackingStatus');
@@ -243,16 +260,48 @@ function startRealTimeTracking() {
             const speedKmh = (latest.speed || 0) * 3.6;
             document.getElementById('currentSpeed').textContent = `${speedKmh.toFixed(0)} km/h`;
             
+            // Calculate current distances from truck position
+            const { data: currentShipment } = await supabase
+                .from('shipments')
+                .select('origin_address, destination_address, status')
+                .eq('id', shipmentId)
+                .single();
+            
+            const pickupCoord = await geocodeAddress(currentShipment.origin_address);
+            const destCoord = await geocodeAddress(currentShipment.destination_address);
+            
+            const distToPickup = newPos.distanceTo(L.latLng(pickupCoord)) / 1000;
+            const distToDest = newPos.distanceTo(L.latLng(destCoord)) / 1000;
+            
+            // Determine truck status
+            let truckStatus = 'En route to pickup';
+            if (currentShipment.status === 'in_transit') {
+                truckStatus = 'En route to destination';
+            } else if (distToPickup < 0.5) {
+                truckStatus = 'Near pickup location';
+            }
+            
             // Update truck popup with current location details
             const timestamp = new Date(latest.timestamp).toLocaleString();
             truckMarker.getPopup().setContent(`
-                <div style="min-width: 200px;">
-                    <h4 style="margin: 0 0 10px 0; color: #ff6b35;"><i class="fas fa-truck"></i> Truck Location</h4>
+                <div style="min-width: 220px;">
+                    <h4 style="margin: 0 0 10px 0; color: #ff6b35;"><i class="fas fa-truck"></i> Truck Current Location</h4>
+                    <p style="margin: 5px 0;"><strong>Status:</strong> ${truckStatus}</p>
                     <p style="margin: 5px 0;"><strong>Speed:</strong> ${speedKmh.toFixed(0)} km/h</p>
-                    <p style="margin: 5px 0;"><strong>Last Update:</strong> ${timestamp}</p>
-                    <p style="margin: 5px 0;"><strong>Coordinates:</strong><br>${latest.latitude.toFixed(5)}, ${latest.longitude.toFixed(5)}</p>
+                    <p style="margin: 5px 0;"><strong>To Pickup:</strong> ${distToPickup.toFixed(1)} km</p>
+                    <p style="margin: 5px 0;"><strong>To Destination:</strong> ${distToDest.toFixed(1)} km</p>
+                    <p style="margin: 5px 0; font-size: 0.85em; color: #888;"><strong>Last Update:</strong> ${timestamp}</p>
                 </div>
-            `)
+            `);
+            
+            // Update tracking details panel
+            document.getElementById('trackingDetails').innerHTML = `
+                <p><strong>From:</strong> ${currentShipment.origin_address}</p>
+                <p><strong>To:</strong> ${currentShipment.destination_address}</p>
+                <p style="color: #ff6b35; margin-top: 10px;"><strong>Truck Location:</strong></p>
+                <p>📍 Distance to Pickup: ${distToPickup.toFixed(1)} km</p>
+                <p>📍 Distance to Destination: ${distToDest.toFixed(1)} km</p>
+            `
             
             // Auto-pan to keep truck in view
             if (!map.getBounds().contains(newPos)) {
