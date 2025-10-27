@@ -298,10 +298,10 @@ export const translations = {
         contactUs: "Nu Qunnamaa",
 
         // Hero
-        heroTitle: "Gara Ramz Freight Nagaan Dhufaa",
+        heroTitle: " Baga Gara Ramz Freight Nagaan Dhuftan",
         heroSubtitle: "Ergitootaa fi Abbootii Konkolaataa Itoophiyaa Guutuu Wal Qabsiisuu",
         shipperButton: "Ani Ergituudha",
-        truckOwnerButton: "Ani Abbaa Konkolaataa Fe'isaati",
+        truckOwnerButton: "Ani Abbaa Konkolaataa Fe'insaati",
 
         // Why Choose Us
         whyChooseUsTitle: "Maaliif Nu Filattu?",
