@@ -207,6 +207,7 @@
     <script src="../assets/language-switcher.js" type="module"></script>
     <script src="../assets/offline-sync.js"></script>
     <script src="../assets/location-tracker.js"></script>
+    <script src="../assets/notification-system.js"></script>
     <script src="truck-dashboard.js" type="module"></script>
     <script>
       // Auto-start location tracking for truck owners
@@ -215,7 +216,6 @@
           await window.locationTracker.requestPermission();
           window.locationTracker.startTracking((position) => {
             console.log('Location updated:', position);
-            // Update UI with current location if needed
           });
         } catch (error) {
           console.log('Location tracking not enabled:', error.message);

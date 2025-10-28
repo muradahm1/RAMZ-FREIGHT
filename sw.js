@@ -1,18 +1,18 @@
-const CACHE_VERSION = 'ramz-freight-v2';
+const CACHE_VERSION = 'ramz-freight-v3';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const DYNAMIC_CACHE = `${CACHE_VERSION}-dynamic`;
-const OFFLINE_PAGE = '/offline.html';
+const OFFLINE_PAGE = './offline.html';
 
 const STATIC_ASSETS = [
-  '/offline.html',
-  '/docs/homepage/homepage.html',
-  '/docs/assets/main.css',
-  '/docs/assets/main.js',
-  '/docs/assets/translations.js',
-  '/docs/assets/language-switcher.js',
-  '/assets/images/icon.png',
-  '/assets/images/background.jpg',
-  'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css'
+  './offline.html',
+  './index.html',
+  './docs/homepage/homepage.html',
+  './docs/assets/main.css',
+  './docs/assets/main.js',
+  './docs/assets/translations.js',
+  './docs/assets/language-switcher.js',
+  './assets/images/icon.png',
+  './assets/images/background.jpg'
 ];
 
 // Install event - cache static assets
@@ -152,3 +152,42 @@ function openDB() {
     };
   });
 }
+
+// Notification click handler
+self.addEventListener('notificationclick', event => {
+  event.notification.close();
+  
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true })
+      .then(clientList => {
+        // If app is already open, focus it
+        for (const client of clientList) {
+          if ('focus' in client) {
+            return client.focus();
+          }
+        }
+        // Otherwise open new window
+        if (clients.openWindow) {
+          return clients.openWindow('./');
+        }
+      })
+  );
+});
+
+// Push notification handler
+self.addEventListener('push', event => {
+  if (!event.data) return;
+  
+  const data = event.data.json();
+  const options = {
+    body: data.body,
+    icon: './assets/images/icon.png',
+    badge: './assets/images/icon.png',
+    vibrate: [200, 100, 200],
+    data: data.data
+  };
+  
+  event.waitUntil(
+    self.registration.showNotification(data.title, options)
+  );
+})

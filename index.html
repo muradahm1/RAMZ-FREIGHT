@@ -4,12 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RAMZ FREIGHT - Logistics Platform</title>
-    <meta name="theme-color" content="#2563eb">
-    <link rel="manifest" href="manifest.json">
-    <link rel="apple-touch-icon" href="assets/images/icon.png">
+    <meta name="theme-color" content="#ff6b35">
+    <link rel="manifest" href="./manifest.json">
+    <link rel="apple-touch-icon" href="./assets/images/icon.png">
     <script>
-        // Redirect to homepage immediately
-        window.location.href = 'docs/homepage/homepage.html';
+        // Register service worker before redirect
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW error:', err));
+        }
+        // Redirect to homepage
+        window.location.href = './docs/homepage/homepage.html';
     </script>
 </head>
 <body>
