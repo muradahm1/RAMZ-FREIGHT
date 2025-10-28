@@ -85,6 +85,7 @@ document.addEventListener('DOMContentLoaded', () => {
             googleBtn.disabled = true;
             googleBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Connecting...';
             
+            localStorage.setItem('userRole', 'shipper'); // Set role before redirect
             localStorage.setItem('post_auth_redirect', window.location.href);
             const redirectUrl = getRedirectUrl('/docs/shippers-dashboard/shippers-dashboard.html');
             const { data, error } = await supabase.auth.signInWithOAuth({

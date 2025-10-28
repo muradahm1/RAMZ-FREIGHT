@@ -13,20 +13,56 @@ document.addEventListener('DOMContentLoaded', async () => {
     const acceptedContainer = document.getElementById('acceptedContainer');
 
     // --- 1. Authentication Check ---
-    // Wait for Supabase to be ready
     await supabaseReady;
-    
+
+    // Handle profile creation for Google Sign-In
+    async function createTruckOwnerProfile(user) {
+        try {
+            const { data: existingProfile } = await supabase
+                .from('truck_owners')
+                .select('user_id')
+                .eq('user_id', user.id)
+                .single();
+
+            if (!existingProfile) {
+                const { error } = await supabase.from('truck_owners').insert({
+                    user_id: user.id,
+                    full_name: user.user_metadata.full_name || user.email.split('@')[0],
+                    phone: user.user_metadata.phone || null
+                });
+                if (error) throw error;
+            }
+        } catch (error) {
+            if (error.code !== '23505') { // Ignore unique violation errors, which are expected if profile exists
+                console.error('Error creating truck owner profile:', error);
+            }
+        }
+    }
+
     // Check for existing session first
     const { data: { session } } = await supabase.auth.getSession();
-    
+
     if (session) {
+        const userRole = localStorage.getItem('userRole');
+        if (userRole === 'truck_owner' && session.user.app_metadata.provider === 'google') {
+            await createTruckOwnerProfile(session.user);
+            localStorage.removeItem('userRole'); // Clean up
+        }
         setupDashboard(session.user);
     } else {
         window.location.replace('../trucks-login/trucks-login.html');
     }
 
     // Listen for auth changes
-    supabase.auth.onAuthStateChange((event, session) => {
+    supabase.auth.onAuthStateChange(async (event, session) => {
+        if (event === 'SIGNED_IN' && session?.user.app_metadata.provider === 'google') {
+            const userRole = localStorage.getItem('userRole');
+            if (userRole === 'truck_owner') {
+                await createTruckOwnerProfile(session.user);
+                localStorage.removeItem('userRole'); // Clean up
+            }
+        }
+        
         if (session) {
             setupDashboard(session.user);
         } else {

@@ -24,6 +24,23 @@ async function initializeTrackingPage(currentUser) {
     await loadShipments(currentUser);
     document.getElementById('shipmentSelect').addEventListener('change', loadShipmentTracking);
     document.getElementById('realTimeBtn').addEventListener('click', startRealTimeTracking);
+
+    // Check for shipment_id in URL and auto-load
+    const urlParams = new URLSearchParams(window.location.search);
+    const shipmentIdFromUrl = urlParams.get('shipment_id');
+
+    if (shipmentIdFromUrl) {
+        const shipmentSelect = document.getElementById('shipmentSelect');
+        
+        // Check if the option for the given shipment ID exists in the dropdown
+        const optionExists = shipmentSelect.querySelector(`option[value="${shipmentIdFromUrl}"]`);
+        if (optionExists) {
+            shipmentSelect.value = shipmentIdFromUrl;
+            loadShipmentTracking(); // Automatically load the tracking data
+        } else {
+            console.warn('Shipment ID from URL not found or not available for tracking.');
+        }
+    }
 }
 
 function initMap() {

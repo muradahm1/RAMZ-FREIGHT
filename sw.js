@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'ramz-freight-v3';
+const CACHE_VERSION = 'ramz-freight-v4';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const DYNAMIC_CACHE = `${CACHE_VERSION}-dynamic`;
 const OFFLINE_PAGE = './offline.html';
@@ -12,7 +12,20 @@ const STATIC_ASSETS = [
   './docs/assets/translations.js',
   './docs/assets/language-switcher.js',
   './assets/images/icon.png',
-  './assets/images/background.jpg'
+  './assets/images/background.jpg',
+
+  // Add core app pages for better offline experience
+  './docs/shippers-login/shippers-login.html',
+  './docs/shippers-login/shippers-login.js',
+  './docs/shippers-dashboard/shippers-dashboard.html',
+  './docs/shippers-dashboard/shippers-dashboard.js',
+  './docs/trucks-login/trucks-login.html',
+  './docs/trucks-login/trucks-login.js',
+  './docs/trucks-dashboard-cheak/truck-dashboard.html',
+  './docs/trucks-dashboard-cheak/truck-dashboard.js',
+  './docs/live-tracking/live-tracking.html',
+  './docs/live-tracking/live-tracking.js',
+  './docs/assets/supabaseClient.js'
 ];
 
 // Install event - cache static assets

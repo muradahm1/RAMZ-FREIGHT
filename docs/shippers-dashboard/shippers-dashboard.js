@@ -15,8 +15,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     const { data: { session } } = await supabase.auth.getSession();
     
     if (session) {
-        if (session.user.app_metadata.provider === 'google') {
+        // Handle profile creation for Google sign-in on initial load
+        const userRole = localStorage.getItem('userRole');
+        if (userRole === 'shipper' && session.user.app_metadata.provider === 'google') {
             await createShipperProfile(session.user);
+            localStorage.removeItem('userRole'); // Clean up role
         }
         setupDashboard(session.user);
     } else {
@@ -26,7 +29,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Listen for auth changes
     supabase.auth.onAuthStateChange(async (event, session) => {
         if (event === 'SIGNED_IN' && session?.user.app_metadata.provider === 'google') {
-            await createShipperProfile(session.user);
+            const userRole = localStorage.getItem('userRole');
+            if (userRole === 'shipper') {
+                await createShipperProfile(session.user);
+                localStorage.removeItem('userRole'); // Clean up role
+            }
         }
         if (session) {
             setupDashboard(session.user);
@@ -125,17 +132,19 @@ async function loadActiveShipments(user) {
             `;
         } else {
             shipmentsList.innerHTML = shipments.map(shipment => `
-            <div class="shipment-card">
-                <div class="shipment-info">
-                    <h4>${shipment.goods_description || 'Shipment'}</h4>
-                    <div class="shipment-details">
-                        <span><i class="fas fa-map-marker-alt"></i> ${shipment.origin_address}</span>
-                        <span><i class="fas fa-arrow-right"></i> ${shipment.destination_address}</span>
-                        <span><i class="fas fa-weight"></i> ${shipment.weight_kg || 0} kg</span>
+            <a href="../live-tracking/live-tracking.html?shipment_id=${shipment.id}" class="shipment-card-link">
+                <div class="shipment-card">
+                    <div class="shipment-info">
+                        <h4>${shipment.goods_description || 'Shipment'}</h4>
+                        <div class="shipment-details">
+                            <span><i class="fas fa-map-marker-alt"></i> ${shipment.origin_address}</span>
+                            <span><i class="fas fa-arrow-right"></i> ${shipment.destination_address}</span>
+                            <span><i class="fas fa-weight"></i> ${shipment.weight_kg || 0} kg</span>
+                        </div>
                     </div>
+                    <div class="shipment-status status-${shipment.status.toLowerCase()}">${shipment.status.toUpperCase()}</div>
                 </div>
-                <div class="shipment-status status-${shipment.status.toLowerCase()}">${shipment.status.toUpperCase()}</div>
-            </div>
+            </a>
         `).join('');
         }
     } catch (err) {

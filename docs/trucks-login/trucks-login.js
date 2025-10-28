@@ -58,6 +58,7 @@ document.addEventListener('DOMContentLoaded', () => {
             
             console.log('Starting Google OAuth...');
             // remember where to return after auth
+            localStorage.setItem('userRole', 'truck_owner'); // Set role before redirect
             localStorage.setItem('post_auth_redirect', window.location.href);
             const redirectUrl = getRedirectUrl('/docs/trucks-dashboard-cheak/truck-dashboard.html');
             const { data, error } = await supabase.auth.signInWithOAuth({

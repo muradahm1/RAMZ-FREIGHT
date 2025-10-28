@@ -176,8 +176,8 @@ app.get('/shipments', async (req, res) => {
     if (role === 'shipper' || role === 'shipper_user') {
       query = query.eq('shipper_id', user.id);
     } else if (role === 'truck_owner' || role === 'truck') {
-      // Truck owners see: their assigned shipments OR pending shipments
-      query = query.or(`truck_owner_id.eq.${user.id},status.eq.pending`);
+      // Truck owners see: their assigned shipments OR pending shipments that are unassigned
+      query = query.or(`truck_owner_id.eq.${user.id},and(status.eq.pending,truck_owner_id.is.null)`);
     } else if (role === 'manager' || role === 'admin' || role === 'management') {
       // Managers see all
     } else {
