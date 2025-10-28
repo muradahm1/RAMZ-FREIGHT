@@ -133,3 +133,25 @@ if (menuBtn && navMenu) {
 		navMenu.classList.toggle('active');
 	});
 }
+
+// Save the last visited page before the window unloads
+window.addEventListener('beforeunload', () => {
+    // List of pages that should not be saved as the last location
+    const nonResumablePaths = [
+        '/shippers-login/',
+        '/trucks-login/',
+        '/shippers-register/',
+        '/trucks-register/',
+        '/index.html',
+        '/homepage.html' // Also exclude the root homepage
+    ];
+
+    const currentPath = window.location.pathname;
+
+    // Check if the current path includes any of the non-resumable paths
+    const isResumable = !nonResumablePaths.some(path => currentPath.includes(path));
+
+    if (isResumable) {
+        localStorage.setItem('lastVisitedPage', currentPath);
+    }
+});

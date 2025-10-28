@@ -1,3 +1,17 @@
+import { isUserLoggedIn } from '../assets/auth.js';
+
+// Immediately check for a previous session and redirect if applicable
+(function() {
+    const lastVisitedPage = localStorage.getItem('lastVisitedPage');
+    // Ensure the path is not the homepage to prevent a redirect loop
+    const isResumable = lastVisitedPage && !lastVisitedPage.includes('homepage.html');
+
+    if (isResumable && isUserLoggedIn()) {
+        // Use replace to avoid polluting browser history
+        window.location.replace(lastVisitedPage);
+    }
+})();
+
 // Mobile Navigation Toggle
 const hamburger = document.getElementById('hamburger');
 const navMenu = document.getElementById('nav-menu');

@@ -30,9 +30,23 @@ export function checkAuth() {
     }
 }
 
+export function isUserLoggedIn() {
+    const token = localStorage.getItem('authToken');
+    if (!token) return false;
+
+    try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        const currentTime = Date.now() / 1000;
+        return payload.exp >= currentTime;
+    } catch (error) {
+        return false;
+    }
+}
+
 export function logout() {
     localStorage.removeItem('authToken');
     localStorage.removeItem('user');
+    localStorage.removeItem('lastVisitedPage'); // Clear last visited page on logout
     redirectToLogin();
 }
 
