@@ -266,6 +266,44 @@ app.post('/shipments/:id/start', async (req, res) => {
   }
 });
 
+// Deliver a shipment (truck owner marks as delivered)
+app.post('/shipments/:id/deliver', async (req, res) => {
+  try {
+    const shipmentId = req.params.id;
+    const verification = await getUserFromBearer(req);
+    if (verification.error) return res.status(401).json({ error: verification.error });
+    const user = verification.user;
+    if (!user || !user.id) return res.status(401).json({ error: 'Invalid user' });
+
+    // Use admin client to bypass RLS
+    const client = supabaseAdmin;
+
+    const { data: existing, error: fetchErr } = await client.from('shipments').select('*').eq('id', shipmentId).maybeSingle();
+    if (fetchErr) return res.status(500).json({ error: fetchErr.message });
+    if (!existing) return res.status(404).json({ error: 'Shipment not found' });
+    if (existing.truck_owner_id !== user.id) return res.status(403).json({ error: 'You are not assigned to this shipment' });
+
+    const { data, error } = await client.from('shipments').update({ status: 'delivered' }).eq('id', shipmentId).select().maybeSingle();
+    if (error) return res.status(500).json({ error: error.message });
+
+    // Create notification for shipper
+    if (data && data.shipper_id) {
+      await client.from('notifications').insert({
+        user_id: data.shipper_id,
+        title: 'Shipment Delivered',
+        message: `Your shipment to ${data.destination_address} has been delivered successfully.`,
+        type: 'success',
+        shipment_id: data.id
+      });
+    }
+
+    res.json({ shipment: data });
+  } catch (err) {
+    console.error('Error in POST /shipments/:id/deliver:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // User authentication endpoint (login)
 app.post('/auth/login', async (req, res) => {
   const { email, password } = req.body;

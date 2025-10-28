@@ -193,7 +193,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             const session = sessionResp?.data?.session;
             if (!session) throw new Error('Not authenticated');
 
-            const apiUrl = (backendUrl || '').replace(/\/$/, '') + '/shipments?status=pending';
+            // Don't filter by status - let backend handle it based on user role
+            const apiUrl = (backendUrl || '').replace(/\/$/, '') + '/shipments';
             console.log('Fetching from:', apiUrl);
             console.log('Backend URL:', backendUrl);
             const response = await fetch(apiUrl, {
@@ -202,7 +203,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             console.log('Response status:', response.status);
             if (!response.ok) throw new Error(`Failed to fetch loads: ${response.status} ${response.statusText}`);
             const json = await response.json();
-            const shipments = json?.shipments || [];
+            const allShipments = json?.shipments || [];
+            
+            // Filter for pending shipments only
+            const shipments = allShipments.filter(s => s.status === 'pending');
 
             if (shipments.length === 0) {
                 postsContainer.innerHTML = '<div class="loading">No available loads at the moment. Check back soon!</div>';
@@ -292,6 +296,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     const shipmentOwnerStr = String(sid || '').trim();
                     
                     if (!sid || !user?.id) return false;
+                    // Exclude delivered and cancelled shipments
                     return shipmentOwnerStr === userIdStr && ['accepted','picked_up','in_transit'].includes(s.status);
                 } catch (e) {
                     console.warn('Error while checking shipment ownership', e);
@@ -435,20 +440,32 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         try {
-            // Update shipment status to delivered
-            const { error } = await supabase
-                .from('shipments')
-                .update({ status: 'delivered' })
-                .eq('id', shipmentId);
+            const sessionResp = await supabase.auth.getSession();
+            const session = sessionResp?.data?.session;
+            if (!session) throw new Error('Not authenticated');
 
-            if (error) throw error;
+            // Use admin client via backend to update status
+            const apiUrl = (backendUrl || '').replace(/\/$/, '') + `/shipments/${shipmentId}/deliver`;
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: { Authorization: `Bearer ${session.access_token}` }
+            });
+            
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Failed to mark as delivered');
+            }
 
             // Stop location tracking
-            await locationTracker.stopTracking();
+            if (window.locationTracker) {
+                await window.locationTracker.stopTracking();
+            }
             
             alert('Shipment marked as delivered!');
             const { data: { user } } = await supabase.auth.getUser();
+            await new Promise(resolve => setTimeout(resolve, 500));
             loadAcceptedShipments(user);
+            populateDashboardStats(user);
         } catch (err) {
             console.error('Error delivering shipment:', err);
             alert(`Failed to mark as delivered: ${err.message}`);
