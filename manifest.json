@@ -1,12 +1,14 @@
 {
-  "name": "RAMZ FREIGHT",
-  "short_name": "RAMZ",
+  "name": "RAMZ FREIGHT - Logistics Platform",
+  "short_name": "Ramz Freight",
   "description": "Connecting Shippers and Truck Owners across Ethiopia",
   "start_url": "/docs/homepage/homepage.html",
+  "scope": "/",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#2563eb",
+  "background_color": "#0f0f0f",
+  "theme_color": "#ff6b35",
   "orientation": "portrait-primary",
+  "categories": ["business", "logistics", "transportation"],
   "icons": [
     {
       "src": "/assets/images/icon.png",
@@ -19,6 +21,19 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Create Shipment",
+      "url": "/docs/create-shipment/create-shipment.html",
+      "icons": [{ "src": "/assets/images/icon.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Track Shipment",
+      "url": "/docs/live-tracking/live-tracking.html",
+      "icons": [{ "src": "/assets/images/icon.png", "sizes": "192x192" }]
     }
   ]
 }

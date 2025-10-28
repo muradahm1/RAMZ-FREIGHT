@@ -179,12 +179,21 @@
     <script src="../assets/main.js"></script>
   <script src="../assets/translations.js" type="module"></script>
   <script src="../assets/language-switcher.js" type="module"></script>
+  <script src="../assets/offline-sync.js"></script>
+  <script src="../assets/location-tracker.js"></script>
+  <script src="../assets/pwa-install.js"></script>
   <script src="scroll-animations.js"></script>
   <script src="homepage.js"></script>
   <script>
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('/sw.js')
-        .then(() => console.log('PWA ready'))
+        .then(reg => {
+          console.log('PWA ready');
+          // Request notification permission
+          if ('Notification' in window && Notification.permission === 'default') {
+            Notification.requestPermission();
+          }
+        })
         .catch(err => console.log('SW error:', err));
     }
   </script>

@@ -1,36 +1,154 @@
-const CACHE_NAME = 'ramz-freight-v1';
-const urlsToCache = [
+const CACHE_VERSION = 'ramz-freight-v2';
+const STATIC_CACHE = `${CACHE_VERSION}-static`;
+const DYNAMIC_CACHE = `${CACHE_VERSION}-dynamic`;
+const OFFLINE_PAGE = '/offline.html';
+
+const STATIC_ASSETS = [
+  '/offline.html',
   '/docs/homepage/homepage.html',
   '/docs/assets/main.css',
   '/docs/assets/main.js',
+  '/docs/assets/translations.js',
+  '/docs/assets/language-switcher.js',
   '/assets/images/icon.png',
-  '/assets/images/background.jpg'
+  '/assets/images/background.jpg',
+  'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css'
 ];
 
+// Install event - cache static assets
 self.addEventListener('install', event => {
   event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => cache.addAll(urlsToCache))
+    caches.open(STATIC_CACHE)
+      .then(cache => cache.addAll(STATIC_ASSETS))
+      .then(() => self.skipWaiting())
   );
 });
 
-self.addEventListener('fetch', event => {
-  event.respondWith(
-    caches.match(event.request)
-      .then(response => response || fetch(event.request))
-  );
-});
-
+// Activate event - clean old caches
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys().then(cacheNames => {
       return Promise.all(
         cacheNames.map(cacheName => {
-          if (cacheName !== CACHE_NAME) {
+          if (cacheName !== STATIC_CACHE && cacheName !== DYNAMIC_CACHE) {
             return caches.delete(cacheName);
           }
         })
       );
-    })
+    }).then(() => self.clients.claim())
   );
 });
+
+// Fetch event - network first, fallback to cache
+self.addEventListener('fetch', event => {
+  const { request } = event;
+  
+  // Skip non-GET requests
+  if (request.method !== 'GET') return;
+  
+  // Skip Supabase API calls from caching
+  if (request.url.includes('supabase.co')) {
+    event.respondWith(
+      fetch(request).catch(() => {
+        return new Response(JSON.stringify({ offline: true }), {
+          headers: { 'Content-Type': 'application/json' }
+        });
+      })
+    );
+    return;
+  }
+  
+  // Network first strategy for HTML pages
+  if (request.headers.get('accept').includes('text/html')) {
+    event.respondWith(
+      fetch(request)
+        .then(response => {
+          const responseClone = response.clone();
+          caches.open(DYNAMIC_CACHE).then(cache => cache.put(request, responseClone));
+          return response;
+        })
+        .catch(() => {
+          return caches.match(request)
+            .then(response => response || caches.match(OFFLINE_PAGE));
+        })
+    );
+    return;
+  }
+  
+  // Cache first strategy for assets
+  event.respondWith(
+    caches.match(request)
+      .then(response => {
+        return response || fetch(request)
+          .then(fetchResponse => {
+            return caches.open(DYNAMIC_CACHE).then(cache => {
+              cache.put(request, fetchResponse.clone());
+              return fetchResponse;
+            });
+          });
+      })
+  );
+});
+
+// Background sync for offline data
+self.addEventListener('sync', event => {
+  if (event.tag === 'sync-shipments') {
+    event.waitUntil(syncShipmentData());
+  }
+  if (event.tag === 'sync-location') {
+    event.waitUntil(syncLocationData());
+  }
+});
+
+async function syncShipmentData() {
+  try {
+    const db = await openDB();
+    const pendingData = await db.getAll('pending-sync');
+    
+    for (const item of pendingData) {
+      await fetch(item.url, {
+        method: item.method,
+        headers: item.headers,
+        body: JSON.stringify(item.data)
+      });
+      await db.delete('pending-sync', item.id);
+    }
+  } catch (error) {
+    console.error('Sync failed:', error);
+  }
+}
+
+async function syncLocationData() {
+  try {
+    const db = await openDB();
+    const locations = await db.getAll('pending-locations');
+    
+    for (const loc of locations) {
+      await fetch('/api/location', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(loc)
+      });
+      await db.delete('pending-locations', loc.id);
+    }
+  } catch (error) {
+    console.error('Location sync failed:', error);
+  }
+}
+
+function openDB() {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open('ramz-freight-db', 1);
+    request.onerror = () => reject(request.error);
+    request.onsuccess = () => resolve(request.result);
+    request.onupgradeneeded = (event) => {
+      const db = event.target.result;
+      if (!db.objectStoreNames.contains('pending-sync')) {
+        db.createObjectStore('pending-sync', { keyPath: 'id', autoIncrement: true });
+      }
+      if (!db.objectStoreNames.contains('pending-locations')) {
+        db.createObjectStore('pending-locations', { keyPath: 'id', autoIncrement: true });
+      }
+    };
+  });
+}
