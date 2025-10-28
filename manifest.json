@@ -2,7 +2,7 @@
   "name": "RAMZ FREIGHT - Logistics Platform",
   "short_name": "Ramz Freight",
   "description": "Connecting Shippers and Truck Owners across Ethiopia",
-  "start_url": "./index.html",
+  "start_url": "./docs/homepage/homepage.html",
   "scope": "./",
   "display": "standalone",
   "background_color": "#0f0f0f",
