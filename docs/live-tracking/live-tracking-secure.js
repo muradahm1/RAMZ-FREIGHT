@@ -17,8 +17,19 @@ async function initializeTrackingPage(currentUser) {
     initMap();
     await loadShipments(currentUser);
     document.getElementById('shipmentSelect').addEventListener('change', loadShipmentTracking);
-    document.getElementById('realTimeBtn').addEventListener('click', () => alert('Real-time tracking active!'));
+    document.getElementById('realTimeBtn').addEventListener('click', startRealTimeTracking);
 }
+
+function startRealTimeTracking() {
+    if (!cachedShipmentData) {
+        alert('Please select a shipment first.');
+        return;
+    }
+    alert('Real-time tracking is active! Updates will appear automatically.');
+}
+
+// Expose to global scope for onclick handler
+window.startRealTimeTracking = startRealTimeTracking;
 
 function initMap() {
     map = L.map('trackingMap').setView([9.02497, 38.74689], 7);
@@ -39,22 +50,32 @@ function initMap() {
 
 async function loadShipments(currentUser) {
     const shipmentSelect = document.getElementById('shipmentSelect');
+    shipmentSelect.innerHTML = '<option value="">Loading...</option>';
+    
     try {
-        const { data: shipments } = await supabase
+        const { data: shipments, error } = await supabase
             .from('shipments')
             .select('*')
             .eq('shipper_id', currentUser.id)
-            .in('status', ['accepted', 'in_transit']);
+            .in('status', ['accepted', 'in_transit', 'picked_up']);
+
+        if (error) throw error;
+
+        if (!shipments || shipments.length === 0) {
+            shipmentSelect.innerHTML = '<option value="">No active shipments</option>';
+            return;
+        }
 
         shipmentSelect.innerHTML = '<option value="">Choose a shipment to track</option>';
-        shipments?.forEach(s => {
+        shipments.forEach(s => {
             const opt = document.createElement('option');
             opt.value = s.id;
-            opt.textContent = `To: ${s.destination_address}`;
+            opt.textContent = `${s.goods_description} - To: ${s.destination_address} (${s.status})`;
             shipmentSelect.appendChild(opt);
         });
     } catch (err) {
-        console.error(err);
+        console.error('Error loading shipments:', err);
+        shipmentSelect.innerHTML = '<option value="">Error loading shipments</option>';
     }
 }
 
@@ -65,11 +86,21 @@ async function loadShipmentTracking() {
     if (!shipmentId) return resetUI();
 
     try {
-        const { data: shipment } = await supabase
+        const { data: shipment, error } = await supabase
             .from('shipments')
-            .select(`*, truck_owner:truck_owners!truck_owner_id(full_name, phone, avatar_url), vehicle:vehicles!vehicle_id(vehicle_model, license_plate)`)
+            .select(`
+                *,
+                truck_owner:truck_owners!truck_owner_id(full_name, phone, avatar_url),
+                vehicle:vehicles!vehicle_id(vehicle_model, license_plate)
+            `)
             .eq('id', shipmentId)
             .single();
+
+        if (error) throw error;
+        if (!shipment) {
+            alert('Shipment not found');
+            return;
+        }
 
         const originCoord = await geocodeAddress(shipment.origin_address);
         const destCoord = await geocodeAddress(shipment.destination_address);
