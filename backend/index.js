@@ -222,8 +222,13 @@ app.post('/shipments/:id/assign', async (req, res) => {
     if (existing.truck_owner_id) return res.status(400).json({ error: 'Shipment is already assigned to another truck owner' });
 
     // Assign to self using admin client
+    console.log(`Assigning shipment ${shipmentId} to user ${user.id}`);
     const { data, error } = await client.from('shipments').update({ truck_owner_id: user.id, status: 'accepted' }).eq('id', shipmentId).select().maybeSingle();
-    if (error) return res.status(500).json({ error: error.message });
+    if (error) {
+      console.error('Error updating shipment:', error);
+      return res.status(500).json({ error: error.message });
+    }
+    console.log('Shipment assigned successfully:', data);
 
     // Create notification for shipper
     if (data && data.shipper_id) {

@@ -238,11 +238,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (!session) throw new Error('Not authenticated');
 
             // Don't filter by status - let backend handle it based on user role
-            const apiUrl = (backendUrl || '').replace(/\/$/, '') + '/shipments';
+            // Add timestamp to prevent caching
+            const apiUrl = (backendUrl || '').replace(/\/$/, '') + '/shipments?t=' + Date.now();
             console.log('Fetching from:', apiUrl);
             console.log('Backend URL:', backendUrl);
             const response = await fetch(apiUrl, {
-                headers: { Authorization: `Bearer ${session.access_token}` }
+                headers: { Authorization: `Bearer ${session.access_token}` },
+                cache: 'no-store'
             });
             console.log('Response status:', response.status);
             if (!response.ok) throw new Error(`Failed to fetch loads: ${response.status} ${response.statusText}`);
@@ -315,10 +317,12 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (!session) throw new Error('Not authenticated');
 
             // Don't filter by status - get all shipments and filter client-side
-            const apiUrl = (backendUrl || '').replace(/\/$/, '') + '/shipments';
+            // Add timestamp to prevent caching
+            const apiUrl = (backendUrl || '').replace(/\/$/, '') + '/shipments?t=' + Date.now();
             console.log('Fetching accepted shipments from:', apiUrl);
             const response = await fetch(apiUrl, {
-                headers: { Authorization: `Bearer ${session.access_token}` }
+                headers: { Authorization: `Bearer ${session.access_token}` },
+                cache: 'no-store'
             });
             if (!response.ok) throw new Error('Failed to fetch shipments');
             const json = await response.json();
@@ -344,6 +348,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                     const sid = ownerIdOf(s);
                     const userIdStr = String(user.id).trim();
                     const shipmentOwnerStr = String(sid || '').trim();
+                    
+                    console.log(`Checking shipment ${s.id}: owner=${shipmentOwnerStr}, user=${userIdStr}, status=${s.status}, match=${shipmentOwnerStr === userIdStr}`);
                     
                     if (!sid || !user?.id) return false;
                     // Exclude delivered and cancelled shipments
@@ -578,10 +584,16 @@ document.addEventListener('DOMContentLoaded', async () => {
             ]);
         } catch (err) {
             console.error('Error accepting shipment:', err);
-            alert(`Failed to accept the load: ${err.message}`);
-            // Re-enable button on error
-            button.disabled = false;
-            button.innerHTML = '<i class="fas fa-gavel"></i> Place Bid';
+            if (err.message.includes('current status: accepted')) {
+                alert('This shipment has already been accepted by another driver.');
+                const card = button.closest('.post-card');
+                if (card) card.remove();
+            } else {
+                alert(`Failed to accept the load: ${err.message}`);
+                // Re-enable button on error
+                button.disabled = false;
+                button.innerHTML = '<i class="fas fa-gavel"></i> Place Bid';
+            }
         }
     }
 });
