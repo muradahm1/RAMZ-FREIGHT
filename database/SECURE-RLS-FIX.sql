@@ -32,10 +32,10 @@ ON shipments
 FOR SELECT
 TO authenticated
 USING (
-  -- Shippers see their own shipments
+  -- Shippers see ALL their own shipments (any status)
   auth.uid() = shipper_id
   OR
-  -- Truck owners see: pending unassigned OR assigned to them
+  -- Truck owners see: pending unassigned OR assigned to them (any status)
   (status = 'pending' AND truck_owner_id IS NULL)
   OR
   auth.uid() = truck_owner_id
