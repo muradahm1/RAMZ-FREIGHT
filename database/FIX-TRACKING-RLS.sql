@@ -1,5 +1,5 @@
 -- Fix RLS for shipment_tracking table to allow shippers to view tracking data
--- Run this in Supabase SQL Editor
+-- Run this in Supabase SQL Editor AFTER running the shipments RLS policy
 
 BEGIN;
 
@@ -9,6 +9,8 @@ ALTER TABLE shipment_tracking ENABLE ROW LEVEL SECURITY;
 -- Drop existing policies if any
 DROP POLICY IF EXISTS "tracking_select_policy" ON shipment_tracking;
 DROP POLICY IF EXISTS "tracking_insert_policy" ON shipment_tracking;
+DROP POLICY IF EXISTS "tracking_insert_owner" ON shipment_tracking;
+DROP POLICY IF EXISTS "tracking_select_authorized" ON shipment_tracking;
 
 -- Policy 1: Allow truck owners to insert tracking data for their shipments
 CREATE POLICY "tracking_insert_owner"
@@ -19,7 +21,7 @@ WITH CHECK (
   EXISTS (
     SELECT 1 FROM shipments
     WHERE shipments.id = shipment_tracking.shipment_id
-    AND shipments.truck_owner_id = auth.uid()
+    AND shipments.truck_owner_id = (SELECT auth.uid())
   )
 );
 
@@ -32,7 +34,7 @@ USING (
   EXISTS (
     SELECT 1 FROM shipments
     WHERE shipments.id = shipment_tracking.shipment_id
-    AND (shipments.shipper_id = auth.uid() OR shipments.truck_owner_id = auth.uid())
+    AND ((SELECT auth.uid()) = shipments.shipper_id OR (SELECT auth.uid()) = shipments.truck_owner_id)
   )
 );
 
