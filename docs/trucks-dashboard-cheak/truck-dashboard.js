@@ -562,14 +562,20 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const errorData = await res.json();
                 throw new Error(errorData.error || 'Failed to accept load');
             }
+            
+            // Remove the card immediately from UI
+            const card = button.closest('.post-card');
+            if (card) card.remove();
+            
             alert('Load accepted successfully! You can now start the shipment.');
-            // Wait longer for database to update and replicate
-            await new Promise(resolve => setTimeout(resolve, 1500));
-            // Refresh current user from Supabase to ensure id/state is current, then reload UI
+            
+            // Refresh in background
             const { data: { user: refreshedUser } } = await supabase.auth.getUser();
-            await loadAcceptedShipments(refreshedUser || user);
-            await loadAvailableLoads();
-            await populateDashboardStats(refreshedUser || user);
+            await Promise.all([
+                loadAcceptedShipments(refreshedUser || user),
+                loadAvailableLoads(),
+                populateDashboardStats(refreshedUser || user)
+            ]);
         } catch (err) {
             console.error('Error accepting shipment:', err);
             alert(`Failed to accept the load: ${err.message}`);
