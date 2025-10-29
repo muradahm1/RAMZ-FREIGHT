@@ -249,21 +249,4 @@ function resetUI() {
     document.getElementById('trackingStatus').querySelector('span').textContent = 'Select a shipment';
     if (routePolyline) map.removeLayer(routePolyline);
     truckMarker.setLatLng([0, 0]);
-}t(address)}&format=json&limit=1`);
-        const data = await res.json();
-        if (data?.[0]) return [parseFloat(data[0].lat), parseFloat(data[0].lon)];
-    } catch (err) {
-        console.error(err);
-    }
-    return [9.03, 38.74];
-}
-
-function resetUI() {
-    cachedShipmentData = null;
-    document.getElementById('trackingDetails').innerHTML = '<p>Select a shipment</p>';
-    document.getElementById('driverName').textContent = '-';
-    document.getElementById('driverPhone').textContent = '-';
-    document.getElementById('vehicleInfo').textContent = '-';
-    if (routePolyline) map.removeLayer(routePolyline);
-    truckMarker.setLatLng([0, 0]);
 }
