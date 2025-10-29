@@ -249,8 +249,14 @@ document.addEventListener('DOMContentLoaded', async () => {
             const json = await response.json();
             const allShipments = json?.shipments || [];
             
+            console.log('All shipments received:', allShipments.length);
+            console.log('Shipments data:', allShipments);
+            
             // Filter for pending shipments only (not yet accepted by any truck owner)
             const shipments = allShipments.filter(s => s.status === 'pending' && !s.truck_owner_id);
+            
+            console.log('Filtered pending shipments:', shipments.length);
+            console.log('Pending shipments:', shipments);
 
             if (shipments.length === 0) {
                 postsContainer.innerHTML = '<div class="loading">No available loads at the moment. Check back soon!</div>';
