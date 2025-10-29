@@ -242,13 +242,20 @@ async function loadShipmentTracking() {
 
 function startRealTimeTracking() {
     const shipmentId = document.getElementById('shipmentSelect').value;
-    if (!shipmentId) {
+    console.log('Start tracking clicked, shipmentId:', shipmentId);
+    
+    if (!shipmentId || shipmentId === '' || shipmentId === 'Choose a shipment to track') {
         alert('Please select a shipment first.');
         return;
     }
 
     // Check the status from the UI instead of re-fetching
-    const status = document.getElementById('trackingStatus').querySelector('span').textContent.toLowerCase();
+    const statusElement = document.getElementById('trackingStatus');
+    if (!statusElement || !statusElement.querySelector('span')) {
+        alert('Please select a shipment from the dropdown first.');
+        return;
+    }
+    const status = statusElement.querySelector('span').textContent.toLowerCase();
     if (status !== 'in_transit' && status !== 'accepted') {
         alert('This shipment is not ready for tracking. Tracking is only available for accepted or in-transit shipments.');
         return;
