@@ -34,13 +34,26 @@ async function loadHistory() {
 
         const { data: shipments, error } = await query;
         if (error) throw error;
+        
+        // Apply date filter
+        const dateFilter = document.getElementById('dateFilter').value;
+        let filteredShipments = shipments;
+        if (dateFilter !== 'all') {
+            const now = new Date();
+            const filterDate = new Date();
+            if (dateFilter === 'week') filterDate.setDate(now.getDate() - 7);
+            else if (dateFilter === 'month') filterDate.setMonth(now.getMonth() - 1);
+            else if (dateFilter === 'year') filterDate.setFullYear(now.getFullYear() - 1);
+            
+            filteredShipments = shipments.filter(s => new Date(s.created_at) >= filterDate);
+        }
 
-        if (!shipments || shipments.length === 0) {
+        if (!filteredShipments || filteredShipments.length === 0) {
             container.innerHTML = '<div class="no-data"><p>No shipment history found</p></div>';
             return;
         }
 
-        container.innerHTML = shipments.map(s => `
+        container.innerHTML = filteredShipments.map(s => `
             <div class="shipment-card">
                 <div class="shipment-header">
                     <span class="shipment-id">#${s.id.slice(-8)}</span>

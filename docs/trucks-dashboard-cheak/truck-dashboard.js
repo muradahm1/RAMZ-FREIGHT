@@ -127,11 +127,19 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         // --- 6. Event Listeners for All Buttons ---
         
-        // Refresh button
-        refreshBtn.addEventListener('click', () => {
-            loadAvailableLoads();
-            loadAcceptedShipments(user);
-            populateDashboardStats(user);
+        // Refresh button with visual feedback
+        refreshBtn.addEventListener('click', async () => {
+            refreshBtn.disabled = true;
+            refreshBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Refreshing...';
+            
+            await Promise.all([
+                loadAvailableLoads(),
+                loadAcceptedShipments(user),
+                populateDashboardStats(user)
+            ]);
+            
+            refreshBtn.disabled = false;
+            refreshBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Refresh';
         });
         
         // New Booking button

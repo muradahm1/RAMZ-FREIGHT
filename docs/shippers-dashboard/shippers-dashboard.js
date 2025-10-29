@@ -246,6 +246,7 @@ async function loadAvailableTrucks() {
             .from('vehicles')
             .select('*')
             .eq('status', 'approved')
+            .order('created_at', { ascending: false })
             .limit(6);
 
         if (error) throw error;
@@ -283,6 +284,13 @@ async function loadAvailableTrucks() {
         trucksGrid.innerHTML = '<div class="no-data" style="color: var(--danger);">Failed to load trucks.</div>';
     }
 }
+
+// Auto-refresh trucks every 30 seconds
+setInterval(() => {
+    if (document.getElementById('trucksGrid')) {
+        loadAvailableTrucks();
+    }
+}, 30000);
 async function loadStats(user) {
     try {
         const { data: shipments, error } = await supabase
