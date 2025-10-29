@@ -21,13 +21,18 @@ async function initializeTrackingPage(currentUser) {
 }
 
 function startRealTimeTracking() {
-    if (!cachedShipmentData || !cachedShipmentData.shipment.id) {
-        alert('Please select a shipment first.');
+    console.log('Start tracking clicked');
+    console.log('Cached shipment data:', cachedShipmentData);
+    
+    if (!cachedShipmentData || !cachedShipmentData.shipment || !cachedShipmentData.shipment.id) {
+        alert('Please select a shipment from the dropdown first.');
         return;
     }
 
     const shipmentId = cachedShipmentData.shipment.id;
     const status = cachedShipmentData.shipment.status;
+    
+    console.log('Shipment ID:', shipmentId, 'Status:', status);
 
     if (status !== 'in_transit' && status !== 'picked_up' && status !== 'accepted') {
         alert('This shipment is not ready for live tracking yet.');
@@ -91,7 +96,13 @@ async function loadShipmentTracking() {
     if (realtimeChannel) supabase.removeChannel(realtimeChannel);
 
     const shipmentId = document.getElementById('shipmentSelect').value;
-    if (!shipmentId) return resetUI();
+    console.log('Loading shipment tracking for ID:', shipmentId);
+    
+    if (!shipmentId || shipmentId === '') {
+        cachedShipmentData = null;
+        resetUI();
+        return;
+    }
 
     try {
         const { data: shipment, error } = await supabase
@@ -114,6 +125,7 @@ async function loadShipmentTracking() {
         const destCoord = await geocodeAddress(shipment.destination_address);
 
         cachedShipmentData = { shipment, originCoord, destCoord };
+        console.log('Shipment data cached:', cachedShipmentData);
 
         document.getElementById('driverName').textContent = shipment.truck_owner?.full_name || 'N/A';
         document.getElementById('driverPhone').textContent = shipment.truck_owner?.phone || 'N/A';
@@ -218,6 +230,26 @@ function updateTrackingUI(truckPos) {
 async function geocodeAddress(address) {
     try {
         const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(address)}&format=json&limit=1`);
+        const data = await res.json();
+        if (data && data.length > 0) {
+            return [parseFloat(data[0].lat), parseFloat(data[0].lon)];
+        }
+    } catch (err) {
+        console.error('Geocoding error:', err);
+    }
+    return [9.03, 38.74]; // Default to Addis Ababa
+}
+
+function resetUI() {
+    cachedShipmentData = null;
+    document.getElementById('trackingDetails').innerHTML = '<p>Select a shipment to view tracking information</p>';
+    document.getElementById('driverName').textContent = '-';
+    document.getElementById('driverPhone').textContent = '-';
+    document.getElementById('vehicleInfo').textContent = '-';
+    document.getElementById('trackingStatus').querySelector('span').textContent = 'Select a shipment';
+    if (routePolyline) map.removeLayer(routePolyline);
+    truckMarker.setLatLng([0, 0]);
+}t(address)}&format=json&limit=1`);
         const data = await res.json();
         if (data?.[0]) return [parseFloat(data[0].lat), parseFloat(data[0].lon)];
     } catch (err) {
