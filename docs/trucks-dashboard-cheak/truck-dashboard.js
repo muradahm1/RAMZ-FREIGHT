@@ -532,6 +532,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         const button = event.target.closest('.bid-btn');
         const shipmentId = button.dataset.shipmentId;
+        
+        // Prevent double-clicking
+        if (button.disabled) return;
 
         if (!confirm('Are you sure you want to accept this load? This will assign it to you immediately.')) {
             return;
@@ -542,6 +545,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             alert('You must be logged in to place a bid.');
             return;
         }
+        
+        // Disable button and show loading state
+        button.disabled = true;
+        button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Accepting...';
 
         try {
             const apiUrl = (backendUrl || '').replace(/\/$/, '') + `/shipments/${shipmentId}/assign`;
@@ -556,16 +563,19 @@ document.addEventListener('DOMContentLoaded', async () => {
                 throw new Error(errorData.error || 'Failed to accept load');
             }
             alert('Load accepted successfully! You can now start the shipment.');
-            // Wait a moment for database to update
-            await new Promise(resolve => setTimeout(resolve, 500));
+            // Wait longer for database to update and replicate
+            await new Promise(resolve => setTimeout(resolve, 1500));
             // Refresh current user from Supabase to ensure id/state is current, then reload UI
             const { data: { user: refreshedUser } } = await supabase.auth.getUser();
-            populateDashboardStats(refreshedUser || user);
-            loadAvailableLoads();
-            loadAcceptedShipments(refreshedUser || user);
+            await loadAcceptedShipments(refreshedUser || user);
+            await loadAvailableLoads();
+            await populateDashboardStats(refreshedUser || user);
         } catch (err) {
             console.error('Error accepting shipment:', err);
             alert(`Failed to accept the load: ${err.message}`);
+            // Re-enable button on error
+            button.disabled = false;
+            button.innerHTML = '<i class="fas fa-gavel"></i> Place Bid';
         }
     }
 });

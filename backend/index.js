@@ -218,7 +218,8 @@ app.post('/shipments/:id/assign', async (req, res) => {
     const { data: existing, error: fetchErr } = await client.from('shipments').select('*').eq('id', shipmentId).maybeSingle();
     if (fetchErr) return res.status(500).json({ error: fetchErr.message });
     if (!existing) return res.status(404).json({ error: 'Shipment not found' });
-    if (existing.status !== 'pending') return res.status(400).json({ error: 'Shipment is not available for assignment' });
+    if (existing.status !== 'pending') return res.status(400).json({ error: `Shipment is not available for assignment (current status: ${existing.status})` });
+    if (existing.truck_owner_id) return res.status(400).json({ error: 'Shipment is already assigned to another truck owner' });
 
     // Assign to self using admin client
     const { data, error } = await client.from('shipments').update({ truck_owner_id: user.id, status: 'accepted' }).eq('id', shipmentId).select().maybeSingle();
