@@ -4,10 +4,14 @@
 
 BEGIN;
 
--- Drop existing policies
+-- Drop ALL existing policies (including any that might exist)
 DROP POLICY IF EXISTS "shipments_insert_policy" ON shipments;
 DROP POLICY IF EXISTS "shipments_select_policy" ON shipments;
 DROP POLICY IF EXISTS "shipments_update_policy" ON shipments;
+DROP POLICY IF EXISTS "shipments_insert_authenticated" ON shipments;
+DROP POLICY IF EXISTS "shipments_select_role_based" ON shipments;
+DROP POLICY IF EXISTS "shipments_update_assigned_owner" ON shipments;
+DROP POLICY IF EXISTS "shipments_accept_pending" ON shipments;
 
 -- Ensure RLS is enabled
 ALTER TABLE shipments ENABLE ROW LEVEL SECURITY;
