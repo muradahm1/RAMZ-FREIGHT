@@ -1,10 +1,9 @@
-import { supabase } from '../assets/supabaseClient.js';
+import { supabase, backendUrl } from '../assets/supabaseClient.js';
 
 let map;
 let truckMarker;
 let routePolyline;
 let trackingInterval;
-let realtimeChannel;
 
 // --- Mock Data for Simulation ---
 document.addEventListener('DOMContentLoaded', async () => {
@@ -24,23 +23,6 @@ async function initializeTrackingPage(currentUser) {
     await loadShipments(currentUser);
     document.getElementById('shipmentSelect').addEventListener('change', loadShipmentTracking);
     document.getElementById('realTimeBtn').addEventListener('click', startRealTimeTracking);
-
-    // Check for shipment_id in URL and auto-load
-    const urlParams = new URLSearchParams(window.location.search);
-    const shipmentIdFromUrl = urlParams.get('shipment_id');
-
-    if (shipmentIdFromUrl) {
-        const shipmentSelect = document.getElementById('shipmentSelect');
-        
-        // Check if the option for the given shipment ID exists in the dropdown
-        const optionExists = shipmentSelect.querySelector(`option[value="${shipmentIdFromUrl}"]`);
-        if (optionExists) {
-            shipmentSelect.value = shipmentIdFromUrl;
-            loadShipmentTracking(); // Automatically load the tracking data
-        } else {
-            console.warn('Shipment ID from URL not found or not available for tracking.');
-        }
-    }
 }
 
 function initMap() {
@@ -110,37 +92,22 @@ async function loadShipmentTracking() {
     }
     
     try {
-        // Fetch the selected shipment
-        const { data: shipment, error } = await supabase
-            .from('shipments')
-            .select('*')
-            .eq('id', shipmentId)
-            .single();
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) throw new Error('Not authenticated');
 
-        // Get truck owner and vehicle details
-        let truckOwnerDetails = null;
-        let vehicleDetails = null;
-        if (shipment && shipment.truck_owner_id) {
-            const { data: ownerData } = await supabase
-                .from('truck_owners')
-                .select('*')
-                .eq('user_id', shipment.truck_owner_id)
-                .single();
-            
-            const { data: authData } = await supabase.auth.admin.getUserById(shipment.truck_owner_id);
-            truckOwnerDetails = { ...ownerData, ...authData?.user?.user_metadata };
-            
-            if (shipment.vehicle_id) {
-                const { data: vehicle } = await supabase
-                    .from('vehicles')
-                    .select('*')
-                    .eq('id', shipment.vehicle_id)
-                    .single();
-                vehicleDetails = vehicle;
-            }
+        // Fetch all details from the new secure backend endpoint
+        const apiUrl = `${backendUrl}/shipment-details/${shipmentId}`;
+        const response = await fetch(apiUrl, {
+            headers: { Authorization: `Bearer ${session.access_token}` }
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || `Failed to fetch shipment details: ${response.statusText}`);
         }
 
-        if (error) throw error;
+        const { shipment, truckOwnerDetails, vehicleDetails } = await response.json();
+
         if (!shipment) {
             alert('Shipment data not found!');
             return;
@@ -242,43 +209,19 @@ async function loadShipmentTracking() {
 
 function startRealTimeTracking() {
     const shipmentId = document.getElementById('shipmentSelect').value;
-    console.log('Start tracking clicked, shipmentId:', shipmentId);
-    
-    if (!shipmentId || shipmentId === '' || shipmentId === 'Choose a shipment to track') {
+    if (!shipmentId) {
         alert('Please select a shipment first.');
         return;
     }
 
     // Check the status from the UI instead of re-fetching
-    const statusElement = document.getElementById('trackingStatus');
-    if (!statusElement || !statusElement.querySelector('span')) {
-        alert('Please select a shipment from the dropdown first.');
-        return;
-    }
-    const status = statusElement.querySelector('span').textContent.toLowerCase();
+    const status = document.getElementById('trackingStatus').querySelector('span').textContent.toLowerCase();
     if (status !== 'in_transit' && status !== 'accepted') {
         alert('This shipment is not ready for tracking. Tracking is only available for accepted or in-transit shipments.');
         return;
     }
 
-    clearInterval(trackingInterval);
-    if (realtimeChannel) {
-        supabase.removeChannel(realtimeChannel);
-    }
-
-    // Subscribe to realtime updates
-    realtimeChannel = supabase
-        .channel(`tracking:${shipmentId}`)
-        .on('postgres_changes', 
-            { event: 'INSERT', schema: 'public', table: 'shipment_tracking', filter: `shipment_id=eq.${shipmentId}` },
-            (payload) => {
-                console.log('Realtime tracking update:', payload.new);
-                updateTruckPosition(payload.new);
-            }
-        )
-        .subscribe();
-
-    console.log('Realtime tracking started for shipment:', shipmentId);
+    clearInterval(trackingInterval); // Ensure no multiple intervals
 
     // Start real-time tracking with Leaflet
     trackingInterval = setInterval(async () => {
@@ -396,58 +339,6 @@ function startRealTimeTracking() {
             console.error('Error in tracking:', err);
         }
     }, 3000);
-}
-
-async function updateTruckPosition(trackingData) {
-    const newPos = L.latLng(trackingData.latitude, trackingData.longitude);
-    truckMarker.setLatLng(newPos);
-    
-    const speedKmh = (trackingData.speed || 0) * 3.6;
-    document.getElementById('currentSpeed').textContent = `${speedKmh.toFixed(0)} km/h`;
-    
-    const shipmentId = document.getElementById('shipmentSelect').value;
-    const { data: currentShipment } = await supabase
-        .from('shipments')
-        .select('origin_address, destination_address, status')
-        .eq('id', shipmentId)
-        .single();
-    
-    const pickupCoord = await geocodeAddress(currentShipment.origin_address);
-    const destCoord = await geocodeAddress(currentShipment.destination_address);
-    
-    const distToPickup = newPos.distanceTo(L.latLng(pickupCoord)) / 1000;
-    const distToDest = newPos.distanceTo(L.latLng(destCoord)) / 1000;
-    
-    let truckStatus = 'En route to pickup';
-    if (currentShipment.status === 'in_transit') {
-        truckStatus = 'En route to destination';
-    } else if (distToPickup < 0.5) {
-        truckStatus = 'Near pickup location';
-    }
-    
-    const timestamp = new Date(trackingData.timestamp).toLocaleString();
-    truckMarker.getPopup().setContent(`
-        <div style="min-width: 220px;">
-            <h4 style="margin: 0 0 10px 0; color: #ff6b35;"><i class="fas fa-truck"></i> Truck Current Location</h4>
-            <p style="margin: 5px 0;"><strong>Status:</strong> ${truckStatus}</p>
-            <p style="margin: 5px 0;"><strong>Speed:</strong> ${speedKmh.toFixed(0)} km/h</p>
-            <p style="margin: 5px 0;"><strong>To Pickup:</strong> ${distToPickup.toFixed(1)} km</p>
-            <p style="margin: 5px 0;"><strong>To Destination:</strong> ${distToDest.toFixed(1)} km</p>
-            <p style="margin: 5px 0; font-size: 0.85em; color: #888;"><strong>Last Update:</strong> ${timestamp}</p>
-        </div>
-    `);
-    
-    document.getElementById('trackingDetails').innerHTML = `
-        <p><strong>From:</strong> ${currentShipment.origin_address}</p>
-        <p><strong>To:</strong> ${currentShipment.destination_address}</p>
-        <p style="color: #ff6b35; margin-top: 10px;"><strong>Truck Location:</strong></p>
-        <p>📍 Distance to Pickup: ${distToPickup.toFixed(1)} km</p>
-        <p>📍 Distance to Destination: ${distToDest.toFixed(1)} km</p>
-    `;
-    
-    if (!map.getBounds().contains(newPos)) {
-        map.panTo(newPos);
-    }
 }
 
 async function geocodeAddress(address) {

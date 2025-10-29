@@ -21,15 +21,23 @@ async function initializeTrackingPage(currentUser) {
 }
 
 function startRealTimeTracking() {
-    if (!cachedShipmentData) {
+    if (!cachedShipmentData || !cachedShipmentData.shipment.id) {
         alert('Please select a shipment first.');
         return;
     }
+
+    const shipmentId = cachedShipmentData.shipment.id;
+    const status = cachedShipmentData.shipment.status;
+
+    if (status !== 'in_transit' && status !== 'picked_up' && status !== 'accepted') {
+        alert('This shipment is not ready for live tracking yet.');
+        return;
+    }
+
+    // Start the real-time subscription
+    setupRealtimeTracking(shipmentId);
     alert('Real-time tracking is active! Updates will appear automatically.');
 }
-
-// Expose to global scope for onclick handler
-window.startRealTimeTracking = startRealTimeTracking;
 
 function initMap() {
     map = L.map('trackingMap').setView([9.02497, 38.74689], 7);
@@ -136,7 +144,6 @@ async function loadShipmentTracking() {
 
         document.getElementById('trackingStatus').querySelector('span').textContent = shipment.status;
 
-        setupRealtimeTracking(shipmentId);
     } catch (err) {
         console.error(err);
     }
@@ -162,6 +169,9 @@ async function drawRoadRoute(origin, dest) {
 }
 
 function setupRealtimeTracking(shipmentId) {
+    // If a channel already exists for a different shipment, remove it first.
+    if (realtimeChannel) supabase.removeChannel(realtimeChannel);
+
     realtimeChannel = supabase
         .channel(`tracking:${shipmentId}`)
         .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'shipment_tracking', filter: `shipment_id=eq.${shipmentId}` }, (payload) => {

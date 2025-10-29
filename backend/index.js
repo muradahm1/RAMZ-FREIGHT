@@ -326,6 +326,54 @@ app.post('/shipments/:id/deliver', async (req, res) => {
   }
 });
 
+// Get full shipment details for tracking page (securely)
+app.get('/shipment-details/:id', async (req, res) => {
+  try {
+    const shipmentId = req.params.id;
+    const verification = await getUserFromBearer(req);
+    if (verification.error) return res.status(401).json({ error: verification.error });
+    const user = verification.user;
+    if (!user || !user.id) return res.status(401).json({ error: 'Invalid user' });
+
+    // Use admin client to fetch related data, but first verify user has access to the shipment
+    const { data: shipment, error: shipmentError } = await supabase
+      .from('shipments')
+      .select('id, shipper_id, truck_owner_id, vehicle_id, origin_address, destination_address, goods_description, status')
+      .eq('id', shipmentId)
+      .eq('shipper_id', user.id) // RLS check: user must be the shipper
+      .single();
+
+    if (shipmentError) return res.status(500).json({ error: shipmentError.message });
+    if (!shipment) return res.status(404).json({ error: 'Shipment not found or you do not have permission to view it.' });
+
+    let truckOwnerDetails = null;
+    let vehicleDetails = null;
+
+    // Securely fetch truck owner details using admin client
+    if (shipment.truck_owner_id) {
+      const { data: authData, error: authError } = await supabaseAdmin.auth.admin.getUserById(shipment.truck_owner_id);
+      if (!authError && authData.user) {
+        truckOwnerDetails = {
+          full_name: authData.user.user_metadata?.full_name || authData.user.email.split('@')[0],
+          phone: authData.user.user_metadata?.phone || 'N/A',
+          avatar_url: authData.user.user_metadata?.avatar_url
+        };
+      }
+    }
+
+    // Fetch vehicle details
+    if (shipment.vehicle_id) {
+      const { data: vehicle } = await supabaseAdmin.from('vehicles').select('vehicle_model, license_plate').eq('id', shipment.vehicle_id).single();
+      vehicleDetails = vehicle;
+    }
+
+    res.json({ shipment, truckOwnerDetails, vehicleDetails });
+  } catch (err) {
+    console.error('Error in /shipment-details/:id:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // User authentication endpoint (login)
 app.post('/auth/login', async (req, res) => {
   const { email, password } = req.body;
