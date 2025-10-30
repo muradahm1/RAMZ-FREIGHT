@@ -1,143 +1,402 @@
-import { supabase, supabaseReady } from '../assets/supabaseClient.js';
-import { ADMIN_CONFIG } from '../assets/adminAccess.js';
+import { supabase, backendUrl } from '../assets/supabaseClient.js';
 
-// Internal Management Dashboard - Admin Access
 document.addEventListener('DOMContentLoaded', async () => {
-    // Check admin access
-    if (!ADMIN_CONFIG.hasAdminAccess()) {
-        document.body.innerHTML = '<div style="text-align:center;padding:50px;"><h2>Access Denied</h2><p>Internal Admin Access Required</p></div>';
-        return;
+    const authorized = await checkUserRole();
+    if (authorized) {
+        initializeDashboard();
     }
-    
-    // Wait for Supabase to be ready
-    await supabaseReady;
-    
-    // Set admin user info
-    document.querySelector('.user-name').textContent = 'System Admin';
-    document.querySelector('.user-role').textContent = 'Administrator';
-    
-    // Load dashboard data
-    await loadDashboardData();
-    
-    // Admin logout
-    document.getElementById('logoutBtn').addEventListener('click', () => {
-        ADMIN_CONFIG.revokeAccess();
-        window.location.href = '../homepage/homepage.html';
-    });
-    
-    // Real-time updates
-    setInterval(loadDashboardData, 30000);
 });
 
-async function loadDashboardData() {
-    try {
-        const [shipmentsResult, vehiclesResult] = await Promise.allSettled([
-            supabase.from('shipments').select('*'),
-            supabase.from('vehicles').select('*')
-        ]);
-        
-        const shipments = shipmentsResult.status === 'fulfilled' ? shipmentsResult.value.data : [];
-        const vehicles = vehiclesResult.status === 'fulfilled' ? vehiclesResult.value.data : [];
-        
-        updateStats(shipments, vehicles);
-        await updateRecentShipments(shipments);
-        await updateRecentActivity(shipments);
-    } catch (error) {
-        console.error('Error loading data:', error);
+/**
+ * Checks if the current user is authenticated and has an admin/management role.
+ * Redirects to the homepage if not authorized.
+ * @returns {Promise<boolean>} - True if the user is authorized, false otherwise.
+ */
+async function checkUserRole() {
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+
+    if (sessionError || !session) {
+        console.error('Session error or no session, redirecting to homepage.');
+        window.location.replace('../homepage/homepage.html');
+        return false;
     }
+
+    const user = session.user;
+    if (!user) {
+        console.log('No user found, redirecting to homepage.');
+        window.location.replace('../homepage/homepage.html');
+        return false;
+    }
+
+    // Fetch user role from the profiles table
+    const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('user_role, full_name')
+        .eq('id', user.id)
+        .single();
+
+    if (profileError || !profile) {
+        console.error('Error fetching profile or profile not found. Redirecting.', profileError?.message);
+        alert('Access Denied: Could not verify your user profile.');
+        window.location.replace('../homepage/homepage.html');
+        return false;
+    }
+
+    const allowedRoles = ['admin', 'management', 'manager'];
+    if (!allowedRoles.includes(profile.user_role)) {
+        console.warn(`Access denied for role: ${profile.user_role}. Redirecting.`);
+        alert('Access Denied: You do not have permission to view this page.');
+        // Redirect to a more appropriate page if one exists, e.g., a user dashboard
+        window.location.replace('../homepage/homepage.html');
+        return false;
+    }
+
+    // User is authorized, update UI with user info
+    document.querySelector('.user-name').textContent = profile.full_name || 'Admin';
+    document.querySelector('.user-role').textContent = profile.user_role.charAt(0).toUpperCase() + profile.user_role.slice(1);
+
+    return true;
 }
 
-async function updateRecentActivity(shipments) {
-    const activityList = document.getElementById('activityList');
-    if (!shipments?.length) {
-        activityList.innerHTML = '<div class="activity-item"><div class="activity-icon info"><i class="fas fa-info-circle"></i></div><div class="activity-details"><p>No recent activity</p><span class="activity-time">-</span></div></div>';
-        return;
+/**
+ * Initializes the dashboard by fetching data and setting up event listeners.
+ */
+function initializeDashboard() {
+    console.log('User authorized. Initializing management dashboard.');
+    setupEventListeners();
+    loadDashboardData();
+}
+
+/**
+ * Sets up event listeners for dashboard interactions (e.g., logout).
+ */
+function setupEventListeners() {
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', async () => {
+            const { error } = await supabase.auth.signOut();
+            if (error) {
+                console.error('Error logging out:', error.message);
+                alert('Failed to log out. Please try again.');
+            } else {
+                // Clear local storage and redirect
+                localStorage.clear();
+                window.location.replace('../homepage/homepage.html');
+            }
+        });
     }
-    
-    const recent = shipments.slice(-5).reverse();
-    const activities = recent.map(s => {
-        const icon = s.status === 'delivered' ? 'success' : s.status === 'pending' ? 'warning' : 'primary';
-        const iconClass = s.status === 'delivered' ? 'fa-check-circle' : s.status === 'pending' ? 'fa-clock' : 'fa-truck';
-        const message = s.status === 'delivered' ? `Shipment #${s.id.slice(-8)} delivered successfully` : 
-                       s.status === 'pending' ? `Shipment #${s.id.slice(-8)} awaiting assignment` :
-                       `Shipment #${s.id.slice(-8)} in progress`;
-        const time = getTimeAgo(s.created_at);
-        return `
-        <div class="activity-item">
-            <div class="activity-icon ${icon}">
-                <i class="fas ${iconClass}"></i>
-            </div>
-            <div class="activity-details">
-                <p>${message}</p>
-                <span class="activity-time">${time}</span>
-            </div>
-        </div>
-        `;
+
+    // Sidebar navigation
+    document.querySelectorAll('.sidebar-nav .nav-item a').forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            const targetId = link.getAttribute('href').substring(1);
+            
+            // Update active link
+            document.querySelectorAll('.sidebar-nav .nav-item').forEach(item => item.classList.remove('active'));
+            link.parentElement.classList.add('active');
+
+            // Show target page, hide others
+            document.querySelectorAll('.dashboard-page').forEach(page => {
+                page.style.display = page.id === `${targetId}-section` ? 'block' : 'none';
+            });
+
+            // Load data for the new page if needed
+            if (targetId === 'shipments') loadAllShipments();
+            else if (targetId === 'trucks') loadTrucks();
+            else if (targetId === 'drivers') loadDrivers();
+            else if (targetId === 'shippers') loadShippers();
+            else if (targetId === 'finance') loadFinance();
+            else if (targetId === 'reports') loadReports();
+        });
     });
-    activityList.innerHTML = activities.join('');
 }
 
-function getTimeAgo(dateString) {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diff = Math.floor((now - date) / 1000);
-    if (diff < 60) return 'Just now';
-    if (diff < 3600) return `${Math.floor(diff / 60)} minutes ago`;
-    if (diff < 86400) return `${Math.floor(diff / 3600)} hours ago`;
-    return `${Math.floor(diff / 86400)} days ago`;
+/**
+ * Fetches and displays all necessary data for the dashboard.
+ */
+async function loadDashboardData() {
+    // Use Promise.all to fetch data in parallel for better performance
+    const [stats, recentShipments] = await Promise.all([
+        fetchDashboardStats(),
+        fetchRecentShipments()
+    ]);
+
+    // Populate stats cards
+    if (stats) {
+        document.querySelector('.stat-card:nth-child(1) h3').textContent = stats.totalShipments;
+        document.querySelector('.stat-card:nth-child(2) h3').textContent = stats.activeTrucks;
+        document.querySelector('.stat-card:nth-child(3) h3').textContent = stats.pendingShipments;
+        document.querySelector('.stat-card:nth-child(4) h3').textContent = `$${(stats.monthlyRevenue / 1000).toFixed(1)}k`;
+    }
+
+    // Populate recent shipments table
+    if (recentShipments) {
+        const tableBody = document.querySelector('.data-table tbody');
+        tableBody.innerHTML = ''; // Clear placeholder rows
+        recentShipments.forEach(shipment => {
+            const row = `
+                <tr>
+                  <td data-shipment-id="${shipment.id}">#${shipment.id.substring(0, 8)}</td>
+                  <td>${shipment.shipper_id.substring(0, 12)}...</td>
+                  <td>${shipment.destination_address}</td>
+                  <td>${shipment.truck_owner_id ? shipment.truck_owner_id.substring(0, 12) + '...' : 'N/A'}</td>
+                  <td><span class="status-badge ${shipment.status}">${shipment.status}</span></td>
+                  <td>
+                    <button class="action-btn view" data-shipment-id="${shipment.id}"><i class="fas fa-eye"></i></button>
+                    <button class="action-btn edit"><i class="fas fa-edit"></i></button>
+                  </td>
+                </tr>
+            `;
+            tableBody.insertAdjacentHTML('beforeend', row);
+        });
+    }
+
+    // Add event listeners for the newly added view buttons
+    addEventListenersToViewButtons();
 }
 
-function updateStats(shipments, vehicles) {
-    const totalShipments = shipments?.length || 0;
-    const activeTrucks = vehicles?.filter(v => v.status === 'approved').length || 0;
-    const pendingShipments = shipments?.filter(s => s.status === 'pending').length || 0;
-    const revenue = (totalShipments * 1500).toLocaleString();
+/**
+ * Fetches and displays all shipments for the main shipments page.
+ */
+async function loadAllShipments() {
+    const tableBody = document.querySelector('#all-shipments-table tbody');
+    tableBody.innerHTML = '<tr><td colspan="7" style="text-align:center;">Loading shipments...</td></tr>';
+
+    const { data, error } = await supabase
+        .from('shipments')
+        .select('id, shipper_id, origin_address, destination_address, status, created_at, profiles(full_name)')
+        .order('created_at', { ascending: false });
+
+    if (error) {
+        console.error('Error fetching all shipments:', error);
+        tableBody.innerHTML = '<tr><td colspan="7" style="text-align:center; color: red;">Failed to load shipments.</td></tr>';
+        return;
+    }
+
+    tableBody.innerHTML = ''; // Clear loading row
+    data.forEach(shipment => {
+        const row = `
+            <tr>
+                <td data-shipment-id="${shipment.id}">#${shipment.id.substring(0, 8)}</td>
+                <td>${shipment.profiles?.full_name || 'N/A'}</td>
+                <td>${shipment.origin_address}</td>
+                <td>${shipment.destination_address}</td>
+                <td><span class="status-badge ${shipment.status}">${shipment.status}</span></td>
+                <td>${new Date(shipment.created_at).toLocaleDateString()}</td>
+                <td>
+                    <button class="action-btn view" data-shipment-id="${shipment.id}"><i class="fas fa-eye"></i></button>
+                    <button class="action-btn edit"><i class="fas fa-edit"></i></button>
+                    <button class="action-btn delete"><i class="fas fa-trash"></i></button>
+                </td>
+            </tr>
+        `;
+        tableBody.insertAdjacentHTML('beforeend', row);
+    });
+
+    addEventListenersToViewButtons();
+}
+
+/**
+ * Adds click handlers to all "view" buttons on the page.
+ */
+function addEventListenersToViewButtons() {
+    document.querySelectorAll('.action-btn.view').forEach(button => {
+        button.addEventListener('click', () => {
+            const shipmentId = button.dataset.shipmentId;
+            showShipmentModal(shipmentId);
+        });
+    });
+}
+
+/**
+ * Fetches shipment details and displays them in a modal.
+ * @param {string} shipmentId - The UUID of the shipment to display.
+ */
+async function showShipmentModal(shipmentId) {
+    const modal = document.getElementById('shipment-modal');
+    const modalBody = document.getElementById('modal-body-content');
+    modal.style.display = 'flex';
+    modalBody.innerHTML = '<p>Loading details...</p>';
+
+    const token = (await supabase.auth.getSession()).data.session?.access_token;
+    if (!token) {
+        modalBody.innerHTML = '<p style="color: red;">Authentication error. Please log in again.</p>';
+        return;
+    }
+
+    try {
+        const response = await fetch(`${backendUrl}/admin/shipments/${shipmentId}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (!response.ok) {
+            throw new Error(`Failed to fetch: ${response.statusText}`);
+        }
+
+        const { shipment } = await response.json();
+        
+        modalBody.innerHTML = `
+            <div class="detail-grid">
+                <p><strong>Shipment ID:</strong> ${shipment.id}</p>
+                <p><strong>Status:</strong> <span class="status-badge ${shipment.status}">${shipment.status}</span></p>
+                <p><strong>Origin:</strong> ${shipment.origin_address}</p>
+                <p><strong>Destination:</strong> ${shipment.destination_address}</p>
+                <p><strong>Pickup Date:</strong> ${new Date(shipment.pickup_datetime).toLocaleString()}</p>
+                <p><strong>Payment Amount:</strong> $${shipment.payment_amount || 'N/A'}</p>
+                <hr/>
+                <p><strong>Shipper:</strong> ${shipment.shipper?.full_name || 'N/A'}</p>
+                <p><strong>Shipper Contact:</strong> ${shipment.shipper?.email || ''} / ${shipment.shipper?.phone || ''}</p>
+                <hr/>
+                <p><strong>Truck Owner:</strong> ${shipment.truck_owner?.full_name || 'Not Assigned'}</p>
+                <p><strong>Truck Owner Contact:</strong> ${shipment.truck_owner ? (shipment.truck_owner.email || '') + ' / ' + (shipment.truck_owner.phone || '') : 'N/A'}</p>
+                <p><strong>Vehicle:</strong> ${shipment.vehicle ? `${shipment.vehicle.vehicle_model} (${shipment.vehicle.license_plate})` : 'N/A'}</p>
+            </div>
+        `;
+
+    } catch (error) {
+        console.error('Error fetching shipment details:', error);
+        modalBody.innerHTML = `<p style="color: red;">Could not load shipment details. ${error.message}</p>`;
+    }
+}
+
+// Close modal logic
+document.querySelectorAll('.close-modal-btn, .modal-container').forEach(el => {
+    el.addEventListener('click', (e) => {
+        if (e.target === el) { // Only close if the background or close button is clicked
+            document.getElementById('shipment-modal').style.display = 'none';
+        }
+    });
+});
+
+async function fetchDashboardStats() {
+    const { data, error } = await supabase.rpc('get_dashboard_stats');
+    if (error) console.error('Error fetching dashboard stats:', error);
+    return data ? data[0] : null;
+}
+
+async function fetchRecentShipments() {
+    const { data, error } = await supabase
+        .from('shipments')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(5);
+    if (error) console.error('Error fetching recent shipments:', error);
+    return data;
+}
+
+async function loadTrucks() {
+    const tbody = document.querySelector('#trucks-table tbody');
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Loading...</td></tr>';
     
-    document.getElementById('totalShipments').textContent = totalShipments;
-    document.getElementById('activeTrucks').textContent = activeTrucks;
-    document.getElementById('pendingShipments').textContent = pendingShipments;
-    document.getElementById('monthlyRevenue').textContent = `₦${revenue}`;
-}
-
-async function updateRecentShipments(shipments) {
-    const tbody = document.getElementById('shipmentsTableBody');
-    if (!shipments?.length) {
-        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">No shipments found</td></tr>';
+    const { data, error } = await supabase
+        .from('vehicles')
+        .select('*, truck_owners(full_name)');
+    
+    if (error) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color: red;">Error loading trucks</td></tr>';
         return;
     }
     
-    const recent = shipments.slice(-5).reverse();
-    const shippersMap = await getShippersMap();
-    const driversMap = await getDriversMap();
-    
-    tbody.innerHTML = recent.map(s => {
-        const shipperName = shippersMap[s.shipper_id] || 'Unknown Shipper';
-        const driverName = driversMap[s.driver_id] || 'Unassigned';
-        return `
+    tbody.innerHTML = data.map(v => `
         <tr>
-            <td>#${s.id.slice(-8)}</td>
-            <td>${shipperName}</td>
-            <td>${s.origin_address || 'N/A'} to ${s.destination_address || 'N/A'}</td>
-            <td>${driverName}</td>
-            <td><span class="status-badge ${s.status}">${s.status.toUpperCase()}</span></td>
-            <td>
-                <button class="action-btn view"><i class="fas fa-eye"></i></button>
-                <button class="action-btn edit"><i class="fas fa-edit"></i></button>
-            </td>
+            <td>${v.license_plate}</td>
+            <td>${v.vehicle_model}</td>
+            <td>${v.truck_owners?.full_name || 'N/A'}</td>
+            <td>${v.capacity_kg || 'N/A'}</td>
+            <td><span class="status-badge ${v.is_active ? 'delivered' : 'cancelled'}">${v.is_active ? 'Active' : 'Inactive'}</span></td>
+            <td><button class="action-btn view"><i class="fas fa-eye"></i></button></td>
         </tr>
-    `}).join('');
+    `).join('');
 }
 
-async function getShippersMap() {
-    try {
-        const { data } = await supabase.from('shippers').select('id, company_name');
-        return data?.reduce((map, s) => ({ ...map, [s.id]: s.company_name }), {}) || {};
-    } catch { return {}; }
+async function loadDrivers() {
+    const tbody = document.querySelector('#drivers-table tbody');
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Loading...</td></tr>';
+    
+    const { data, error } = await supabase
+        .from('truck_owners')
+        .select('*, vehicles(count)');
+    
+    if (error) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color: red;">Error loading drivers</td></tr>';
+        return;
+    }
+    
+    tbody.innerHTML = data.map(d => `
+        <tr>
+            <td>${d.full_name}</td>
+            <td>${d.phone || 'N/A'}</td>
+            <td>${d.email || 'N/A'}</td>
+            <td>${d.vehicles?.length || 0}</td>
+            <td><span class="status-badge delivered">Active</span></td>
+            <td><button class="action-btn view"><i class="fas fa-eye"></i></button></td>
+        </tr>
+    `).join('');
 }
 
-async function getDriversMap() {
-    try {
-        const { data } = await supabase.from('drivers').select('id, full_name');
-        return data?.reduce((map, d) => ({ ...map, [d.id]: d.full_name }), {}) || {};
-    } catch { return {}; }
+async function loadShippers() {
+    const tbody = document.querySelector('#shippers-table tbody');
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Loading...</td></tr>';
+    
+    const { data, error } = await supabase
+        .from('shippers')
+        .select('*, shipments(count)');
+    
+    if (error) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color: red;">Error loading shippers</td></tr>';
+        return;
+    }
+    
+    tbody.innerHTML = data.map(s => `
+        <tr>
+            <td>${s.full_name}</td>
+            <td>${s.company_name || 'N/A'}</td>
+            <td>${s.phone || 'N/A'}</td>
+            <td>${s.email || 'N/A'}</td>
+            <td>${s.shipments?.length || 0}</td>
+            <td><button class="action-btn view"><i class="fas fa-eye"></i></button></td>
+        </tr>
+    `).join('');
+}
+
+async function loadFinance() {
+    const { data, error } = await supabase
+        .from('shipments')
+        .select('payment_amount, status, created_at')
+        .eq('status', 'delivered');
+    
+    if (!error && data) {
+        const total = data.reduce((sum, s) => sum + (s.payment_amount || 0), 0);
+        document.getElementById('totalRevenue').textContent = `${total.toFixed(2)} ETB`;
+    }
+    
+    const tbody = document.querySelector('#payments-table tbody');
+    const { data: payments } = await supabase
+        .from('shipments')
+        .select('id, payment_amount, status, created_at')
+        .order('created_at', { ascending: false })
+        .limit(20);
+    
+    tbody.innerHTML = payments?.map(p => `
+        <tr>
+            <td>#${p.id.substring(0, 8)}</td>
+            <td>${p.payment_amount || 0} ETB</td>
+            <td><span class="status-badge ${p.status}">${p.status}</span></td>
+            <td>${new Date(p.created_at).toLocaleDateString()}</td>
+        </tr>
+    `).join('') || '<tr><td colspan="4" style="text-align:center;">No data</td></tr>';
+}
+
+async function loadReports() {
+    const { data } = await supabase
+        .from('shipments')
+        .select('payment_amount, created_at')
+        .gte('created_at', new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString());
+    
+    if (data) {
+        document.getElementById('monthlyShipments').textContent = data.length;
+        const revenue = data.reduce((sum, s) => sum + (s.payment_amount || 0), 0);
+        document.getElementById('monthlyRevenueReport').textContent = `${revenue.toFixed(2)} ETB`;
+    }
 }

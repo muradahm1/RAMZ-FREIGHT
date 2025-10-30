@@ -326,6 +326,49 @@ app.post('/shipments/:id/deliver', async (req, res) => {
   }
 });
 
+// ADMIN-ONLY: Get full shipment details for any shipment
+app.get('/admin/shipments/:id', async (req, res) => {
+  try {
+    const shipmentId = req.params.id;
+    const verification = await getUserFromBearer(req);
+    if (verification.error) return res.status(401).json({ error: verification.error });
+    const user = verification.user;
+    if (!user || !user.id) return res.status(401).json({ error: 'Invalid user' });
+
+    // Verify user is an admin
+    const { data: profile } = await supabaseAdmin.from('profiles').select('user_role').eq('id', user.id).single();
+    const allowedRoles = ['admin', 'management', 'manager'];
+    if (!profile || !allowedRoles.includes(profile.user_role)) {
+      return res.status(403).json({ error: 'Access Denied: You do not have permission to perform this action.' });
+    }
+
+    // Use admin client to fetch all related data
+    const { data: shipment, error: shipmentError } = await supabaseAdmin
+      .from('shipments')
+      .select(`
+        *,
+        shipper:profiles(full_name, email, phone),
+        truck_owner:profiles(full_name, email, phone),
+        vehicle:vehicles(vehicle_model, license_plate)
+      `)
+      .eq('id', shipmentId)
+      .single();
+
+    if (shipmentError) {
+      console.error('Admin shipment fetch error:', shipmentError);
+      return res.status(500).json({ error: shipmentError.message });
+    }
+    if (!shipment) {
+      return res.status(404).json({ error: 'Shipment not found.' });
+    }
+
+    res.json({ shipment });
+  } catch (err) {
+    console.error('Error in /admin/shipments/:id:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // Get full shipment details for tracking page (securely)
 app.get('/shipment-details/:id', async (req, res) => {
   try {

@@ -115,7 +115,10 @@
       <!-- Dashboard Content -->
       <div class="dashboard-content">
         <!-- Stats Cards -->
-        <section class="stats-cards">
+        <div id="overview-section" class="dashboard-page">
+
+          <!-- Stats Cards -->
+          <section class="stats-cards">
           <div class="stat-card">
             <div class="stat-icon total-shipments">
               <i class="fas fa-shipping-fast"></i>
@@ -172,8 +175,8 @@
             </div>
           </div>
         </section>
-
-        <!-- Charts and Recent Activity -->
+        
+          <!-- Charts and Recent Activity -->
         <section class="charts-activity">
           <div class="chart-container">
             <div class="chart-header">
@@ -261,7 +264,7 @@
           </div>
         </section>
 
-        <!-- Recent Shipments Table -->
+          <!-- Recent Shipments Table -->
         <section class="recent-shipments">
           <div class="section-header">
             <h3>Recent Shipments</h3>
@@ -339,10 +342,205 @@
             </table>
           </div>
         </section>
+        </div>
+
+        <!-- Shipments Management Page -->
+        <div id="shipments-section" class="dashboard-page" style="display: none;">
+          <div class="section-header">
+            <h3>All Shipments</h3>
+            <div class="filters">
+              <input type="text" id="shipmentSearch" placeholder="Search by ID, shipper, destination...">
+              <select id="shipmentStatusFilter">
+                <option value="all">All Statuses</option>
+                <option value="pending">Pending</option>
+                <option value="accepted">Accepted</option>
+                <option value="in_transit">In Transit</option>
+                <option value="delivered">Delivered</option>
+                <option value="cancelled">Cancelled</option>
+              </select>
+              <button id="applyShipmentFilters" class="btn-primary">Filter</button>
+            </div>
+          </div>
+          <div class="table-container">
+            <table class="data-table" id="all-shipments-table">
+              <thead>
+                <tr>
+                  <th>Shipment ID</th>
+                  <th>Shipper</th>
+                  <th>Origin</th>
+                  <th>Destination</th>
+                  <th>Status</th>
+                  <th>Created At</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <!-- Data will be loaded by JS -->
+                <tr><td colspan="7" style="text-align:center;">Loading shipments...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Trucks Management Page -->
+        <div id="trucks-section" class="dashboard-page" style="display: none;">
+          <div class="section-header">
+            <h3>Trucks Management</h3>
+            <input type="text" id="truckSearch" placeholder="Search by license plate, model...">
+          </div>
+          <div class="table-container">
+            <table class="data-table" id="trucks-table">
+              <thead>
+                <tr>
+                  <th>License Plate</th>
+                  <th>Model</th>
+                  <th>Owner</th>
+                  <th>Capacity (kg)</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody><tr><td colspan="6" style="text-align:center;">Loading...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Drivers Management Page -->
+        <div id="drivers-section" class="dashboard-page" style="display: none;">
+          <div class="section-header">
+            <h3>Truck Owners</h3>
+            <input type="text" id="driverSearch" placeholder="Search by name, phone...">
+          </div>
+          <div class="table-container">
+            <table class="data-table" id="drivers-table">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Phone</th>
+                  <th>Email</th>
+                  <th>Vehicles</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody><tr><td colspan="6" style="text-align:center;">Loading...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Shippers Management Page -->
+        <div id="shippers-section" class="dashboard-page" style="display: none;">
+          <div class="section-header">
+            <h3>Shippers</h3>
+            <input type="text" id="shipperSearch" placeholder="Search by name, company...">
+          </div>
+          <div class="table-container">
+            <table class="data-table" id="shippers-table">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Company</th>
+                  <th>Phone</th>
+                  <th>Email</th>
+                  <th>Total Shipments</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody><tr><td colspan="6" style="text-align:center;">Loading...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Finance Management Page -->
+        <div id="finance-section" class="dashboard-page" style="display: none;">
+          <div class="section-header">
+            <h3>Finance Overview</h3>
+          </div>
+          <div class="stats-cards">
+            <div class="stat-card">
+              <div class="stat-icon revenue"><i class="fas fa-dollar-sign"></i></div>
+              <div class="stat-info">
+                <h3 id="totalRevenue">0 ETB</h3>
+                <p>Total Revenue</p>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon pending-shipments"><i class="fas fa-clock"></i></div>
+              <div class="stat-info">
+                <h3 id="pendingPayments">0 ETB</h3>
+                <p>Pending Payments</p>
+              </div>
+            </div>
+          </div>
+          <div class="table-container">
+            <table class="data-table" id="payments-table">
+              <thead>
+                <tr>
+                  <th>Shipment ID</th>
+                  <th>Amount</th>
+                  <th>Status</th>
+                  <th>Date</th>
+                </tr>
+              </thead>
+              <tbody><tr><td colspan="4" style="text-align:center;">Loading...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Reports Page -->
+        <div id="reports-section" class="dashboard-page" style="display: none;">
+          <h3>Reports</h3>
+          <div class="stats-cards">
+            <div class="stat-card">
+              <h4>Shipments This Month</h4>
+              <h2 id="monthlyShipments">0</h2>
+            </div>
+            <div class="stat-card">
+              <h4>Revenue This Month</h4>
+              <h2 id="monthlyRevenueReport">0 ETB</h2>
+            </div>
+          </div>
+        </div>
+
+        <!-- Settings Page -->
+        <div id="settings-section" class="dashboard-page" style="display: none;">
+          <h3>Platform Settings</h3>
+          <form id="settingsForm" style="max-width: 600px;">
+            <div style="margin-bottom: 20px;">
+              <label>Commission Rate (%)</label>
+              <input type="number" id="commissionRate" value="10" min="0" max="100" style="width: 100%; padding: 10px;">
+            </div>
+            <div style="margin-bottom: 20px;">
+              <label>Support Email</label>
+              <input type="email" id="supportEmail" value="support@ramzfreight.com" style="width: 100%; padding: 10px;">
+            </div>
+            <button type="submit" class="btn-primary">Save Settings</button>
+          </form>
+        </div>
+
       </div>
     </main>
   </div>
-  <script src="../assets/main.js"></script>
+
+  <!-- Modal for Viewing Shipment Details -->
+  <div id="shipment-modal" class="modal-container" style="display: none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Shipment Details</h2>
+        <button class="close-modal-btn">&times;</button>
+      </div>
+      <div class="modal-body" id="modal-body-content">
+        <!-- Details will be loaded here by JS -->
+        <p>Loading...</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary close-modal-btn">Close</button>
+        <button class="btn-primary"><i class="fas fa-edit"></i> Edit Shipment</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../assets/supabaseClient.js" type="module"></script>
   <script src="management.js" type="module"></script>
 </body>
 </html>
