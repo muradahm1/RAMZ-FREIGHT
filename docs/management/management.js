@@ -312,27 +312,7 @@ async function loadTrucks() {
 
 async function loadDrivers() {
     const tbody = document.querySelector('#drivers-table tbody');
-    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Loading...</td></tr>';
-    
-    const { data, error } = await supabase
-        .from('truck_owners')
-        .select('*');
-    
-    if (error) {
-        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color: red;">Error loading drivers</td></tr>';
-        return;
-    }
-    
-    tbody.innerHTML = data.map(d => `
-        <tr>
-            <td>${d.full_name}</td>
-            <td>${d.phone || 'N/A'}</td>
-            <td>${d.email || 'N/A'}</td>
-            <td>N/A</td>
-            <td><span class="status-badge delivered">Active</span></td>
-            <td><button class="action-btn view"><i class="fas fa-eye"></i></button></td>
-        </tr>
-    `).join('');
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">No truck owners table</td></tr>';
 }
 
 async function loadShippers() {

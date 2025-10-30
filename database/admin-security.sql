@@ -19,35 +19,51 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- 3. Secure RLS policies for admin access
-ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
-ALTER TABLE shipments ENABLE ROW LEVEL SECURITY;
-ALTER TABLE truck_owners ENABLE ROW LEVEL SECURITY;
-ALTER TABLE shippers ENABLE ROW LEVEL SECURITY;
-ALTER TABLE vehicles ENABLE ROW LEVEL SECURITY;
-ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
-ALTER TABLE ratings ENABLE ROW LEVEL SECURITY;
-ALTER TABLE shipment_tracking ENABLE ROW LEVEL SECURITY;
-
--- Drop existing policies if they exist
-DROP POLICY IF EXISTS "Admins can view all profiles" ON profiles;
-DROP POLICY IF EXISTS "Admins can view all shipments" ON shipments;
-DROP POLICY IF EXISTS "Admins can view all truck_owners" ON truck_owners;
-DROP POLICY IF EXISTS "Admins can view all shippers" ON shippers;
-DROP POLICY IF EXISTS "Admins can view all vehicles" ON vehicles;
-DROP POLICY IF EXISTS "Admins can view all notifications" ON notifications;
-DROP POLICY IF EXISTS "Admins can view all ratings" ON ratings;
-DROP POLICY IF EXISTS "Admins can view all tracking" ON shipment_tracking;
-
--- Admin can read all tables
-CREATE POLICY "Admins can view all profiles" ON profiles FOR SELECT TO authenticated USING (is_admin(auth.uid()));
-CREATE POLICY "Admins can view all shipments" ON shipments FOR SELECT TO authenticated USING (is_admin(auth.uid()));
-CREATE POLICY "Admins can view all truck_owners" ON truck_owners FOR SELECT TO authenticated USING (is_admin(auth.uid()));
-CREATE POLICY "Admins can view all shippers" ON shippers FOR SELECT TO authenticated USING (is_admin(auth.uid()));
-CREATE POLICY "Admins can view all vehicles" ON vehicles FOR SELECT TO authenticated USING (is_admin(auth.uid()));
-CREATE POLICY "Admins can view all notifications" ON notifications FOR SELECT TO authenticated USING (is_admin(auth.uid()));
-CREATE POLICY "Admins can view all ratings" ON ratings FOR SELECT TO authenticated USING (is_admin(auth.uid()));
-CREATE POLICY "Admins can view all tracking" ON shipment_tracking FOR SELECT TO authenticated USING (is_admin(auth.uid()));
+-- 3. Secure RLS policies for admin access (only for existing tables)
+DO $$ 
+BEGIN
+    IF EXISTS (SELECT FROM pg_tables WHERE tablename = 'profiles') THEN
+        ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
+        DROP POLICY IF EXISTS "Admins can view all profiles" ON profiles;
+        CREATE POLICY "Admins can view all profiles" ON profiles FOR SELECT TO authenticated USING (is_admin(auth.uid()));
+    END IF;
+    
+    IF EXISTS (SELECT FROM pg_tables WHERE tablename = 'shipments') THEN
+        ALTER TABLE shipments ENABLE ROW LEVEL SECURITY;
+        DROP POLICY IF EXISTS "Admins can view all shipments" ON shipments;
+        CREATE POLICY "Admins can view all shipments" ON shipments FOR SELECT TO authenticated USING (is_admin(auth.uid()));
+    END IF;
+    
+    IF EXISTS (SELECT FROM pg_tables WHERE tablename = 'shippers') THEN
+        ALTER TABLE shippers ENABLE ROW LEVEL SECURITY;
+        DROP POLICY IF EXISTS "Admins can view all shippers" ON shippers;
+        CREATE POLICY "Admins can view all shippers" ON shippers FOR SELECT TO authenticated USING (is_admin(auth.uid()));
+    END IF;
+    
+    IF EXISTS (SELECT FROM pg_tables WHERE tablename = 'vehicles') THEN
+        ALTER TABLE vehicles ENABLE ROW LEVEL SECURITY;
+        DROP POLICY IF EXISTS "Admins can view all vehicles" ON vehicles;
+        CREATE POLICY "Admins can view all vehicles" ON vehicles FOR SELECT TO authenticated USING (is_admin(auth.uid()));
+    END IF;
+    
+    IF EXISTS (SELECT FROM pg_tables WHERE tablename = 'notifications') THEN
+        ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
+        DROP POLICY IF EXISTS "Admins can view all notifications" ON notifications;
+        CREATE POLICY "Admins can view all notifications" ON notifications FOR SELECT TO authenticated USING (is_admin(auth.uid()));
+    END IF;
+    
+    IF EXISTS (SELECT FROM pg_tables WHERE tablename = 'ratings') THEN
+        ALTER TABLE ratings ENABLE ROW LEVEL SECURITY;
+        DROP POLICY IF EXISTS "Admins can view all ratings" ON ratings;
+        CREATE POLICY "Admins can view all ratings" ON ratings FOR SELECT TO authenticated USING (is_admin(auth.uid()));
+    END IF;
+    
+    IF EXISTS (SELECT FROM pg_tables WHERE tablename = 'shipment_tracking') THEN
+        ALTER TABLE shipment_tracking ENABLE ROW LEVEL SECURITY;
+        DROP POLICY IF EXISTS "Admins can view all tracking" ON shipment_tracking;
+        CREATE POLICY "Admins can view all tracking" ON shipment_tracking FOR SELECT TO authenticated USING (is_admin(auth.uid()));
+    END IF;
+END $$;
 
 -- 4. Create admin user (replace with your email)
 -- First, sign up normally at your site, then run:
