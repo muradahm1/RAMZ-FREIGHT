@@ -124,35 +124,49 @@ async function loadDashboardData() {
 
     // Populate stats cards
     if (stats) {
-        document.querySelector('.stat-card:nth-child(1) h3').textContent = stats.totalShipments;
-        document.querySelector('.stat-card:nth-child(2) h3').textContent = stats.activeTrucks;
-        document.querySelector('.stat-card:nth-child(3) h3').textContent = stats.pendingShipments;
-        document.querySelector('.stat-card:nth-child(4) h3').textContent = `$${(stats.monthlyRevenue / 1000).toFixed(1)}k`;
+        document.getElementById('statTotalShipments').textContent = stats.totalShipments || 0;
+        document.getElementById('statActiveTrucks').textContent = stats.activeTrucks || 0;
+        document.getElementById('statPendingShipments').textContent = stats.pendingShipments || 0;
+        document.getElementById('statMonthlyRevenue').textContent = `${(stats.monthlyRevenue || 0).toFixed(2)} ETB`;
+    }
+
+    // Populate recent activity
+    const activityList = document.getElementById('activityList');
+    if (recentShipments && recentShipments.length > 0) {
+        activityList.innerHTML = recentShipments.map(s => `
+            <div class="activity-item">
+                <div class="activity-icon ${s.status === 'delivered' ? 'success' : 'info'}">
+                    <i class="fas fa-${s.status === 'delivered' ? 'check-circle' : 'truck'}"></i>
+                </div>
+                <div class="activity-details">
+                    <p>Shipment #${s.id.substring(0, 8)} - ${s.status}</p>
+                    <span class="activity-time">${new Date(s.created_at).toLocaleString()}</span>
+                </div>
+            </div>
+        `).join('');
+    } else {
+        activityList.innerHTML = '<p style="text-align:center; padding: 20px;">No recent activity</p>';
     }
 
     // Populate recent shipments table
-    if (recentShipments) {
-        const tableBody = document.querySelector('.data-table tbody');
-        tableBody.innerHTML = ''; // Clear placeholder rows
-        recentShipments.forEach(shipment => {
-            const row = `
-                <tr>
-                  <td data-shipment-id="${shipment.id}">#${shipment.id.substring(0, 8)}</td>
-                  <td>${shipment.shipper_id.substring(0, 12)}...</td>
-                  <td>${shipment.destination_address}</td>
-                  <td>${shipment.truck_owner_id ? shipment.truck_owner_id.substring(0, 12) + '...' : 'N/A'}</td>
-                  <td><span class="status-badge ${shipment.status}">${shipment.status}</span></td>
-                  <td>
-                    <button class="action-btn view" data-shipment-id="${shipment.id}"><i class="fas fa-eye"></i></button>
-                    <button class="action-btn edit"><i class="fas fa-edit"></i></button>
-                  </td>
-                </tr>
-            `;
-            tableBody.insertAdjacentHTML('beforeend', row);
-        });
+    const tableBody = document.getElementById('recentShipmentsTable');
+    if (recentShipments && recentShipments.length > 0) {
+        tableBody.innerHTML = recentShipments.map(shipment => `
+            <tr>
+              <td>#${shipment.id.substring(0, 8)}</td>
+              <td>${shipment.shipper_id ? shipment.shipper_id.substring(0, 12) + '...' : 'N/A'}</td>
+              <td>${shipment.destination_address}</td>
+              <td>${shipment.truck_owner_id ? shipment.truck_owner_id.substring(0, 12) + '...' : 'N/A'}</td>
+              <td><span class="status-badge ${shipment.status}">${shipment.status}</span></td>
+              <td>
+                <button class="action-btn view" data-shipment-id="${shipment.id}"><i class="fas fa-eye"></i></button>
+              </td>
+            </tr>
+        `).join('');
+    } else {
+        tableBody.innerHTML = '<tr><td colspan="6" style="text-align:center;">No shipments found</td></tr>';
     }
 
-    // Add event listeners for the newly added view buttons
     addEventListenersToViewButtons();
 }
 
