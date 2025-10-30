@@ -287,27 +287,7 @@ async function fetchRecentShipments() {
 
 async function loadTrucks() {
     const tbody = document.querySelector('#trucks-table tbody');
-    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Loading...</td></tr>';
-    
-    const { data, error } = await supabase
-        .from('vehicles')
-        .select('*, truck_owners(full_name)');
-    
-    if (error) {
-        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color: red;">Error loading trucks</td></tr>';
-        return;
-    }
-    
-    tbody.innerHTML = data.map(v => `
-        <tr>
-            <td>${v.license_plate}</td>
-            <td>${v.vehicle_model}</td>
-            <td>${v.truck_owners?.full_name || 'N/A'}</td>
-            <td>${v.capacity_kg || 'N/A'}</td>
-            <td><span class="status-badge ${v.is_active ? 'delivered' : 'cancelled'}">${v.is_active ? 'Active' : 'Inactive'}</span></td>
-            <td><button class="action-btn view"><i class="fas fa-eye"></i></button></td>
-        </tr>
-    `).join('');
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">No trucks table configured</td></tr>';
 }
 
 async function loadDrivers() {
@@ -316,7 +296,7 @@ async function loadDrivers() {
     
     const { data, error } = await supabase
         .from('truck_owners')
-        .select('*, vehicles(count)');
+        .select('*');
     
     if (error) {
         tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color: red;">Error loading drivers</td></tr>';
@@ -328,7 +308,7 @@ async function loadDrivers() {
             <td>${d.full_name}</td>
             <td>${d.phone || 'N/A'}</td>
             <td>${d.email || 'N/A'}</td>
-            <td>${d.vehicles?.length || 0}</td>
+            <td>N/A</td>
             <td><span class="status-badge delivered">Active</span></td>
             <td><button class="action-btn view"><i class="fas fa-eye"></i></button></td>
         </tr>
@@ -341,7 +321,7 @@ async function loadShippers() {
     
     const { data, error } = await supabase
         .from('shippers')
-        .select('*, shipments(count)');
+        .select('*');
     
     if (error) {
         tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color: red;">Error loading shippers</td></tr>';
@@ -354,7 +334,7 @@ async function loadShippers() {
             <td>${s.company_name || 'N/A'}</td>
             <td>${s.phone || 'N/A'}</td>
             <td>${s.email || 'N/A'}</td>
-            <td>${s.shipments?.length || 0}</td>
+            <td>N/A</td>
             <td><button class="action-btn view"><i class="fas fa-eye"></i></button></td>
         </tr>
     `).join('');
