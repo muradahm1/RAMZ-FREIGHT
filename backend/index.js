@@ -342,15 +342,10 @@ app.get('/admin/shipments/:id', async (req, res) => {
       return res.status(403).json({ error: 'Access Denied: You do not have permission to perform this action.' });
     }
 
-    // Use admin client to fetch all related data
+    // Fetch shipment
     const { data: shipment, error: shipmentError } = await supabaseAdmin
       .from('shipments')
-      .select(`
-        *,
-        shipper:profiles(full_name, email, phone),
-        truck_owner:profiles(full_name, email, phone),
-        vehicle:vehicles(vehicle_model, license_plate)
-      `)
+      .select('*')
       .eq('id', shipmentId)
       .single();
 
@@ -362,7 +357,40 @@ app.get('/admin/shipments/:id', async (req, res) => {
       return res.status(404).json({ error: 'Shipment not found.' });
     }
 
-    res.json({ shipment });
+    // Fetch shipper details
+    let shipperDetails = null;
+    if (shipment.shipper_id) {
+      const { data: authData } = await supabaseAdmin.auth.admin.getUserById(shipment.shipper_id);
+      if (authData?.user) {
+        shipperDetails = {
+          full_name: authData.user.user_metadata?.full_name || authData.user.email?.split('@')[0] || 'N/A',
+          email: authData.user.email || 'N/A',
+          phone: authData.user.user_metadata?.phone || 'N/A'
+        };
+      }
+    }
+
+    // Fetch truck owner details
+    let truckOwnerDetails = null;
+    if (shipment.truck_owner_id) {
+      const { data: authData } = await supabaseAdmin.auth.admin.getUserById(shipment.truck_owner_id);
+      if (authData?.user) {
+        truckOwnerDetails = {
+          full_name: authData.user.user_metadata?.full_name || authData.user.email?.split('@')[0] || 'N/A',
+          email: authData.user.email || 'N/A',
+          phone: authData.user.user_metadata?.phone || 'N/A'
+        };
+      }
+    }
+
+    // Fetch vehicle details
+    let vehicleDetails = null;
+    if (shipment.vehicle_id) {
+      const { data: vehicle } = await supabaseAdmin.from('vehicles').select('vehicle_model, license_plate').eq('id', shipment.vehicle_id).single();
+      vehicleDetails = vehicle;
+    }
+
+    res.json({ shipment: { ...shipment, shipper: shipperDetails, truck_owner: truckOwnerDetails, vehicle: vehicleDetails } });
   } catch (err) {
     console.error('Error in /admin/shipments/:id:', err);
     res.status(500).json({ error: 'Internal server error' });
@@ -439,37 +467,7 @@ app.post('/auth/login', async (req, res) => {
 //   res.json(data);
 // });
 
-// Admin endpoint to get shipment details with related data
-app.get('/admin/shipments/:id', async (req, res) => {
-  try {
-    const verification = await getUserFromBearer(req);
-    if (verification.error) return res.status(401).json({ error: verification.error });
-    const user = verification.user;
-    if (!user || !user.id) return res.status(401).json({ error: 'Invalid user' });
 
-    const shipmentId = req.params.id;
-    
-    // Use admin client to get full shipment details
-    const { data: shipment, error } = await supabaseAdmin
-      .from('shipments')
-      .select(`
-        *,
-        shipper:shippers!shipper_id(full_name, phone, email),
-        truck_owner:truck_owners!truck_owner_id(full_name, phone, email),
-        vehicle:vehicles!vehicle_id(vehicle_model, license_plate)
-      `)
-      .eq('id', shipmentId)
-      .single();
-
-    if (error) return res.status(500).json({ error: error.message });
-    if (!shipment) return res.status(404).json({ error: 'Shipment not found' });
-
-    res.json({ shipment });
-  } catch (err) {
-    console.error('Error in GET /admin/shipments/:id:', err);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
