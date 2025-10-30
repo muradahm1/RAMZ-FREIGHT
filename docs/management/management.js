@@ -1,6 +1,18 @@
 import { supabase, backendUrl } from '../assets/supabaseClient.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
+    // Wait for supabase to load
+    let attempts = 0;
+    while (!supabase && attempts < 50) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+        attempts++;
+    }
+    
+    if (!supabase) {
+        alert('Failed to load Supabase. Please refresh the page.');
+        return;
+    }
+    
     const authorized = await checkUserRole();
     if (authorized) {
         initializeDashboard();
