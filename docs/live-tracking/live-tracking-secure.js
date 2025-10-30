@@ -45,6 +45,9 @@ function startRealTimeTracking() {
 }
 
 function initMap() {
+    if (map) {
+        map.remove();
+    }
     map = L.map('trackingMap').setView([9.02497, 38.74689], 7);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; OpenStreetMap'
@@ -107,11 +110,7 @@ async function loadShipmentTracking() {
     try {
         const { data: shipment, error } = await supabase
             .from('shipments')
-            .select(`
-                *,
-                truck_owner:truck_owners!truck_owner_id(full_name, phone, avatar_url),
-                vehicle:vehicles!vehicle_id(vehicle_model, license_plate)
-            `)
+            .select('*')
             .eq('id', shipmentId)
             .single();
 
@@ -120,6 +119,31 @@ async function loadShipmentTracking() {
             alert('Shipment not found');
             return;
         }
+
+        // Fetch truck owner and vehicle separately
+        let truckOwner = null;
+        let vehicle = null;
+
+        if (shipment.truck_owner_id) {
+            const { data: ownerData } = await supabase
+                .from('truck_owners')
+                .select('full_name, phone, avatar_url')
+                .eq('id', shipment.truck_owner_id)
+                .single();
+            truckOwner = ownerData;
+        }
+
+        if (shipment.vehicle_id) {
+            const { data: vehicleData } = await supabase
+                .from('vehicles')
+                .select('vehicle_model, license_plate')
+                .eq('id', shipment.vehicle_id)
+                .single();
+            vehicle = vehicleData;
+        }
+
+        shipment.truck_owner = truckOwner;
+        shipment.vehicle = vehicle;
 
         const originCoord = await geocodeAddress(shipment.origin_address);
         const destCoord = await geocodeAddress(shipment.destination_address);

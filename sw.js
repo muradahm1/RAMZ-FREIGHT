@@ -98,6 +98,10 @@ self.addEventListener('fetch', event => {
               cache.put(request, fetchResponse.clone());
               return fetchResponse;
             });
+          })
+          .catch(() => {
+            // Silently fail for external resources like placeholder images
+            return new Response('', { status: 404, statusText: 'Not Found' });
           });
       })
   );
