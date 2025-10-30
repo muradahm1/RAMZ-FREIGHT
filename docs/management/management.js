@@ -230,7 +230,23 @@ function addEventListenersToViewButtons() {
     document.querySelectorAll('.action-btn.view').forEach(button => {
         button.addEventListener('click', () => {
             const shipmentId = button.dataset.shipmentId;
+            console.log('View button clicked for shipment:', shipmentId);
             showShipmentModal(shipmentId);
+        });
+    });
+    
+    // Add edit and delete button handlers
+    document.querySelectorAll('.action-btn.edit').forEach(button => {
+        button.addEventListener('click', () => {
+            alert('Edit functionality coming soon!');
+        });
+    });
+    
+    document.querySelectorAll('.action-btn.delete').forEach(button => {
+        button.addEventListener('click', () => {
+            if (confirm('Are you sure you want to delete this shipment?')) {
+                alert('Delete functionality coming soon!');
+            }
         });
     });
 }

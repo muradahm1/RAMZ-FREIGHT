@@ -439,6 +439,38 @@ app.post('/auth/login', async (req, res) => {
 //   res.json(data);
 // });
 
+// Admin endpoint to get shipment details with related data
+app.get('/admin/shipments/:id', async (req, res) => {
+  try {
+    const verification = await getUserFromBearer(req);
+    if (verification.error) return res.status(401).json({ error: verification.error });
+    const user = verification.user;
+    if (!user || !user.id) return res.status(401).json({ error: 'Invalid user' });
+
+    const shipmentId = req.params.id;
+    
+    // Use admin client to get full shipment details
+    const { data: shipment, error } = await supabaseAdmin
+      .from('shipments')
+      .select(`
+        *,
+        shipper:shippers!shipper_id(full_name, phone, email),
+        truck_owner:truck_owners!truck_owner_id(full_name, phone, email),
+        vehicle:vehicles!vehicle_id(vehicle_model, license_plate)
+      `)
+      .eq('id', shipmentId)
+      .single();
+
+    if (error) return res.status(500).json({ error: error.message });
+    if (!shipment) return res.status(404).json({ error: 'Shipment not found' });
+
+    res.json({ shipment });
+  } catch (err) {
+    console.error('Error in GET /admin/shipments/:id:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
