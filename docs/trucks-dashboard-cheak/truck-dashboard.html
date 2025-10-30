@@ -206,21 +206,8 @@
     <script src="../assets/translations.js" type="module"></script>
     <script src="../assets/language-switcher.js" type="module"></script>
     <script src="../assets/offline-sync.js"></script>
-    <script src="../assets/location-tracker.js"></script>
+    <script src="../assets/locationTracker.js" type="module"></script>
     <script src="../assets/notification-system.js"></script>
     <script src="truck-dashboard.js" type="module"></script>
-    <script>
-      // Auto-start location tracking for truck owners
-      window.addEventListener('load', async () => {
-        try {
-          await window.locationTracker.requestPermission();
-          window.locationTracker.startTracking((position) => {
-            console.log('Location updated:', position);
-          });
-        } catch (error) {
-          console.log('Location tracking not enabled:', error.message);
-        }
-      });
-    </script>
 </body>
 </html>

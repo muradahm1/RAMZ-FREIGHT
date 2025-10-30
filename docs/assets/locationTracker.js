@@ -109,3 +109,8 @@ class LocationTracker {
 
 // Export singleton instance
 export const locationTracker = new LocationTracker();
+
+// Also expose to window for non-module scripts
+if (typeof window !== 'undefined') {
+    window.locationTracker = locationTracker;
+}

@@ -471,10 +471,19 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (error) throw error;
 
             // Start location tracking
-            await locationTracker.startTracking(shipmentId);
+            if (window.locationTracker) {
+                try {
+                    await window.locationTracker.startTracking(shipmentId);
+                    console.log('Location tracking started for shipment:', shipmentId);
+                } catch (locErr) {
+                    console.error('Location tracking error:', locErr);
+                    alert('Warning: Location tracking could not start. Please enable location permissions.');
+                }
+            }
             
             alert('Shipment in transit! Live tracking is now active.');
             const { data: { user } } = await supabase.auth.getUser();
+            await new Promise(resolve => setTimeout(resolve, 500));
             loadAcceptedShipments(user);
         } catch (err) {
             console.error('Error starting shipment:', err);
