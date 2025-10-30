@@ -24,36 +24,30 @@ ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE shipments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE truck_owners ENABLE ROW LEVEL SECURITY;
 ALTER TABLE shippers ENABLE ROW LEVEL SECURITY;
+ALTER TABLE vehicles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ratings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE shipment_tracking ENABLE ROW LEVEL SECURITY;
 
 -- Drop existing policies if they exist
 DROP POLICY IF EXISTS "Admins can view all profiles" ON profiles;
 DROP POLICY IF EXISTS "Admins can view all shipments" ON shipments;
 DROP POLICY IF EXISTS "Admins can view all truck_owners" ON truck_owners;
 DROP POLICY IF EXISTS "Admins can view all shippers" ON shippers;
+DROP POLICY IF EXISTS "Admins can view all vehicles" ON vehicles;
+DROP POLICY IF EXISTS "Admins can view all notifications" ON notifications;
+DROP POLICY IF EXISTS "Admins can view all ratings" ON ratings;
+DROP POLICY IF EXISTS "Admins can view all tracking" ON shipment_tracking;
 
--- Admin can read all profiles
-CREATE POLICY "Admins can view all profiles"
-ON profiles FOR SELECT
-TO authenticated
-USING (is_admin(auth.uid()));
-
--- Admin can read all shipments
-CREATE POLICY "Admins can view all shipments"
-ON shipments FOR SELECT
-TO authenticated
-USING (is_admin(auth.uid()));
-
--- Admin can read all truck owners
-CREATE POLICY "Admins can view all truck_owners"
-ON truck_owners FOR SELECT
-TO authenticated
-USING (is_admin(auth.uid()));
-
--- Admin can read all shippers
-CREATE POLICY "Admins can view all shippers"
-ON shippers FOR SELECT
-TO authenticated
-USING (is_admin(auth.uid()));
+-- Admin can read all tables
+CREATE POLICY "Admins can view all profiles" ON profiles FOR SELECT TO authenticated USING (is_admin(auth.uid()));
+CREATE POLICY "Admins can view all shipments" ON shipments FOR SELECT TO authenticated USING (is_admin(auth.uid()));
+CREATE POLICY "Admins can view all truck_owners" ON truck_owners FOR SELECT TO authenticated USING (is_admin(auth.uid()));
+CREATE POLICY "Admins can view all shippers" ON shippers FOR SELECT TO authenticated USING (is_admin(auth.uid()));
+CREATE POLICY "Admins can view all vehicles" ON vehicles FOR SELECT TO authenticated USING (is_admin(auth.uid()));
+CREATE POLICY "Admins can view all notifications" ON notifications FOR SELECT TO authenticated USING (is_admin(auth.uid()));
+CREATE POLICY "Admins can view all ratings" ON ratings FOR SELECT TO authenticated USING (is_admin(auth.uid()));
+CREATE POLICY "Admins can view all tracking" ON shipment_tracking FOR SELECT TO authenticated USING (is_admin(auth.uid()));
 
 -- 4. Create admin user (replace with your email)
 -- First, sign up normally at your site, then run:

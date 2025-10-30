@@ -287,7 +287,27 @@ async function fetchRecentShipments() {
 
 async function loadTrucks() {
     const tbody = document.querySelector('#trucks-table tbody');
-    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">No trucks table configured</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Loading...</td></tr>';
+    
+    const { data, error } = await supabase
+        .from('vehicles')
+        .select('*');
+    
+    if (error) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color: red;">Error loading vehicles</td></tr>';
+        return;
+    }
+    
+    tbody.innerHTML = data.map(v => `
+        <tr>
+            <td>${v.license_plate || 'N/A'}</td>
+            <td>${v.vehicle_model || 'N/A'}</td>
+            <td>${v.owner_id ? v.owner_id.substring(0, 12) + '...' : 'N/A'}</td>
+            <td>${v.capacity_kg || 'N/A'}</td>
+            <td><span class="status-badge delivered">Active</span></td>
+            <td><button class="action-btn view"><i class="fas fa-eye"></i></button></td>
+        </tr>
+    `).join('');
 }
 
 async function loadDrivers() {
