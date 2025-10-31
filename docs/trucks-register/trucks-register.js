@@ -45,6 +45,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (!emailRegex.test(document.getElementById('basicEmail').value.trim())) { isValid = false; showError('basicEmail', 'A valid email is required.'); }
         if (document.getElementById('basicPassword').value.trim().length < 6) { isValid = false; showError('basicPassword', 'Password must be at least 6 characters.'); }
         if (document.getElementById('basicPassword').value.trim() !== document.getElementById('confirmPassword').value.trim()) { isValid = false; showError('confirmPassword', 'Passwords do not match.'); }
+        if (!document.getElementById('agreeTerms').checked) { isValid = false; alert('You must agree to the Terms and Conditions to continue.'); }
         
         return isValid;
     };
