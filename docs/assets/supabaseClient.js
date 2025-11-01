@@ -43,7 +43,6 @@ async function loadSupabaseCdnIfNeeded() {
 export const supabaseReady = loadSupabaseCdnIfNeeded();
 
 // The backend URL - environment based
-// Update this with your actual Render service URL
 export const backendUrl = window.location.hostname === 'localhost'
   ? 'http://localhost:4000'
-  : 'https://ramz-freight.onrender.com'; // Replace with your actual Render URL
+  : 'https://ramz-freight.onrender.com';

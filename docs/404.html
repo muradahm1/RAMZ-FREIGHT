@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>404 - Page Not Found | RAMZ-FREIGHT</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; display: flex; align-items: center; justify-content: center; min-height: 100vh; text-align: center; padding: 20px; }
+        .container { max-width: 600px; }
+        h1 { font-size: 120px; margin-bottom: 20px; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
+        h2 { font-size: 32px; margin-bottom: 20px; }
+        p { font-size: 18px; margin-bottom: 30px; opacity: 0.9; }
+        .btn { display: inline-block; padding: 15px 40px; background: #fff; color: #667eea; text-decoration: none; border-radius: 50px; font-weight: 600; transition: transform 0.3s; }
+        .btn:hover { transform: translateY(-2px); }
+        .truck { font-size: 80px; margin-bottom: 20px; animation: drive 2s infinite; }
+        @keyframes drive { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(20px); } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="truck">🚛</div>
+        <h1>404</h1>
+        <h2>Oops! This route doesn't exist</h2>
+        <p>Looks like this shipment got lost. Let's get you back on track!</p>
+        <a href="/docs/homepage/homepage.html" class="btn">Go Home</a>
+    </div>
+</body>
+</html>

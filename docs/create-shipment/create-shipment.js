@@ -102,14 +102,41 @@ document.addEventListener('DOMContentLoaded', async () => {
                 throw new Error(result.error || 'Failed to post shipment.');
             }
 
+            // Trigger notification
+            if (window.notificationSystem) {
+                window.notificationSystem.newShipment({
+                    id: result.shipment?.id,
+                    origin: shipmentData.origin_address,
+                    destination: shipmentData.destination_address
+                });
+            }
+            
             alert('Shipment request posted successfully!');
-            window.location.href = '../shippers-dashboard/shippers-dashboard.html';
+            setTimeout(() => {
+                window.location.href = '../shippers-dashboard/shippers-dashboard.html';
+            }, 1000);
 
         } catch (error) {
             console.error('Error creating shipment:', error);
-            alert(`Error: ${error.message}`);
-            submitBtn.disabled = false;
-            submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Post Shipment Request';
+            
+            // Save for offline sync if offline
+            if (!navigator.onLine && window.offlineSync) {
+                await window.offlineSync.savePendingSync({
+                    url: apiUrl,
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${access_token}`
+                    },
+                    data: shipmentData
+                });
+                alert('You are offline. Shipment will be posted when connection is restored.');
+                window.location.href = '../shippers-dashboard/shippers-dashboard.html';
+            } else {
+                alert(`Error: ${error.message}`);
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Post Shipment Request';
+            }
         }
     });
 });

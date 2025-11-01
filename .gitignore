@@ -1,27 +1,33 @@
+# Dependencies
+node_modules/
+package-lock.json
+
 # Environment variables
 .env
 .env.local
 .env.production
 
-# Dependencies
-node_modules/
-npm-debug.log*
+# Config files with credentials
+docs/assets/config.js
 
 # Build outputs
 dist/
 build/
 
-# Uploads
-uploads/
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
 
-# OS files
+# OS
 .DS_Store
 Thumbs.db
 
-# IDE files
-.vscode/
-.idea/
-
 # Logs
 *.log
-logs/
+npm-debug.log*
+
+# Testing
+coverage/
+.nyc_output/

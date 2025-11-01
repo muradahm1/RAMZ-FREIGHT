@@ -1,6 +1,14 @@
 
 // main.js - Global JS for RAMZ-FREIGHT
 
+// Clean URLs - Remove .html from address bar
+(function() {
+  if (window.location.pathname.endsWith('.html')) {
+    const cleanPath = window.location.pathname.replace('.html', '');
+    window.history.replaceState({}, '', cleanPath + window.location.search + window.location.hash);
+  }
+})();
+
 // Example: Show a toast notification
 function showToast(message, type = 'info') {
 	let toast = document.createElement('div');
@@ -59,6 +67,15 @@ function initializeFloatingLabels() {
 		input.addEventListener('blur', () => updateLabel(false));
 	});
 }
+// Request notification permission
+if ('Notification' in window && Notification.permission === 'default') {
+  setTimeout(() => {
+    Notification.requestPermission().then(permission => {
+      console.log('Notification permission:', permission);
+    });
+  }, 3000); // Wait 3 seconds before asking
+}
+
 // Example: Smooth scroll for anchor links
 document.addEventListener('DOMContentLoaded', function() {
 	document.querySelectorAll('a[href^="#"]').forEach(anchor => {
