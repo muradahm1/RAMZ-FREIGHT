@@ -178,20 +178,41 @@
     <script src="../assets/main.js"></script>
   <script src="../assets/translations.js" type="module"></script>
   <script src="../assets/language-switcher.js" type="module"></script>
-  <script src="../assets/offline-sync.js"></script>
-  <script src="../assets/location-tracker.js"></script>
-  <script src="../assets/notification-system.js"></script>
-  <script src="../assets/pwa-install.js"></script>
   <script src="scroll-animations.js"></script>
-  <script src="homepage.js"></script>
   <script>
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('./sw.js')
-        .then(reg => {
-          console.log('PWA ready');
-        })
-        .catch(err => console.log('SW error:', err));
-    }
+    // Mobile Navigation Toggle
+    const hamburger = document.getElementById('hamburger');
+    const navMenu = document.getElementById('nav-menu');
+
+    const toggleMenu = (e) => {
+      e.preventDefault();
+      hamburger.classList.toggle('active');
+      navMenu.classList.toggle('active');
+    };
+
+    hamburger.addEventListener('click', toggleMenu);
+
+    // Close mobile menu when clicking on a link
+    document.querySelectorAll('.nav-menu a').forEach(link => {
+      link.addEventListener('click', () => {
+        hamburger.classList.remove('active');
+        navMenu.classList.remove('active');
+      });
+    });
+
+    // Smooth scrolling for anchor links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', function(e) {
+        e.preventDefault();
+        const targetId = this.getAttribute('href');
+        if (targetId === '#') return;
+        const targetElement = document.querySelector(targetId);
+        if (targetElement) {
+          const offsetTop = targetElement.offsetTop - 80;
+          window.scrollTo({ top: offsetTop, behavior: 'smooth' });
+        }
+      });
+    });
   </script>
 </body>
 </html>
