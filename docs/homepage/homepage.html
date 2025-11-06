@@ -214,14 +214,145 @@
             option.addEventListener('click', (e) => {
               e.stopPropagation();
               const lang = option.dataset.lang;
-              if (window.appTranslations && window.appTranslations.setLanguage) {
-                window.appTranslations.setLanguage(lang);
-              }
+              
+              // Store language preference
+              localStorage.setItem('preferredLanguage', lang);
+              
+              // Update current language display
+              const currentLangSpan = switcher.querySelector('.current-lang');
+              const langNames = { en: 'EN', am: 'አማ', om: 'OM' };
+              currentLangSpan.textContent = langNames[lang];
+              
+              // Apply translations immediately
+              const translations = {
+                en: {
+                  heroTitle: "Welcome to Ramz Freight",
+                  heroSubtitle: "Connecting Shippers and Truck Owners across Ethiopia",
+                  shipperButton: "I'm a Shipper",
+                  truckOwnerButton: "I'm a Truck Owner",
+                  whyChooseUs: "Why Choose Us",
+                  aboutUs: "About Us",
+                  contactUs: "Contact Us",
+                  whyChooseUsTitle: "Why Choose Us?",
+                  reliableNetworkTitle: "Reliable Network",
+                  reliableNetworkText: "Work only with trusted and verified shippers & drivers.",
+                  fastSimpleTitle: "Fast & Simple",
+                  fastSimpleText: "Book and deliver goods with just a few clicks.",
+                  fairPricingTitle: "Fair Pricing",
+                  fairPricingText: "Transparent rates, no hidden fees, and secure payments.",
+                  easyManagementTitle: "Easy Management",
+                  easyManagementText: "Track loads, manage deliveries, and grow your business.",
+                  aboutUsTitle: "About Us",
+                  contactUsTitle: "Contact Us",
+                  phone: "Phone",
+                  email: "Email",
+                  location: "Location",
+                  businessHours: "Business Hours",
+                  businessHoursDay: "Monday - SUNDAY: ",
+                  businessHoursTime: "Saturday: 9:00 AM - 1:00 PM",
+                  formNamePlaceholder: "Your Name",
+                  formEmailPlaceholder: "Your Email",
+                  formSubjectPlaceholder: "Subject",
+                  formMessagePlaceholder: "Your Message",
+                  sendMessageButton: "Send Message",
+                  footerText: "© 2025 Ramz-Freight. All rights reserved."
+                },
+                am: {
+                  heroTitle: "ወደ ራምዝ ፍሬት እንኳን ደህና መጡ",
+                  heroSubtitle: "ላኪዎችን እና የጭነት መኪና ባለቤቶችን በመላው ኢትዮጵያ ማገናኘት",
+                  shipperButton: "እኔ ላኪ ነኝ",
+                  truckOwnerButton: "እኔ የጭነት መኪና ባለቤት ነኝ",
+                  whyChooseUs: "ለምን እኛን ይመርጣሉ?",
+                  aboutUs: "ስለ እኛ",
+                  contactUs: "ያግኙን",
+                  whyChooseUsTitle: "ለምን እኛን ይመርጣሉ?",
+                  reliableNetworkTitle: "አስተማማኝ አውታረ መረብ",
+                  reliableNetworkText: "ከታመኑ እና ከተረጋገጡ ላኪዎችና አሽከርካሪዎች ጋር ብቻ ይስሩ።",
+                  fastSimpleTitle: "ፈጣን እና ቀላል",
+                  fastSimpleText: "በጥቂት ጠቅታዎች እቃዎችን ያስይዙ እና ያደርሱ።",
+                  fairPricingTitle: "ፍትሃዊ ዋጋ",
+                  fairPricingText: "ግልጽ ዋጋዎች፣ የተደበቁ ክፍያዎች የሉም፣ እና አስተማማኝ ክፍያዎች።",
+                  easyManagementTitle: "ቀላል አስተዳደር",
+                  easyManagementText: "ጭነቶችን ይከታተሉ፣ አቅርቦቶችን ያስተዳድሩ እና ንግድዎን ያሳድጉ።",
+                  aboutUsTitle: "ስለ እኛ",
+                  contactUsTitle: "አግኙን",
+                  phone: "ስልክ",
+                  email: "ኢሜይል",
+                  location: "አድራሻ",
+                  businessHours: "የስራ ሰዓታት",
+                  businessHoursDay: "ሰኞ - እሁድ: ",
+                  businessHoursTime: "ቅዳሜ: ከጥዋቱ 9:00 - ከሰዓት በኋላ 1:00",
+                  formNamePlaceholder: "የእርስዎ ስም",
+                  formEmailPlaceholder: "የእርስዎ ኢሜይል",
+                  formSubjectPlaceholder: "ርዕስ",
+                  formMessagePlaceholder: "የእርስዎ መልዕክት",
+                  sendMessageButton: "መልዕክት ይላኩ",
+                  footerText: "© 2025 Ramz-Freight. ሁሉም መብቶች የተጠበቁ ናቸው።"
+                },
+                om: {
+                  heroTitle: "Baga Gara Ramz Freight Nagaan Dhuftan",
+                  heroSubtitle: "Ergitootaa fi Abbootii Konkolaataa Itoophiyaa Guutuu Wal Qabsiisuu",
+                  shipperButton: "Ani Ergituudha",
+                  truckOwnerButton: "Ani Abbaa Konkolaataa Fe'insaati",
+                  whyChooseUs: "Maaliif Nu Filattu?",
+                  aboutUs: "Waa'ee Keenya",
+                  contactUs: "Nu Qunnamaa",
+                  whyChooseUsTitle: "Maaliif Nu Filattu?",
+                  reliableNetworkTitle: "Tarkaanfii Amanamaa",
+                  reliableNetworkText: "Ergitootaa fi Konkolaachiftoota Amanamoo fi Mirkanaa'oo Qofa Waliin Hojjedhaa.",
+                  fastSimpleTitle: "Ariifataa fi Salphaa",
+                  fastSimpleText: "Meeshaalee Tuqaalee Muraasaan Ajajaa fi Geessaa.",
+                  fairPricingTitle: "Gatii Sirrii",
+                  fairPricingText: "Tariffa Ifaa, Kaffaltii Dhokataa Hin Qabne, fi Kaffaltii Nagaa.",
+                  easyManagementTitle: "Bulchiinsa Salphaa",
+                  easyManagementText: "Fe'umsa Hordofaa, Geessaa Bulchaa, fi Daldala Keessan Guddisaa.",
+                  aboutUsTitle: "Waa'ee Keenya",
+                  contactUsTitle: "Nu Qunnamuuf",
+                  phone: "Bilbila",
+                  email: "Imeelii",
+                  location: "Bakka",
+                  businessHours: "Sa'aatii Hojii",
+                  businessHoursDay: "Wixata - Dilbata: ",
+                  businessHoursTime: "Sanbata: Sa'aatii 9:00 Ganama - Sa'aatii 1:00 Galgala",
+                  formNamePlaceholder: "Maqaa Keessan",
+                  formEmailPlaceholder: "Imeelii Keessan",
+                  formSubjectPlaceholder: "Mata Duree",
+                  formMessagePlaceholder: "Ergaa Keessan",
+                  sendMessageButton: "Ergaa Ergi",
+                  footerText: "© 2025 Ramz-Freight. Mirgoonni hundinuu kan eegamanidha."
+                }
+              };
+              
+              const t = translations[lang] || translations.en;
+              
+              // Apply translations to all elements with data-translate
+              document.querySelectorAll('[data-translate]').forEach(el => {
+                const key = el.getAttribute('data-translate');
+                if (t[key]) {
+                  if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+                    el.placeholder = t[key];
+                  } else {
+                    el.textContent = t[key];
+                  }
+                }
+              });
+              
               dropdownMenu.classList.remove('show');
             });
           });
         }
       }, 500);
+      
+      // Load saved language on page load
+      const savedLang = localStorage.getItem('preferredLanguage') || 'en';
+      if (savedLang !== 'en') {
+        setTimeout(() => {
+          const langOption = document.querySelector(`[data-lang="${savedLang}"]`);
+          if (langOption) {
+            langOption.click();
+          }
+        }, 1000);
+      }
       
       // Mobile Navigation Toggle
       const hamburger = document.getElementById('hamburger');
