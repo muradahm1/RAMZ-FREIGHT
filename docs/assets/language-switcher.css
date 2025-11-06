@@ -80,3 +80,52 @@
         transform: translateY(0);
     }
 }
+
+/* Mobile Responsive Styles */
+@media (max-width: 768px) {
+    .language-switcher {
+        position: static;
+        margin-left: 10px;
+    }
+    
+    .lang-dropdown-btn {
+        padding: 6px 10px;
+        font-size: 0.9rem;
+    }
+    
+    .lang-dropdown-menu {
+        right: -10px;
+        min-width: 160px;
+        top: calc(100% + 5px);
+    }
+    
+    .lang-dropdown-menu .lang-option {
+        padding: 10px 14px;
+        font-size: 0.9rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .language-switcher {
+        margin-left: 5px;
+    }
+    
+    .lang-dropdown-btn {
+        padding: 5px 8px;
+        font-size: 0.85rem;
+    }
+    
+    .lang-dropdown-btn .current-lang {
+        display: none;
+    }
+    
+    .lang-dropdown-btn::after {
+        content: '🌐';
+        font-size: 1.2rem;
+    }
+    
+    .lang-dropdown-menu {
+        right: -20px;
+        min-width: 140px;
+    }
+}
