@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard - Ramz-Freight</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+  <div class="dashboard-container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <h2>Ramz-Freight</h2>
+        <p>Management Dashboard</p>
+      </div>
+      
+      <nav class="sidebar-nav">
+        <ul>
+          <li class="nav-item active">
+            <a href="#overview">
+              <i class="fas fa-chart-line"></i>
+              <span>Overview</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#shipments">
+              <i class="fas fa-truck-loading"></i>
+              <span>Shipments</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#trucks">
+              <i class="fas fa-truck"></i>
+              <span>Trucks</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#drivers">
+              <i class="fas fa-users"></i>
+              <span>Drivers</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#shippers">
+              <i class="fas fa-building"></i>
+              <span>Shippers</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#finance">
+              <i class="fas fa-money-bill-wave"></i>
+              <span>Finance</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#reports">
+              <i class="fas fa-chart-bar"></i>
+              <span>Reports</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#settings">
+              <i class="fas fa-cog"></i>
+              <span>Settings</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
+      
+      <div class="sidebar-footer">
+        <div class="user-profile">
+          <div class="user-avatar">
+            <i class="fas fa-user-circle"></i>
+          </div>
+          <div class="user-info">
+            <p class="user-name">Admin User</p>
+            <p class="user-role">System Administrator</p>
+          </div>
+          </div>          
+        </div>
+        <button class="logout-btn" id="logoutBtn">
+          <i class="fas fa-sign-out-alt"></i>
+          <span>Logout</span>
+        </button>
+      </div>
+    </aside>
+    <button class="logout-btn" id="logoutBtn">
+      <i class="fas fa-sign-out-alt"></i>
+      <span>Logout</span>
+    </button>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- Header -->
+      <header class="dashboard-header">
+        <div class="header-left">
+          <h1>Dashboard Overview</h1>
+          <p>Welcome back! Here's what's happening today.</p>
+        </div>
+        <div class="header-right">
+          <div class="search-box">
+            <input type="text" placeholder="Search...">
+            <i class="fas fa-search"></i>
+          </div>
+          <div class="header-actions">
+            <button class="notification-btn">
+              <i class="fas fa-bell"></i>
+              <span class="notification-badge">3</span>
+            </button>
+            <button class="add-new-btn">
+              <i class="fas fa-plus"></i>
+              New Shipment
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <!-- Dashboard Content -->
+      <div class="dashboard-content">
+        <!-- Stats Cards -->
+        <div id="overview-section" class="dashboard-page">
+
+          <!-- Stats Cards -->
+          <section class="stats-cards">
+          <div class="stat-card">
+            <div class="stat-icon total-shipments">
+              <i class="fas fa-shipping-fast"></i>
+            </div>
+            <div class="stat-info">
+              <h3 id="statTotalShipments">0</h3>
+              <p>Total Shipments</p>
+            </div>
+          </div>
+          
+          <div class="stat-card">
+            <div class="stat-icon active-trucks">
+              <i class="fas fa-truck"></i>
+            </div>
+            <div class="stat-info">
+              <h3 id="statActiveTrucks">0</h3>
+              <p>Active Trucks</p>
+            </div>
+          </div>
+          
+          <div class="stat-card">
+            <div class="stat-icon pending-shipments">
+              <i class="fas fa-clock"></i>
+            </div>
+            <div class="stat-info">
+              <h3 id="statPendingShipments">0</h3>
+              <p>Pending Shipments</p>
+            </div>
+          </div>
+          
+          <div class="stat-card">
+            <div class="stat-icon revenue">
+              <i class="fas fa-dollar-sign"></i>
+            </div>
+            <div class="stat-info">
+              <h3 id="statMonthlyRevenue">0 ETB</h3>
+              <p>Monthly Revenue</p>
+            </div>
+          </div>
+        </section>
+        
+          <!-- Charts and Recent Activity -->
+        <section class="charts-activity">
+          <div class="chart-container">
+            <div class="chart-header">
+              <h3>Shipment Trends</h3>
+              <select class="chart-filter">
+                <option>Last 7 Days</option>
+                <option>Last 30 Days</option>
+                <option>Last 3 Months</option>
+              </select>
+            </div>
+            <div class="chart-placeholder">
+              <div class="chart-bars">
+                <div class="bar" style="height: 70%"></div>
+                <div class="bar" style="height: 85%"></div>
+                <div class="bar" style="height: 60%"></div>
+                <div class="bar" style="height: 90%"></div>
+                <div class="bar" style="height: 75%"></div>
+                <div class="bar" style="height: 80%"></div>
+                <div class="bar" style="height: 95%"></div>
+              </div>
+              <div class="chart-labels">
+                <span>Mon</span>
+                <span>Tue</span>
+                <span>Wed</span>
+                <span>Thu</span>
+                <span>Fri</span>
+                <span>Sat</span>
+                <span>Sun</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="activity-container">
+            <div class="activity-header">
+              <h3>Recent Activity</h3>
+              <a href="#" class="view-all">View All</a>
+            </div>
+            <div class="activity-list" id="activityList">
+              <p style="text-align:center; padding: 20px;">Loading recent activity...</p>
+            </div>
+          </div>
+        </section>
+
+          <!-- Recent Shipments Table -->
+        <section class="recent-shipments">
+          <div class="section-header">
+            <h3>Recent Shipments</h3>
+            <a href="#shipments" class="view-all">View All Shipments</a>
+          </div>
+          <div class="table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Shipment ID</th>
+                  <th>Shipper</th>
+                  <th>Destination</th>
+                  <th>Driver</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="recentShipmentsTable">
+                <tr><td colspan="6" style="text-align:center;">Loading...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+        </div>
+
+        <!-- Shipments Management Page -->
+        <div id="shipments-section" class="dashboard-page" style="display: none;">
+          <div class="section-header">
+            <h3>All Shipments</h3>
+            <div class="filters">
+              <input type="text" id="shipmentSearch" placeholder="Search by ID, shipper, destination...">
+              <select id="shipmentStatusFilter">
+                <option value="all">All Statuses</option>
+                <option value="pending">Pending</option>
+                <option value="accepted">Accepted</option>
+                <option value="in_transit">In Transit</option>
+                <option value="delivered">Delivered</option>
+                <option value="cancelled">Cancelled</option>
+              </select>
+              <button id="applyShipmentFilters" class="btn-primary">Filter</button>
+            </div>
+          </div>
+          <div class="table-container">
+            <table class="data-table" id="all-shipments-table">
+              <thead>
+                <tr>
+                  <th>Shipment ID</th>
+                  <th>Shipper</th>
+                  <th>Origin</th>
+                  <th>Destination</th>
+                  <th>Status</th>
+                  <th>Created At</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <!-- Data will be loaded by JS -->
+                <tr><td colspan="7" style="text-align:center;">Loading shipments...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Trucks Management Page -->
+        <div id="trucks-section" class="dashboard-page" style="display: none;">
+          <div class="section-header">
+            <h3>Trucks Management</h3>
+            <input type="text" id="truckSearch" placeholder="Search by license plate, model...">
+          </div>
+          <div class="table-container">
+            <table class="data-table" id="trucks-table">
+              <thead>
+                <tr>
+                  <th>License Plate</th>
+                  <th>Model</th>
+                  <th>Owner</th>
+                  <th>Capacity (kg)</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody><tr><td colspan="6" style="text-align:center;">Loading...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Drivers Management Page -->
+        <div id="drivers-section" class="dashboard-page" style="display: none;">
+          <div class="section-header">
+            <h3>Truck Owners</h3>
+            <input type="text" id="driverSearch" placeholder="Search by name, phone...">
+          </div>
+          <div class="table-container">
+            <table class="data-table" id="drivers-table">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Phone</th>
+                  <th>Email</th>
+                  <th>Vehicles</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody><tr><td colspan="6" style="text-align:center;">Loading...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Shippers Management Page -->
+        <div id="shippers-section" class="dashboard-page" style="display: none;">
+          <div class="section-header">
+            <h3>Shippers</h3>
+            <input type="text" id="shipperSearch" placeholder="Search by name, company...">
+          </div>
+          <div class="table-container">
+            <table class="data-table" id="shippers-table">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Company</th>
+                  <th>Phone</th>
+                  <th>Email</th>
+                  <th>Total Shipments</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody><tr><td colspan="6" style="text-align:center;">Loading...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Finance Management Page -->
+        <div id="finance-section" class="dashboard-page" style="display: none;">
+          <div class="section-header">
+            <h3>Finance Overview</h3>
+          </div>
+          <div class="stats-cards">
+            <div class="stat-card">
+              <div class="stat-icon revenue"><i class="fas fa-dollar-sign"></i></div>
+              <div class="stat-info">
+                <h3 id="totalRevenue">0 ETB</h3>
+                <p>Total Revenue</p>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon pending-shipments"><i class="fas fa-clock"></i></div>
+              <div class="stat-info">
+                <h3 id="pendingPayments">0 ETB</h3>
+                <p>Pending Payments</p>
+              </div>
+            </div>
+          </div>
+          <div class="table-container">
+            <table class="data-table" id="payments-table">
+              <thead>
+                <tr>
+                  <th>Shipment ID</th>
+                  <th>Amount</th>
+                  <th>Status</th>
+                  <th>Date</th>
+                </tr>
+              </thead>
+              <tbody><tr><td colspan="4" style="text-align:center;">Loading...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Reports Page -->
+        <div id="reports-section" class="dashboard-page" style="display: none;">
+          <h3>Reports</h3>
+          <div class="stats-cards">
+            <div class="stat-card">
+              <h4>Shipments This Month</h4>
+              <h2 id="monthlyShipments">0</h2>
+            </div>
+            <div class="stat-card">
+              <h4>Revenue This Month</h4>
+              <h2 id="monthlyRevenueReport">0 ETB</h2>
+            </div>
+          </div>
+        </div>
+
+        <!-- Settings Page -->
+        <div id="settings-section" class="dashboard-page" style="display: none;">
+          <h3>Platform Settings</h3>
+          <form id="settingsForm" style="max-width: 600px;">
+            <div style="margin-bottom: 20px;">
+              <label>Commission Rate (%)</label>
+              <input type="number" id="commissionRate" value="10" min="0" max="100" style="width: 100%; padding: 10px;">
+            </div>
+            <div style="margin-bottom: 20px;">
+              <label>Support Email</label>
+              <input type="email" id="supportEmail" value="support@ramzfreight.com" style="width: 100%; padding: 10px;">
+            </div>
+            <button type="submit" class="btn-primary">Save Settings</button>
+          </form>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- Modal for Viewing Shipment Details -->
+  <div id="shipment-modal" class="modal-container" style="display: none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Shipment Details</h2>
+        <button class="close-modal-btn">&times;</button>
+      </div>
+      <div class="modal-body" id="modal-body-content">
+        <!-- Details will be loaded here by JS -->
+        <p>Loading...</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary close-modal-btn">Close</button>
+        <button class="btn-primary"><i class="fas fa-edit"></i> Edit Shipment</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../assets/supabaseClient.js" type="module"></script>
+  <script src="management.js" type="module"></script>
+</body>
+</html>

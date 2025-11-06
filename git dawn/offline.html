@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Offline - RAMZ FREIGHT</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 100%);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            text-align: center;
+            padding: 20px;
+        }
+        .offline-container {
+            max-width: 500px;
+        }
+        .offline-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+        }
+        h1 {
+            color: #ff6b35;
+            margin-bottom: 15px;
+        }
+        p {
+            color: #ccc;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+        .btn {
+            background: linear-gradient(135deg, #ff6b35 0%, #ff8e53 100%);
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+    <div class="offline-container">
+        <div class="offline-icon">📡</div>
+        <h1>You're Offline</h1>
+        <p>It looks like you've lost your internet connection. Don't worry, your data is safe and will sync when you're back online.</p>
+        <button class="btn" onclick="window.location.reload()">Try Again</button>
+    </div>
+</body>
+</html>

@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Shipper Dashboard | RAMZ-FREIGHT</title>
+
+  <link rel="stylesheet" href="../assets/main.css" />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="../assets/notifications.css" />
+  <link rel="stylesheet" href="../assets/hamburger-menu.css" />
+  <link rel="stylesheet" href="../assets/language-switcher.css" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+  <div class="shipper-dashboard">
+    <!-- Top Header -->
+    <header class="top-header">
+      <div class="header-content">
+        <div class="logo">
+          <h1>🚛 RAMZ-FREIGHT</h1>
+          <span>Shipper Portal</span>
+        </div>
+        <div class="header-actions">
+          <div id="langSwitcher" style="margin-right: 15px;"></div>
+          <div class="notification-bell">
+            <i class="fas fa-bell"></i>
+            <span class="notification-count" style="display: none;">0</span>
+          </div>
+          <div class="user-profile">
+            <img src="https://via.placeholder.com/40" alt="Profile" class="user-avatar">
+            <span class="user-name">Loading...</span>
+            <i class="fas fa-chevron-down"></i>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- Welcome Section -->
+      <section class="welcome-section">
+        <div class="welcome-content">
+          <h2 id="welcome-message">Welcome back! 👋</h2>
+          <p>Ready to ship your next load? Track your active shipments and manage your logistics.</p>
+          <div class="quick-stats" id="quickStats">
+            <div class="stat">
+              <span class="stat-number" id="activeCount">0</span>
+              <span class="stat-label">Active Shipments</span>
+            </div>
+            <div class="stat">
+              <span class="stat-number" id="totalCount">0</span>
+              <span class="stat-label">Total Shipments</span>
+            </div>
+            <div class="stat">
+              <span class="stat-number" id="deliveredCount">0</span>
+              <span class="stat-label">Delivered</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Quick Actions -->
+      <section class="quick-actions">
+        <h3>Quick Actions</h3>
+        <div class="action-cards">
+          <a class="action-card" href="../create-shipment/create-shipment.html">
+            <div class="action-icon create">
+              <i class="fas fa-plus"></i>
+            </div>
+            <h4>Create Shipment</h4>
+            <p>Start a new shipment request</p>
+          </a>
+
+          <a class="action-card" href="../live-tracking/live-tracking.html">
+            <div class="action-icon track">
+              <i class="fas fa-satellite"></i>
+            </div>
+            <h4>Track Shipment</h4>
+            <p>Monitor active shipments</p>
+          </a>
+
+          <a class="action-card" href="shipment-history.html">
+            <div class="action-icon history">
+              <i class="fas fa-history"></i>
+            </div>
+            <h4>Shipment History</h4>
+            <p>View past shipments</p>
+          </a>
+
+          <a class="action-card" href="bids.html">
+            <div class="action-icon bids">
+              <i class="fas fa-gavel"></i>
+            </div>
+            <h4>View Bids</h4>
+            <p>Check carrier offers</p>
+          </a>
+        </div>
+      </section>
+
+      <!-- Active Shipments -->
+      <section class="active-shipments">
+        <div class="section-header">
+          <h3>Active Shipments</h3>
+          <a href="#" class="view-all">View All</a>
+        </div>
+        <div class="shipments-list" id="shipmentsList">
+          <!-- Shipments will be loaded here -->
+        </div>
+      </section>
+
+      <!-- Recent Activity -->
+      <section class="recent-activity">
+        <div class="section-header">
+          <h3>Recent Activity</h3>
+          <a href="#" class="view-all">View All</a>
+        </div>
+        <div class="activity-list" id="activityList">
+          <!-- Activities will be loaded here -->
+        </div>
+      </section>
+
+      <!-- Available Trucks -->
+      <section class="available-trucks">
+        <div class="section-header">
+          <h3>Available Trucks Near You</h3>
+          <a href="#" class="view-all">View All</a>
+        </div>
+        <div class="trucks-grid" id="trucksGrid">
+          <!-- Trucks will be loaded here -->
+        </div>
+      </section>
+    </main>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+      <a href="../shippers-dashboard/shippers-dashboard.html" class="nav-item active">
+        <span>Home</span>
+      </a>
+      <a href="../create-shipment/create-shipment.html" class="nav-item">
+        <i class="fas fa-plus-circle"></i>
+        <span>Create</span>
+      </a>
+      <a href="../live-tracking/live-tracking.html" class="nav-item">
+        <i class="fas fa-satellite"></i>
+        <span>Track</span>
+      </a>
+      <a href="shipment-history.html" class="nav-item">
+        <i class="fas fa-history"></i>
+        <span>History</span>
+      </a>
+      <a href="shipper-settings.html" class="nav-item">
+        <i class="fas fa-cog"></i>
+        <span>Settings</span>
+      </a>
+    </nav>
+  </div>
+<script src="../assets/translations.js" type="module"></script>
+<script src="../assets/language-switcher.js" type="module"></script>
+<script src="../assets/notification-system.js"></script>
+<script src="shippers-dashboard.js" type="module"></script>
+
+</body>
+</html>

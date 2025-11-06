@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Truck Owner Dashboard - RAMZ-FREIGHT</title>
+    <link rel="stylesheet" href="../assets/main.css">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="../assets/notifications.css">
+    <link rel="stylesheet" href="../assets/hamburger-menu.css">
+    <link rel="stylesheet" href="../assets/language-switcher.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- idebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>🚛 RAMZ-FREIGHT</h2>
+                <p data-translate="truckOwnerPortal">Truck Owner Portal</p>
+            </div>
+            
+
+            
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <!-- avatar src will be set dynamically by truck-dashboard.js -->
+                    <img src="" alt="Profile" class="user-avatar" id="userAvatar">
+                    <div>
+                        <strong id="userName">Loading...</strong>
+                        <span id="userRole" data-translate="truckOwner">Truck Owner</span>
+                    </div>
+                </div>
+                <button class="logout-btn" id="logoutBtn">
+                    <i class="fas fa-sign-out-alt"></i> <span data-translate="logout">Logout</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="content-header">
+                <div class="header-left">
+                    <h1 data-translate="dashboardOverview">Dashboard Overview</h1>
+                    <p data-translate="welcomeMessage">Welcome back! Here's your activity summary.</p>
+                </div>
+                <div class="header-right">
+                    <div id="langSwitcher" style="margin-right: 15px;"></div>
+                    <div class="notification-bell">
+                        <i class="fas fa-bell"></i>
+                        <span class="notification-count" style="display: none;">0</span>
+                    </div>
+                    <button class="new-booking-btn">
+                        <i class="fas fa-plus"></i> <span data-translate="newBooking">New Booking</span>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Stats Cards -->
+            <section class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon total-bookings">
+                        <i class="fas fa-calendar-check"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="totalBookings">—</h3>
+                        <p data-translate="totalBookings">Total Bookings</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon pending">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="pendingRequests">—</h3>
+                        <p data-translate="pendingRequests">Pending Requests</p>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon earnings">
+                        <i class="fas fa-dollar-sign"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="totalEarnings">—</h3>
+                        <p data-translate="totalEarnings">Total Earnings</p>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon rating">
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="avgRating">—</h3>
+                        <p data-translate="averageRating">Average Rating</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Shipper Posts Section -->
+            <section class="shipper-posts">
+                <div class="section-header">
+                    <h2 data-translate="availableLoads">Available Loads from Shippers</h2>
+                    <span class="refresh-btn" id="refreshPosts">
+                        <i class="fas fa-sync-alt"></i> <span data-translate="refresh">Refresh</span>
+                    </span>
+                </div>
+                
+                <div class="posts-container" id="postsContainer">
+                    <!-- Posts will be loaded here dynamically by truck-dashboard.js -->
+                </div>
+            </section>
+
+            <!-- Accepted Shipments Section -->
+            <section class="accepted-shipments">
+                <div class="section-header">
+                    <h2 data-translate="myAcceptedShipments">My Accepted Shipments</h2>
+                </div>
+                
+                <div class="posts-container" id="acceptedContainer">
+                    <!-- Accepted shipments will be loaded here dynamically -->
+                </div>
+            </section>
+
+            <!-- Recent Bookings Table -->
+            <section class="recent-bookings" style="display: none;">
+                <div class="section-header">
+                    <h2 data-translate="recentBookings">Recent Bookings</h2>
+                    <a href="#bookings" class="view-all" data-translate="viewAll">View All</a>
+                </div>
+                
+                <div class="bookings-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th data-translate="bookingId">Booking ID</th>
+                                <th data-translate="customer">Customer</th>
+                                <th data-translate="serviceType">Service Type</th>
+                                <th data-translate="dateTime">Date & Time</th>
+                                <th data-translate="status">Status</th>
+                                <th data-translate="amount">Amount</th>
+                                <th data-translate="actions">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>#FU-2847</td>
+                                <td>Sarah Johnson</td>
+                                <td>Mobile Haunt</td>
+                                <td>Oct 28, 2024 - 7:00 PM</td>
+                                <td><span class="status confirmed">Confirmed</span></td>
+                                <td>$350</td>
+                                <td>
+                                    <button class="action-btn view"><i class="fas fa-eye"></i></button>
+                                    <button class="action-btn message"><i class="fas fa-comment"></i></button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>#FU-2846</td>
+                                <td>Mike's Halloween Party</td>
+                                <td>Scare Actor Delivery</td>
+                                <td>Oct 29, 2024 - 8:00 PM</td>
+                                <td><span class="status pending">Pending</span></td>
+                                <td>$200</td>
+                                <td>
+                                    <button class="action-btn accept"><i class="fas fa-check"></i></button>
+                                    <button class="action-btn decline"><i class="fas fa-times"></i></button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>#FU-2845</td>
+                                <td>Robert Smith</td>
+                                <td>Scary Ride Service</td>
+                                <td>Oct 27, 2024 - 9:00 PM</td>
+                                <td><span class="status completed">Completed</span></td>
+                                <td>$180</td>
+                                <td>
+                                    <button class="action-btn view"><i class="fas fa-eye"></i></button>
+                                    <button class="action-btn review"><i class="fas fa-star"></i></button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- My Trucks Section -->
+            <section class="my-trucks" style="display: none;">
+                <div class="section-header">
+                    <h2 data-translate="myTrucks">My Trucks</h2>
+                    <button class="add-truck-btn">
+                        <i class="fas fa-plus"></i> <span data-translate="addNewTruck">Add New Truck</span>
+                    </button>
+                </div>
+                
+                <div class="trucks-grid" id="trucksGrid">
+                    <!-- Trucks will be injected here by truck-dashboard.js -->
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+    <script src="../assets/main.js"></script>
+    <script src="../assets/translations.js" type="module"></script>
+    <script src="../assets/language-switcher.js" type="module"></script>
+    <script src="../assets/offline-sync.js"></script>
+    <script src="../assets/location-tracker.js" type="module"></script>
+    <script src="../assets/notification-system.js"></script>
+    <script src="truck-dashboard.js" type="module"></script>
+</body>
+</html>

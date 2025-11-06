@@ -1,0 +1,19 @@
+.map-btn {
+    margin-top: 8px;
+    padding: 8px 12px;
+    background: #ff6b35;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 13px;
+    transition: background 0.3s;
+}
+
+.map-btn:hover {
+    background: #f7931e;
+}
+
+.map-btn i {
+    margin-right: 5px;
+}

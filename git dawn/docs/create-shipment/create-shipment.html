@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create New Shipment - RAMZ-FREIGHT</title>
+    <link rel="stylesheet" href="../assets/main.css">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="map-styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+</head>
+<body>
+    <div class="create-shipment-container">
+        <!-- Header -->
+        <header class="page-header">
+            <a href="../shippers-dashboard/shippers-dashboard.html" class="back-link"><i class="fas fa-arrow-left"></i> Back to Dashboard</a>
+            <div class="logo">
+                <h1>🚛 Create New Shipment</h1>
+            </div>
+            <div id="langSwitcher" style="margin-left: auto;"></div>
+        </header>
+
+        <!-- Main Form -->
+        <main class="form-main">
+            <form class="shipment-form" id="createShipmentForm">
+                <!-- Shipment Route -->
+                <div class="form-section">
+                    <h3><i class="fas fa-route"></i> Shipment Route</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="origin">Origin Address</label>
+                            <input type="text" id="origin" name="origin" required placeholder="e.g., Bole, Addis Ababa">
+                            <button type="button" class="map-btn" id="pickOriginBtn"><i class="fas fa-map-marker-alt"></i> Pick on Map</button>
+                        </div>
+                        <div class="form-group">
+                            <label for="destination">Destination Address</label>
+                            <input type="text" id="destination" name="destination" required placeholder="e.g., Adama, Oromia">
+                            <button type="button" class="map-btn" id="pickDestinationBtn"><i class="fas fa-map-marker-alt"></i> Pick on Map</button>
+                        </div>
+                    </div>
+                    <div id="mapContainer" style="display:none; height:400px; margin-top:15px; border-radius:8px; overflow:hidden;"></div>
+                </div>
+
+                <!-- Goods Details -->
+                <div class="form-section">
+                    <h3><i class="fas fa-box-open"></i> Goods Details</h3>
+                    <div class="form-group">
+                        <label for="goodsDescription">Description of Goods</label>
+                        <input type="text" id="goodsDescription" name="goodsDescription" required placeholder="e.g., 500kg of Teff, Construction Materials">
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="weight">Total Weight (kg)</label>
+                            <input type="number" id="weight" name="weight" required placeholder="e.g., 500">
+                        </div>
+                        <div class="form-group">
+                            <label for="goodsType">Type of Goods</label>
+                            <select id="goodsType" name="goodsType">
+                                <option value="general">General Cargo</option>
+                                <option value="fragile">Fragile</option>
+                                <option value="perishable">Perishable</option>
+                                <option value="hazardous">Hazardous</option>
+                                <option value="bulk">Bulk</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Payment -->
+                <div class="form-section">
+                    <h3><i class="fas fa-dollar-sign"></i> Payment Offer</h3>
+                    <div class="form-group">
+                        <label for="paymentAmount">How much are you willing to pay? ($)</label>
+                        <input type="number" id="paymentAmount" name="paymentAmount" required placeholder="e.g., 150" min="1" step="0.01">
+                    </div>
+                </div>
+
+                <!-- Scheduling -->
+                <div class="form-section">
+                    <h3><i class="fas fa-calendar-alt"></i> Scheduling</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="pickupDate">Preferred Pickup Date</label>
+                            <input type="date" id="pickupDate" name="pickupDate" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="pickupTime">Preferred Pickup Time</label>
+                            <input type="time" id="pickupTime" name="pickupTime" required>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Additional Information -->
+                <div class="form-section">
+                    <h3><i class="fas fa-info-circle"></i> Additional Information</h3>
+                    <div class="form-group">
+                        <label for="specialInstructions">Special Instructions (Optional)</label>
+                        <textarea id="specialInstructions" name="specialInstructions" rows="4" placeholder="e.g., Handle with care, call upon arrival."></textarea>
+                    </div>
+                </div>
+
+                <!-- Submit -->
+                <div class="form-actions">
+                    <button type="submit" class="submit-btn" id="submitBtn">
+                        <i class="fas fa-paper-plane"></i>
+                        Post Shipment Request
+                    </button>
+                </div>
+            </form>
+        </main>
+    </div>
+
+    <script src="../assets/translations.js" type="module"></script>
+    <script src="../assets/language-switcher.js" type="module"></script>
+    <script src="create-shipment.js" type="module"></script>
+</body>
+</html>

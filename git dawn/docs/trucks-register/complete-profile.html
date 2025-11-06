@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title data-translate="completeProfileTitle">Complete Your Profile - RAMZ-FREIGHT</title>
+  <link rel="stylesheet" href="../assets/main.css">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="../assets/language-switcher.css">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js" defer></script>
+</head>
+<body>
+  <div class="container">
+    <div class="logo-section">
+      <div class="logo">
+        <div class="logo-icon">RF</div>
+        <h1 data-translate="ramzFreight">RAMZ-FREIGHT</h1>
+      </div>
+      <p class="tagline" data-translate="joinNetwork">Join our network of trusted truck owners</p>
+    </div>
+    
+    <div class="registration-section">
+      <div class="registration-card">
+        <header>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <div>
+              <h2 data-translate="completeYourProfile">Complete Your Profile</h2>
+              <p data-translate="provideVehicleDetails">Please provide your vehicle and document details to continue.</p>
+            </div>
+            <div id="langSwitcher"></div>
+          </div>
+          
+          <!-- Progress Steps -->
+          <div class="progress-steps">
+            <div class="step active" data-step="1">
+              <div class="step-number">1</div>
+              <span class="step-label" data-translate="vehicleDetails">Vehicle Details</span>
+            </div>
+            <div class="step" data-step="2">
+              <div class="step-number">2</div>
+              <span class="step-label" data-translate="documents">Documents</span>
+            </div>
+          </div>
+        </header>
+
+        <main>
+          <form id="completeProfileForm" class="form">
+            <!-- Step 1: Vehicle Details -->
+            <div class="step-form active" data-step="1">
+              <div class="form-group">
+                <input type="text" id="basicName" placeholder="Enter full name" data-translate="enterFullName" required>
+                <label for="basicName" data-translate="fullName">Full Name</label>
+                <div class="error-message" id="name-error"></div>
+              </div>
+              <div class="form-group">
+                <input type="tel" id="basicphone" placeholder="Enter phone number" data-translate="enterPhoneNumber" required>
+                <label for="basicphone" data-translate="phoneNumber">Phone Number</label>
+                <div class="error-message" id="phone-error"></div>
+              </div>
+
+              <div class="form-group">
+                <input type="text" id="carType" placeholder="e.g., Semi-Truck, Box Truck" data-translate="vehicleTypePlaceholder" required>
+                <label for="carType" data-translate="vehicleType">Vehicle Type</label>
+                <div class="error-message" id="car-type-error"></div>
+              </div>
+              
+              <div class="form-group">
+                <input type="text" id="plateNumber" placeholder="e.g., ABC-1234" data-translate="licensePlatePlaceholder" required>
+                <label for="plateNumber" data-translate="licensePlate">License Plate Number</label>
+                <div class="error-message" id="plate-error"></div>
+              </div>
+              
+              <div class="form-group">
+                <input type="text" id="vehicleModel" placeholder="e.g., Freightliner Cascadia" data-translate="vehicleModelPlaceholder" required>
+                <label for="vehicleModel" data-translate="vehicleModel">Vehicle Model</label>
+                <div class="error-message" id="model-error"></div>
+              </div>
+              
+              <div class="form-group">
+                <input type="number" id="vehicleYear" placeholder="e.g., 2020" min="1990" max="2024" data-translate="vehicleYearPlaceholder" required>
+                <label for="vehicleYear" data-translate="vehicleYear">Vehicle Year</label>
+                <div class="error-message" id="year-error"></div>
+              </div>
+              
+              <div class="form-group">
+                <input type="number" id="maxLoad" placeholder="e.g., 10000" data-translate="maxLoadPlaceholder" required>
+                <label for="maxLoad" data-translate="maxLoad">Maximum Load Capacity (kg)</label>
+                <div class="error-message" id="load-error"></div>
+              </div>
+              
+              <div class="form-actions">
+                <button type="button" class="btn-next" id="nextToStep2" data-translate="nextStep">Next Step</button>
+              </div>
+            </div>
+
+            <!-- Step 2: Document Upload -->
+            <div class="step-form" data-step="2">
+              <div class="upload-section">
+                <h3 data-translate="uploadRequiredDocuments">Upload Required Documents</h3>
+                
+                <div class="upload-group">
+                  <label class="upload-label" data-translate="nationalIdFront">National ID (Front)</label>
+                  <div class="file-upload">
+                    <input type="file" id="idFront" accept="image/*" required>
+                    <label for="idFront" class="file-upload-btn">
+                      <span class="upload-icon">📄</span>
+                      <span class="upload-text" data-translate="chooseFile"></span>
+                    </label>
+                    <span class="file-name" id="idFrontName">No file chosen</span>
+                  </div>
+                  <div class="error-message" id="id-front-error"></div>
+                </div>
+                
+                <div class="upload-group">
+                  <label class="upload-label" data-translate="nationalIdBack">National ID (Back)</label>
+                  <div class="file-upload">
+                    <input type="file" id="idBack" accept="image/*" required>
+                    <label for="idBack" class="file-upload-btn">
+                      <span class="upload-icon">📄</span>
+                      <span class="upload-text" data-translate="chooseFile"></span>
+                    </label>
+                    <span class="file-name" id="idBackName">No file chosen</span>
+                  </div>
+                  <div class="error-message" id="id-back-error"></div>
+                </div>
+
+                <div class="upload-group">
+                  <label class="upload-label" data-translate="drivingLicenseFront">Driving License (Front)</label>
+                  <div class="file-upload">
+                    <input type="file" id="drivingLicenseFront" accept="image/*" required>
+                    <label for="drivingLicenseFront" class="file-upload-btn">
+                      <span class="upload-icon">💳</span>
+                      <span class="upload-text" data-translate="chooseFile"></span>
+                    </label>
+                    <span class="file-name" id="drivingLicenseFrontName">No file chosen</span>
+                  </div>
+                  <div class="error-message" id="driving-license-front-error"></div>
+                </div>
+
+                <div class="upload-group">
+                  <label class="upload-label" data-translate="drivingLicenseBack">Driving License (Back)</label>
+                  <div class="file-upload">
+                    <input type="file" id="drivingLicenseBack" accept="image/*" required>
+                    <label for="drivingLicenseBack" class="file-upload-btn">
+                      <span class="upload-icon">💳</span>
+                      <span class="upload-text" data-translate="chooseFile"></span>
+                    </label>
+                    <span class="file-name" id="drivingLicenseBackName">No file chosen</span>
+                  </div>
+                  <div class="error-message" id="driving-license-back-error"></div>
+                </div>
+                
+                <div class="upload-group">
+                  <label class="upload-label" data-translate="vehiclePhoto">Vehicle Photo</label>
+                  <div class="file-upload">
+                    <input type="file" id="carPhoto" accept="image/*" required>
+                    <label for="carPhoto" class="file-upload-btn">
+                      <span class="upload-icon">📸</span>
+                      <span class="upload-text" data-translate="chooseFile"></span>
+                    </label>
+                    <span class="file-name" id="carPhotoName">No file chosen</span>
+                  </div>
+                  <div class="error-message" id="car-photo-error"></div>
+                </div>
+                
+                <div class="upload-group">
+                  <label class="upload-label" data-translate="vehicleLicense">Vehicle License (Libra)</label>
+                  <div class="file-upload">
+                    <input type="file" id="carLicense" accept="image/*,.pdf" required>
+                    <label for="carLicense" class="file-upload-btn">
+                      <span class="upload-icon">📋</span>
+                      <span class="upload-text" data-translate="chooseFile"></span>
+                    </label>
+                    <span class="file-name" id="carLicenseName">No file chosen</span>
+                  </div>
+                  <div class="error-message" id="car-license-error"></div>
+                </div>
+              </div>
+              
+              <div class="form-actions">
+                <button type="button" class="btn-prev" id="backToStep1" data-translate="previous">Previous</button>
+                <button type="submit" class="btn-submit" id="submitProfile" data-translate="completeRegistration">
+                  <span class="btn-text"></span>
+                  <div class="btn-loader"></div>
+                </button>
+              </div>
+            </div>
+          </form>
+        </main>
+      </div>
+    </div>
+  </div>
+<script src="../assets/main.js"></script>
+  <script src="../assets/translations.js" type="module"></script>
+  <script src="../assets/language-switcher.js" type="module"></script>
+  <script src="complete-profile.js" type="module"></script>
+</body>
+</html>

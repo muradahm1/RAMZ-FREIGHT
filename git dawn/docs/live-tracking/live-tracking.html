@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Tracking - RAMZ-FREIGHT</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+</head>
+<body>
+    <div class="tracking-container">
+        <!-- Header -->
+        <header class="tracking-header">
+            <div class="header-content">
+                <div class="logo">
+                    <h1>🚛 RAMZ-FREIGHT</h1>
+                    <p>Live Shipment Tracking</p>
+                </div>
+                <div class="header-actions">
+                    <div id="langSwitcher" style="margin-right: 15px;"></div>
+                    <a href="../shippers-dashboard/shippers-dashboard.html" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Back to Dashboard
+                    </a>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="tracking-main">
+            <!-- Tracking Controls -->
+            <section class="tracking-controls">
+                <div class="control-group">
+                    <label for="shipmentSelect">Select Active Shipment:</label>
+                    <select id="shipmentSelect">
+                        <option value="">Choose a shipment to track</option>
+                    </select>
+                </div>
+                
+                <div class="control-group">
+                    <div class="status-badge" id="trackingStatus">
+                        <i class="fas fa-clock"></i>
+                        <span>Select a shipment</span>
+                    </div>
+                    <button class="btn-primary" id="realTimeBtn">
+                        <i class="fas fa-satellite"></i> Enable Live Tracking
+                    </button>
+                </div>
+            </section>
+
+            <!-- Map Container -->
+            <section class="map-section">
+                <div class="map-container">
+                    <div id="trackingMap"></div>
+                    <div class="map-overlay">
+                        <!-- Tracking Info Card -->
+                        <div class="info-card tracking-info">
+                            <h3><i class="fas fa-map-marker-alt"></i> Shipment Details</h3>
+                            <div class="info-content" id="trackingDetails">
+                                <p>Select a shipment to view tracking information</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Driver Info Card -->
+                        <div class="info-card driver-info" id="driverInfo">
+                            <h3><i class="fas fa-user"></i> Driver Information</h3>
+                            <div class="info-content">
+                                <div class="driver-details">
+                                    <img id="driverPhoto" src="" alt="Driver" class="driver-photo">
+                                    <div class="driver-text">
+                                        <strong id="driverName">-</strong>
+                                        <span id="driverPhone">-</span>
+                                        <span id="vehicleInfo">-</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Tracking Timeline -->
+            <section class="tracking-timeline">
+                <h3>Shipment Progress</h3>
+          <div class="timeline" id="progressTimeline">
+                    <div class="timeline-item" id="timelinePickup">
+                        <div class="timeline-marker">
+                            <i class="fas fa-map-marker-alt"></i>
+                        </div>
+                        <div class="timeline-content">
+                            <h4>Pickup Location</h4>
+                            <p id="pickupAddress">-</p>
+                            <span class="timeline-time" id="pickupTime">Pending</span>
+                        </div>
+                    </div>
+                    
+                    <div class="timeline-item" id="timelineTransit">
+                        <div class="timeline-marker">
+                            <i class="fas fa-truck-loading"></i>
+                        </div>
+                        <div class="timeline-content">
+                            <h4>In Transit</h4>
+                            <p>Shipment is on the way</p>
+                            <span class="timeline-time" id="transitTime">Not started</span>
+                        </div>
+                    </div>
+                    
+                    <div class="timeline-item" id="timelineDelivery">
+                        <div class="timeline-marker">
+                            <i class="fas fa-flag-checkered"></i>
+                        </div>
+                        <div class="timeline-content">
+                            <h4>Delivery Location</h4>
+                            <p id="deliveryAddress">-</p>
+                            <span class="timeline-time" id="deliveryTime">Estimated</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Stats Section -->
+            <section class="stats-section">
+                <div class="eta-card">
+                    <div class="eta-header">
+                        <i class="fas fa-clock"></i>
+                        <h4>Estimated Arrival</h4>
+                    </div>
+                    <div class="eta-content">
+                        <div class="eta-time" id="etaTime">--:--</div>
+                        <div class="eta-distance" id="etaDistance">-</div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progressFill"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-road"></i>
+                        </div>
+                        <div class="stat-info">
+                            <span class="stat-value" id="distanceTraveled">0 km</span>
+                            <span class="stat-label">Distance Traveled</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-tachometer-alt"></i>
+                        </div>
+                        <div class="stat-info">
+                            <span class="stat-value" id="currentSpeed">0 km/h</span>
+                            <span class="stat-label">Current Speed</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-hourglass-half"></i>
+                        </div>
+                        <div class="stat-info">
+                            <span class="stat-value" id="timeElapsed">0h 0m</span>
+                            <span class="stat-label">Time Elapsed</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="../assets/supabaseClient.js" type="module"></script>
+    <script src="../assets/translations.js" type="module"></script>
+    <script src="../assets/language-switcher.js" type="module"></script>
+    <script src="live-tracking-secure.js" type="module"></script>
+    <script src="../assets/main.js" type="module"></script>
+</body>
+</html>      

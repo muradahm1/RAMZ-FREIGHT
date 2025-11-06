@@ -1,0 +1,121 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100dvh; /* Use dynamic viewport height for better mobile support */
+}
+
+.terms-container {
+    max-width: 900px;
+    margin: 2rem auto;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    overflow: hidden;
+}
+
+.terms-header {
+    background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+    color: white;
+    padding: 40px 30px;
+    text-align: center;
+}
+
+.terms-header h1 {
+    font-size: 2.5rem;
+    margin-bottom: 10px;
+}
+
+.terms-header h2 {
+    font-size: 1.5rem;
+    font-weight: 400;
+}
+
+.terms-content {
+    padding: 40px 30px;
+    line-height: 1.8;
+    color: #333;
+}
+
+.terms-content section {
+    margin-bottom: 30px;
+}
+
+.terms-content h3 {
+    color: #ff6b35;
+    font-size: 1.3rem;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #f0f0f0;
+}
+
+.terms-content p {
+    margin-bottom: 15px;
+}
+
+.terms-content ul {
+    margin-left: 25px;
+    margin-bottom: 15px;
+}
+
+.terms-content li {
+    margin-bottom: 10px;
+}
+
+.contact-info {
+    list-style: none;
+    margin-left: 0;
+}
+
+.contact-info li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.contact-info i {
+    color: #ff6b35;
+    width: 20px;
+}
+
+.contact-info a {
+    color: #667eea;
+    text-decoration: none;
+}
+
+.contact-info a:hover {
+    text-decoration: underline;
+}
+
+.terms-footer {
+    background: #f8f9fa;
+    padding: 20px;
+    text-align: center;
+    color: #666;
+    border-top: 1px solid #e0e0e0;
+}
+
+@media (max-width: 768px) {
+    /* Ensure the container has some space from the edges on smaller screens */
+    .terms-container {
+        margin-left: 1rem;
+        margin-right: 1rem;
+    }
+
+    .terms-header h1 {
+        font-size: 2rem;
+    }
+    
+    .terms-header h2 {
+        font-size: 1.2rem;
+    }
+    
+    .terms-content {
+        padding: 30px 20px;
+    }
+}

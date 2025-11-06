@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shipment History | RAMZ-FREIGHT</title>
+  <link rel="stylesheet" href="../assets/main.css">
+  <link rel="stylesheet" href="style.css">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+  <div class="shipper-dashboard">
+    <header class="top-header">
+      <div class="header-content">
+        <div class="logo">
+          <h1>🚛 RAMZ-FREIGHT</h1>
+          <span>Shipment History</span>
+        </div>
+        <div class="header-actions">
+          <a href="shippers-dashboard.html" class="back-btn">
+            <i class="fas fa-arrow-left"></i> Back
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <main class="main-content">
+      <section class="history-filters">
+        <div class="filter-group">
+          <label>Status:</label>
+          <select id="statusFilter">
+            <option value="all">All</option>
+            <option value="delivered">Delivered</option>
+            <option value="cancelled">Cancelled</option>
+            <option value="in_transit">In Transit</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label>Date Range:</label>
+          <select id="dateFilter">
+            <option value="all">All Time</option>
+            <option value="week">Last Week</option>
+            <option value="month">Last Month</option>
+            <option value="year">Last Year</option>
+          </select>
+        </div>
+      </section>
+
+      <section class="history-list">
+        <div id="historyContainer">
+          <div class="loading">Loading history...</div>
+        </div>
+      </section>
+    </main>
+
+    <nav class="bottom-nav">
+      <a href="shippers-dashboard.html" class="nav-item">
+        <i class="fas fa-home"></i>
+        <span>Home</span>
+      </a>
+      <a href="../create-shipment/create-shipment.html" class="nav-item">
+        <i class="fas fa-plus-circle"></i>
+        <span>Create</span>
+      </a>
+      <a href="../live-tracking/live-tracking.html" class="nav-item">
+        <i class="fas fa-satellite"></i>
+        <span>Track</span>
+      </a>
+      <a href="shipment-history.html" class="nav-item active">
+        <i class="fas fa-history"></i>
+        <span>History</span>
+      </a>
+      <a href="shipper-settings.html" class="nav-item">
+        <i class="fas fa-cog"></i>
+        <span>Settings</span>
+      </a>
+    </nav>
+  </div>
+  <script src="../assets/translations.js" type="module"></script>
+  <script src="../assets/language-switcher.js" type="module"></script>
+  <script src="shipment-history.js" type="module"></script>
+</body>
+</html>

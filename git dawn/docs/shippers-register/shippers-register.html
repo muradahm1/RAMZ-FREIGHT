@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shipper Registration - RAMZ-FREIGHT</title>
+    <link rel="stylesheet" href="../assets/main.css">
+    <link rel="stylesheet" href="style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <div class="register-container">
+        <!-- Header -->
+        <header class="register-header">
+            <div class="logo">
+                <h1>🚛 RAMZ-FREIGHT</h1>
+                <p>Shipper Registration</p>
+            </div>
+        </header>
+
+        <!-- Main Form -->
+        <main class="register-main">
+            <div class="form-wrapper">
+                <div class="form-header">
+                    <h2 data-translate="createAccountTitle">Create Your Account</h2>
+                    <p data-translate="createAccountSubtitle">Join thousands of shippers using RAMZ-FREIGHT</p>
+                </div>
+
+                <form class="register-form" id="shipperRegisterForm">
+                    <!-- Message display area -->
+                    <div id="formMessage" class="form-message" style="display: none;"></div>
+
+                    <!-- Basic Information -->
+                    <div class="form-section">
+                        <h3><i class="fas fa-user"></i> Basic Information</h3>
+                        
+                        <div class="form-group">
+                            <label for="fullName" data-translate="formNamePlaceholder">Full Name *</label>
+                            <div class="input-wrapper">
+                                <input type="text" id="fullName" name="fullName" required placeholder="Enter your full name" autocomplete="name" data-translate="formNamePlaceholder">
+                                <i class="fas fa-user input-icon"></i>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="email" data-translate="emailLabel">Email Address *</label>
+                            <div class="input-wrapper">
+                                <input type="email" id="email" name="email" required placeholder="your@email.com" autocomplete="email" data-translate="emailPlaceholder">
+                                <i class="fas fa-envelope input-icon"></i>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="phone" data-translate="phone">Phone Number *</label>
+                            <div class="input-wrapper">
+                                <input type="tel" id="phone" name="phone" required placeholder="+1 (555) 123-4567" autocomplete="tel" data-translate="phone">
+                                <i class="fas fa-phone input-icon"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Account Security -->
+                    <div class="form-section">
+                        <h3><i class="fas fa-lock"></i> Account Security</h3>
+                        
+                        <div class="form-group">
+                            <label for="password" data-translate="passwordLabel">Password *</label>
+                            <div class="input-wrapper">
+                                <input type="password" id="password" name="password" required placeholder="Create a strong password" autocomplete="new-password" data-translate="passwordPlaceholder">
+                                <i class="fas fa-lock input-icon"></i>
+                                <button type="button" class="toggle-password">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                            <div class="password-strength" id="passwordStrength">
+                                <div class="strength-bar"></div>
+                                <span class="strength-text">Password strength</span>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="confirmPassword" data-translate="passwordLabel">Confirm Password *</label>
+                            <div class="input-wrapper">
+                                <input type="password" id="confirmPassword" name="confirmPassword" required placeholder="Confirm your password" autocomplete="new-password" data-translate="passwordPlaceholder">
+                                <i class="fas fa-lock input-icon"></i>
+                                <button type="button" class="toggle-password">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Business Information -->
+                    <div class="form-section">
+                        <h3><i class="fas fa-building"></i> <span data-translate="settings">Business Information (Optional)</span></h3>
+                        
+                        <div class="form-group">
+                            <label for="companyName">Company Name</label>
+                            <div class="input-wrapper">
+                                <input type="text" id="companyName" name="companyName" placeholder="Your company name" autocomplete="organization">
+                                <i class="fas fa-building input-icon"></i>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="businessType">Business Type</label>
+                            <div class="input-wrapper">
+                                <select id="businessType" name="businessType">
+                                    <option value="">Select business type</option>
+                                    <option value="manufacturing">Manufacturing</option>
+                                    <option value="retail">Retail</option>
+                                    <option value="wholesale">Wholesale</option>
+                                    <option value="ecommerce">E-commerce</option>
+                                    <option value="logistics">Logistics</option>
+                                    <option value="other">Other</option>
+                                </select>
+                                <i class="fas fa-briefcase input-icon"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Terms & Submit -->
+                    <div class="form-actions">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="agreeTerms" name="agreeTerms" required>
+                            <span class="checkmark"></span>
+                            <span>I agree to the </span><a href="../terms/terms.html" target="_blank" class="link">Terms and Conditions</a> *
+                        </label>
+
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="newsletter" name="newsletter">
+                            <span class="checkmark"></span>
+                            Send me shipping tips and industry updates
+                        </label>
+
+                        <button type="submit" class="submit-btn" id="submitBtn" data-translate="createAccountButton">
+                            <i class="fas fa-user-plus"></i>
+                            Create Account
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Social Login -->
+                <div class="social-login">
+                    <div class="divider">
+                        <span>Or continue with</span>
+                    </div>
+                    
+                    <button type="button" class="google-btn" id="googleBtn">
+                        <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTgiIGhlaWdodD0iMTgiIHZpZXdCb3g9IjAgMCAxOCAxOCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTE2LjUxIDkuMjA0NTVWOS4wOTU0NUg5LjE4VjEwLjc5NTVIMTMuNDZDMTMuMDIgMTIuODU1NSAxMS4xNCAxNC4zMTU1IDkgMTQuMzE1NUM1LjY5IDE0LjMxNTUgMy4wMiAxMS42NDU1IDMuMDIgOC4zMzU1QzMuMDIgNS4wMjU1IDUuNjkgMi4zNTU1IDkgMi4zNTU1QzEwLjQ3IDIuMzU1NSAxMS44MSAyLjk5NTUgMTIuNzggMy45NDU1TDE0Ljg5NSAxLjgzQzEzLjM2IDAuMzkgMTEuMzkgLTAuNDUgOSAtMC40NUM0LjA2IC0wLjQ1IDAgMy42MDU1IDAgOC4zMzU1QzAgMTMuMDY1NSA0LjA2IDE3LjUxNTUgOSAxNy41MTU1QzEzLjYzIDE3LjUxNTUgMTcuMjMgMTMuNzE1NSAxNy4yMyA4LjMzNTVDMTcuMjMgNy42NDU1IDE3LjEzIDYuOTk1NSAxNi45NyA2LjM3NDVMMTYuNTEgOS4yMDQ1WiIgZmlsbD0iIzQyODVGMyIvPgo8L3N2Zz4K" alt="Google">
+                        Continue with Google
+                    </button>
+                </div>
+
+                <!-- Login Link -->
+                <div class="login-link">
+                    <p>Already have an account? <a href="../shippers-login/shippers-login.html" class="link">log in here</a></p>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="../assets/main.js"></script>
+    <script src="../assets/translations.js" type="module"></script>
+    <script src="shippers-register.js" type="module"></script>
+</body>
+</html>
