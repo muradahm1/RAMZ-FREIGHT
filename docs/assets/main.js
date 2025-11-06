@@ -97,18 +97,20 @@ document.addEventListener('DOMContentLoaded', function() {
 			// determine base URL of this script
 			const script = document.querySelector('script[src$="/assets/main.js"]') || document.currentScript;
 			const base = script && script.src ? script.src.replace(/\/[^\/]*$/, '/') : '/docs/assets/';
-			import(base + 'translations.js').then(mod => {
-				// translations module runs auto-translate on DOMContentLoaded.
-				// Since this is a dynamic import, DOMContentLoaded may have already fired.
-				// We'll manually trigger a translation if the functions are available.
-				if (mod && typeof mod.translatePage === 'function' && typeof mod.getLanguage === 'function') {
+			
+			// Use a function to avoid race conditions with DOMContentLoaded
+			const initTranslations = async () => {
+				try {
+					const mod = await import(base + 'translations.js');
+					window.appTranslations = window.appTranslations || mod;
+					// Manually trigger translation since DOMContentLoaded might have passed
 					mod.translatePage(mod.getLanguage());
+					await import(base + 'language-switcher.js');
+				} catch (err) {
+					console.warn('Could not load translations or language-switcher dynamically:', err);
 				}
-				window.appTranslations = window.appTranslations || mod;
-				return import(base + 'language-switcher.js');
-			}).catch(err => {
-				console.warn('Could not load translations or language-switcher dynamically:', err);
-			});
+			};
+			initTranslations();
 		}
 	} catch (e) {
 		console.warn('Error while injecting translations dynamically', e);

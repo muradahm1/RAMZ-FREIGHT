@@ -3,12 +3,6 @@ import { notificationManager } from '../assets/notifications.js';
 import { initHamburgerMenu } from '../assets/hamburger-menu.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
-    // Load saved language preference
-    const savedLang = localStorage.getItem('preferredLanguage');
-    if (savedLang && typeof switchLanguage === 'function') {
-        switchLanguage(savedLang);
-    }
-    
     const userProfile = document.querySelector('.user-profile');
     const userNameSpan = document.querySelector('.user-name');
     const userAvatar = document.querySelector('.user-avatar');
@@ -317,4 +311,3 @@ async function loadStats(user) {
         console.error('Error loading stats:', err);
     }
 }
-

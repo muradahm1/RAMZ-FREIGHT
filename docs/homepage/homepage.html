@@ -175,42 +175,45 @@
       <p data-translate="footerText">&copy; 2025 Ramz-Freight. All rights reserved.</p>
     </div>
   </footer>
-    <script src="../assets/main.js"></script>
-  <script src="../assets/translations.js" type="module"></script>
-  <script src="../assets/language-switcher.js" type="module"></script>
+  <script src="../assets/main.js" type="module"></script>
+  <!-- translations.js and language-switcher.js are now loaded by main.js -->
   <script src="scroll-animations.js"></script>
-  <script>
-    // Mobile Navigation Toggle
-    const hamburger = document.getElementById('hamburger');
-    const navMenu = document.getElementById('nav-menu');
+  <script type="module">
+    document.addEventListener('DOMContentLoaded', () => {
+      // Mobile Navigation Toggle
+      const hamburger = document.getElementById('hamburger');
+      const navMenu = document.getElementById('nav-menu');
 
-    const toggleMenu = (e) => {
-      e.preventDefault();
-      hamburger.classList.toggle('active');
-      navMenu.classList.toggle('active');
-    };
+      if (hamburger && navMenu) {
+        const toggleMenu = (e) => {
+          e.preventDefault();
+          hamburger.classList.toggle('active');
+          navMenu.classList.toggle('active');
+        };
 
-    hamburger.addEventListener('click', toggleMenu);
+        hamburger.addEventListener('click', toggleMenu);
 
-    // Close mobile menu when clicking on a link
-    document.querySelectorAll('.nav-menu a').forEach(link => {
-      link.addEventListener('click', () => {
-        hamburger.classList.remove('active');
-        navMenu.classList.remove('active');
-      });
-    });
+        // Close mobile menu when clicking on a link
+        document.querySelectorAll('.nav-menu a').forEach(link => {
+          link.addEventListener('click', () => {
+            hamburger.classList.remove('active');
+            navMenu.classList.remove('active');
+          });
+        });
+      }
 
-    // Smooth scrolling for anchor links
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-      anchor.addEventListener('click', function(e) {
-        e.preventDefault();
-        const targetId = this.getAttribute('href');
-        if (targetId === '#') return;
-        const targetElement = document.querySelector(targetId);
-        if (targetElement) {
-          const offsetTop = targetElement.offsetTop - 80;
-          window.scrollTo({ top: offsetTop, behavior: 'smooth' });
-        }
+      // Smooth scrolling for anchor links
+      document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function(e) {
+          e.preventDefault();
+          const targetId = this.getAttribute('href');
+          if (targetId === '#') return;
+          const targetElement = document.querySelector(targetId);
+          if (targetElement) {
+            const offsetTop = targetElement.offsetTop - 80; // Adjust for fixed header
+            window.scrollTo({ top: offsetTop, behavior: 'smooth' });
+          }
+        });
       });
     });
   </script>

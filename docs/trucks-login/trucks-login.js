@@ -9,12 +9,6 @@ function getAppBasePath() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Load saved language preference
-    const savedLang = localStorage.getItem('preferredLanguage');
-    if (savedLang && typeof switchLanguage === 'function') {
-        switchLanguage(savedLang);
-    }
-    
     const form = document.getElementById('truckLoginForm');
 
     // --- Validation Logic ---
