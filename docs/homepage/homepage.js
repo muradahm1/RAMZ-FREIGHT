@@ -1,4 +1,4 @@
-import { isUserLoggedIn } from '../assets/auth.js';
+import { isUserLoggedIn } from '../assets/auth.js'
 
 // Immediately check for a previous session and redirect if applicable
 (function() {
@@ -115,12 +115,6 @@ function animateOnScroll() {
 
 // Set initial state for animated elements
 document.addEventListener('DOMContentLoaded', () => {
-  // Load saved language preference
-  const savedLang = localStorage.getItem('preferredLanguage');
-  if (savedLang && typeof switchLanguage === 'function') {
-    switchLanguage(savedLang);
-  }
-  
   const elements = document.querySelectorAll('.reason, .about-content, .contact-content');
   
   elements.forEach(element => {

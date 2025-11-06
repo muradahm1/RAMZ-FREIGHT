@@ -532,7 +532,7 @@ export const translations = {
 };
 
 export function setLanguage(lang) {
-    localStorage.setItem('appLanguage', lang);
+    localStorage.setItem('preferredLanguage', lang);
     // set document language attribute for accessibility and SEO
     try { document.documentElement.lang = lang; } catch (e) {}
     translatePage(lang);
@@ -541,7 +541,7 @@ export function setLanguage(lang) {
 }
 
 export function getLanguage() {
-    return localStorage.getItem('appLanguage') || 'en';
+    return localStorage.getItem('preferredLanguage') || 'en';
 }
 
 export function translatePage(lang) {
@@ -559,14 +559,18 @@ export function translatePage(lang) {
     });
 }
 
+// Expose switchLanguage globally
+window.switchLanguage = setLanguage;
+
 // Auto-translate on page load
 document.addEventListener('DOMContentLoaded', () => {
-    const lang = getLanguage();
-    try { document.documentElement.lang = lang; } catch (e) {}
-    translatePage(lang);
-    // expose to window for non-module scripts
-    try { window.appTranslations = { setLanguage, getLanguage, translatePage, translations }; } catch (e) {}
+    // This is the core logic that runs on every page.
+    // It ensures the saved language is applied as soon as the page is ready.
+    const savedLang = getLanguage();
+    if (savedLang) {
+        setLanguage(savedLang);
+    }
 });
 
 // also expose immediately in case modules import this file dynamically
-try { window.appTranslations = window.appTranslations || { setLanguage, getLanguage, translatePage, translations }; } catch (e) {}
+try { window.appTranslations = { setLanguage, getLanguage, translatePage, translations, switchLanguage: setLanguage }; } catch (e) {}

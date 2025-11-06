@@ -1,13 +1,15 @@
 
 // main.js - Global JS for RAMZ-FREIGHT
+import { setLanguage, getLanguage } from './translations.js';
+import { createLanguageSwitcher } from './language-switcher.js';
 
 // Clean URLs - Remove .html from address bar
 (function() {
-  if (window.location.pathname.endsWith('.html')) {
-    const cleanPath = window.location.pathname.replace('.html', '');
-    window.history.replaceState({}, '', cleanPath + window.location.search + window.location.hash);
-  }
-})();
+	if (window.location.pathname.endsWith('.html')) {
+		const cleanPath = window.location.pathname.replace('.html', '');
+		window.history.replaceState({}, '', cleanPath + window.location.search + window.location.hash);
+	}
+})(); // This is an IIFE, it runs immediately.
 
 // Example: Show a toast notification
 function showToast(message, type = 'info') {
@@ -91,29 +93,22 @@ document.addEventListener('DOMContentLoaded', function() {
 	// Initialize floating labels on any page that uses them
 	initializeFloatingLabels();
 
-	// Dynamically load translations and language switcher if not already loaded
+	// --- Language and Translation Setup ---
+	// This is the single source of truth for initializing translations.
 	try {
-		if (!window.appTranslations) {
-			// determine base URL of this script
-			const script = document.querySelector('script[src$="/assets/main.js"]') || document.currentScript;
-			const base = script && script.src ? script.src.replace(/\/[^\/]*$/, '/') : '/docs/assets/';
-			
-			// Use a function to avoid race conditions with DOMContentLoaded
-			const initTranslations = async () => {
-				try {
-					const mod = await import(base + 'translations.js');
-					window.appTranslations = window.appTranslations || mod;
-					// Manually trigger translation since DOMContentLoaded might have passed
-					mod.translatePage(mod.getLanguage());
-					await import(base + 'language-switcher.js');
-				} catch (err) {
-					console.warn('Could not load translations or language-switcher dynamically:', err);
-				}
-			};
-			initTranslations();
+		// 1. Apply the saved language immediately on script load.
+		const savedLang = getLanguage();
+		setLanguage(savedLang);
+
+		// 2. Create and inject the language switcher UI component once the DOM is ready.
+		const langContainer = document.getElementById('langSwitcher');
+		if (langContainer) {
+			// Clear any potential fallback content before appending.
+			langContainer.innerHTML = '';
+			langContainer.appendChild(createLanguageSwitcher());
 		}
-	} catch (e) {
-		console.warn('Error while injecting translations dynamically', e);
+	} catch (err) {
+		console.error('Error initializing translations:', err);
 	}
 
 	// Inject a favicon link into the page head so all pages including this script get the icon.

@@ -114,6 +114,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (window.appTranslations && typeof window.appTranslations.translatePage === 'function') {
             window.appTranslations.translatePage(window.appTranslations.getLanguage());
         }
+        // Re-apply translations after dynamic content is loaded
+        if (window.appTranslations && typeof window.appTranslations.translatePage === 'function') {
+            window.appTranslations.translatePage(window.appTranslations.getLanguage());
+        }
     }
 
 
@@ -157,6 +161,10 @@ async function loadActiveShipments(user) {
                 </div>
             </a>
         `).join('');
+        }
+        // Re-apply translations after dynamic content is loaded
+        if (window.appTranslations && typeof window.appTranslations.translatePage === 'function') {
+            window.appTranslations.translatePage(window.appTranslations.getLanguage());
         }
         // Re-apply translations after dynamic content is loaded
         if (window.appTranslations && typeof window.appTranslations.translatePage === 'function') {
@@ -226,6 +234,10 @@ async function loadRecentActivity(user) {
                 </div>
             `;
         }).join('');
+        // Re-apply translations after dynamic content is loaded
+        if (window.appTranslations && typeof window.appTranslations.translatePage === 'function') {
+            window.appTranslations.translatePage(window.appTranslations.getLanguage());
+        }
         // Re-apply translations after dynamic content is loaded
         if (window.appTranslations && typeof window.appTranslations.translatePage === 'function') {
             window.appTranslations.translatePage(window.appTranslations.getLanguage());

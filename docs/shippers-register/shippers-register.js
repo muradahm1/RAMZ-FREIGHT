@@ -8,12 +8,6 @@ function getAppBasePath() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Load saved language preference
-    const savedLang = localStorage.getItem('preferredLanguage');
-    if (savedLang && typeof switchLanguage === 'function') {
-        switchLanguage(savedLang);
-    }
-    
     const registerForm = document.getElementById('shipperRegisterForm');
     const submitBtn = document.getElementById('submitBtn');
     const googleBtn = document.getElementById('googleBtn');

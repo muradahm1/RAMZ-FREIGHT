@@ -8,12 +8,6 @@ function getAppBasePath() {
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
-    // Load saved language preference
-    const savedLang = localStorage.getItem('preferredLanguage');
-    if (savedLang && typeof switchLanguage === 'function') {
-        switchLanguage(savedLang);
-    }
-    
     // Ensure Supabase client is initialized before any auth actions
     try {
         await supabaseReady;

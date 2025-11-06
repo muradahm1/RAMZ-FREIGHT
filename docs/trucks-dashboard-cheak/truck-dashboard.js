@@ -175,6 +175,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (window.appTranslations && typeof window.appTranslations.translatePage === 'function') {
             window.appTranslations.translatePage(window.appTranslations.getLanguage());
         }
+
+        // Re-apply translations after setup
+        if (window.appTranslations && typeof window.appTranslations.translatePage === 'function') {
+            window.appTranslations.translatePage(window.appTranslations.getLanguage());
+        }
     }
 
     /**
@@ -285,6 +290,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                 </div>
             `).join('');
 
+            // Re-apply translations
+            if (window.appTranslations && typeof window.appTranslations.translatePage === 'function') {
+                window.appTranslations.translatePage(window.appTranslations.getLanguage());
+            }
             // Re-apply translations
             if (window.appTranslations && typeof window.appTranslations.translatePage === 'function') {
                 window.appTranslations.translatePage(window.appTranslations.getLanguage());
@@ -407,6 +416,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                 `;
             }).join('');
 
+            // Re-apply translations
+            if (window.appTranslations && typeof window.appTranslations.translatePage === 'function') {
+                window.appTranslations.translatePage(window.appTranslations.getLanguage());
+            }
             // Re-apply translations
             if (window.appTranslations && typeof window.appTranslations.translatePage === 'function') {
                 window.appTranslations.translatePage(window.appTranslations.getLanguage());
