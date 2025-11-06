@@ -181,8 +181,87 @@
   <script src="scroll-animations.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', () => {
+      // Ensure language switcher loads
+      setTimeout(() => {
+        const langContainer = document.getElementById('langSwitcher');
+        if (langContainer && !langContainer.hasChildNodes()) {
+          // Fallback: create language switcher manually
+          const switcher = document.createElement('div');
+          switcher.className = 'language-switcher';
+          switcher.innerHTML = `
+            <button class="lang-dropdown-btn">
+              <span class="current-lang">EN</span>
+              <i class="fas fa-chevron-down"></i>
+            </button>
+            <div class="lang-dropdown-menu">
+              <div class="lang-option" data-lang="en">🇬🇧 English</div>
+              <div class="lang-option" data-lang="am">🇪🇹 አማርኛ</div>
+              <div class="lang-option" data-lang="om">🇪🇹 Afaan Oromoo</div>
+            </div>
+          `;
+          langContainer.appendChild(switcher);
+          
+          // Add click handlers
+          const dropdownBtn = switcher.querySelector('.lang-dropdown-btn');
+          const dropdownMenu = switcher.querySelector('.lang-dropdown-menu');
+          
+          dropdownBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            dropdownMenu.classList.toggle('show');
+          });
+          
+          switcher.querySelectorAll('.lang-option').forEach(option => {
+            option.addEventListener('click', (e) => {
+              e.stopPropagation();
+              const lang = option.dataset.lang;
+              if (window.appTranslations && window.appTranslations.setLanguage) {
+                window.appTranslations.setLanguage(lang);
+              }
+              dropdownMenu.classList.remove('show');
+            });
+          });
+        }
+      }, 500);
+      
       // Mobile Navigation Toggle
       const hamburger = document.getElementById('hamburger');
+      const navMenu = document.getElementById('nav-menu');
+
+      if (hamburger && navMenu) {
+        const toggleMenu = (e) => {
+          e.preventDefault();
+          hamburger.classList.toggle('active');
+          navMenu.classList.toggle('active');
+        };
+
+        hamburger.addEventListener('click', toggleMenu);
+
+        // Close mobile menu when clicking on a link
+        document.querySelectorAll('.nav-menu a').forEach(link => {
+          link.addEventListener('click', () => {
+            hamburger.classList.remove('active');
+            navMenu.classList.remove('active');
+          });
+        });
+      }
+
+      // Smooth scrolling for anchor links
+      document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function(e) {
+          e.preventDefault();
+          const targetId = this.getAttribute('href');
+          if (targetId === '#') return;
+          const targetElement = document.querySelector(targetId);
+          if (targetElement) {
+            const offsetTop = targetElement.offsetTop - 80;
+            window.scrollTo({ top: offsetTop, behavior: 'smooth' });
+          }
+        });
+      });
+    });
+  </script>
+</body>
+</html>ger = document.getElementById('hamburger');
       const navMenu = document.getElementById('nav-menu');
 
       if (hamburger && navMenu) {
