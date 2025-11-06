@@ -4,12 +4,6 @@ import { notificationManager } from '../assets/notifications.js';
 import { initHamburgerMenu } from '../assets/hamburger-menu.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
-    // Load saved language preference
-    const savedLang = localStorage.getItem('preferredLanguage');
-    if (savedLang && typeof switchLanguage === 'function') {
-        switchLanguage(savedLang);
-    }
-    
     const userNameEl = document.getElementById('userName');
     const userRoleEl = document.getElementById('userRole');
     const userAvatarEl = document.getElementById('userAvatar');
@@ -176,6 +170,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                 handleDeliverShipment(e);
             });
         }
+
+        // Final translation call after setup
+        if (window.appTranslations && typeof window.appTranslations.translatePage === 'function') {
+            window.appTranslations.translatePage(window.appTranslations.getLanguage());
+        }
     }
 
     /**
@@ -220,7 +219,7 @@ document.addEventListener('DOMContentLoaded', async () => {
      * Fetches and renders available shipments by calling backend /shipments
      */
     async function loadAvailableLoads() {
-        postsContainer.innerHTML = '<div class="loading">Loading available loads...</div>';
+        postsContainer.innerHTML = '<div class="loading" data-translate="loadingAvailableLoads">Loading available loads...</div>';
 
         try {
             const sessionResp = await supabase.auth.getSession();
@@ -251,7 +250,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             console.log('Pending shipments:', shipments);
 
             if (shipments.length === 0) {
-                postsContainer.innerHTML = '<div class="loading">No available loads at the moment. Check back soon!</div>';
+                postsContainer.innerHTML = '<div class="loading" data-translate="noAvailableLoads">No available loads at the moment. Check back soon!</div>';
                 return;
             }
 
@@ -265,7 +264,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                                 <span><i class="fas fa-weight-hanging"></i> ${shipment.weight_kg} kg</span>
                             </div>
                         </div>
-                        <span class="status-badge status-available">Available</span>
+                        <span class="status-badge status-available" data-translate="statusAvailable">Available</span>
                     </div>
                     <div class="post-details">
                         <div class="detail-item">
@@ -279,12 +278,17 @@ document.addEventListener('DOMContentLoaded', async () => {
                     </div>
                     <div class="bid-section">
                         <span class="bid-amount">$${(shipment.weight_kg * 0.5).toFixed(2)}</span>
-                        <button class="bid-btn" data-shipment-id="${shipment.id}">
+                        <button class="bid-btn" data-shipment-id="${shipment.id}" data-translate="placeBid">
                             <i class="fas fa-gavel"></i> Place Bid
                         </button>
                     </div>
                 </div>
             `).join('');
+
+            // Re-apply translations
+            if (window.appTranslations && typeof window.appTranslations.translatePage === 'function') {
+                window.appTranslations.translatePage(window.appTranslations.getLanguage());
+            }
 
         } catch (err) {
             console.error('Error fetching shipments:', err);
@@ -299,7 +303,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     async function loadAcceptedShipments(user) {
         if (!acceptedContainer) return;
         
-        acceptedContainer.innerHTML = '<div class="loading">Loading your accepted shipments...</div>';
+        acceptedContainer.innerHTML = '<div class="loading" data-translate="loadingAcceptedShipments">Loading your accepted shipments...</div>';
 
         try {
             const sessionResp = await supabase.auth.getSession();
@@ -354,22 +358,22 @@ document.addEventListener('DOMContentLoaded', async () => {
             console.log('My shipments data:', myShipments);
 
             if (myShipments.length === 0) {
-                acceptedContainer.innerHTML = '<div class="loading">No accepted shipments.</div>';
+                acceptedContainer.innerHTML = '<div class="loading" data-translate="noAcceptedShipments">No accepted shipments.</div>';
                 return;
             }
 
             acceptedContainer.innerHTML = myShipments.map(shipment => {
                 let actionButton = '';
                 if (shipment.status === 'accepted') {
-                    actionButton = `<button class="pickup-btn" data-shipment-id="${shipment.id}">
+                    actionButton = `<button class="pickup-btn" data-shipment-id="${shipment.id}" data-translate="markAsPickedUp">
                         <i class="fas fa-box-open"></i> Mark as Picked Up
                     </button>`;
                 } else if (shipment.status === 'picked_up') {
-                    actionButton = `<button class="start-btn" data-shipment-id="${shipment.id}">
+                    actionButton = `<button class="start-btn" data-shipment-id="${shipment.id}" data-translate="markAsInTransit">
                         <i class="fas fa-truck"></i> Mark as In Transit
                     </button>`;
                 } else if (shipment.status === 'in_transit') {
-                    actionButton = `<button class="deliver-btn" data-shipment-id="${shipment.id}">
+                    actionButton = `<button class="deliver-btn" data-shipment-id="${shipment.id}" data-translate="markAsDelivered">
                         <i class="fas fa-check-circle"></i> Mark as Delivered
                     </button>`;
                 }
@@ -384,7 +388,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                                     <span><i class="fas fa-weight-hanging"></i> ${shipment.weight_kg} kg</span>
                                 </div>
                             </div>
-                            <span class="status-badge status-${shipment.status}">${shipment.status.replace('_', ' ').toUpperCase()}</span>
+                            <span class="status-badge status-${shipment.status}" data-translate="${shipment.status}">${shipment.status.replace('_', ' ').toUpperCase()}</span>
                         </div>
                         <div class="post-details">
                             <div class="detail-item">
@@ -402,6 +406,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                     </div>
                 `;
             }).join('');
+
+            // Re-apply translations
+            if (window.appTranslations && typeof window.appTranslations.translatePage === 'function') {
+                window.appTranslations.translatePage(window.appTranslations.getLanguage());
+            }
 
         } catch (err) {
             console.error('Error fetching accepted shipments:', err);

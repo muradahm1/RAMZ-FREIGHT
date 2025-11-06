@@ -64,11 +64,18 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     function setupDashboard(user) {
         // --- 2. Populate User Info ---
-        // Use email as name if no metadata is set
         const profileName = user.user_metadata?.full_name || user.email.split('@')[0];
         userNameSpan.textContent = profileName;
-        welcomeMessage.textContent = `Welcome back, ${profileName}! 👋`;
-
+        
+        // Use translation for welcome message
+        if (window.appTranslations && typeof window.appTranslations.getLanguage === 'function') {
+            const lang = window.appTranslations.getLanguage();
+            const translatedWelcome = window.appTranslations.translations[lang].welcomeBackMessage || 'Welcome back, {name}!';
+            welcomeMessage.textContent = translatedWelcome.replace('{name}', profileName) + ' 👋';
+        } else {
+            welcomeMessage.textContent = `Welcome back, ${profileName}! 👋`;
+        }
+        
         // Use a default avatar or one from metadata if available
         userAvatar.src = user.user_metadata?.avatar_url || `https://api.dicebear.com/8.x/initials/svg?seed=${profileName}`;
 
@@ -82,8 +89,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         // --- 4. Load Dynamic Content ---
         loadStats(user);
         loadActiveShipments(user);
-        loadRecentActivity(user);
-        loadAvailableTrucks();
+        loadRecentActivity(user); // This is for truck owners dashboard, not shippers. Should be removed or ignored for shippers.
+        // loadAvailableTrucks(); // Removed as it's not relevant for shipper dashboard
         notificationManager.init(user.id, 'shipper');
         
         // --- 5. Initialize Hamburger Menu ---
@@ -102,15 +109,19 @@ document.addEventListener('DOMContentLoaded', async () => {
                 menu.close();
             }
         });
+
+        // After all dynamic content is loaded, re-apply translations
+        if (window.appTranslations && typeof window.appTranslations.translatePage === 'function') {
+            window.appTranslations.translatePage(window.appTranslations.getLanguage());
+        }
     }
 
 
 });
 
-
 async function loadActiveShipments(user) {
     const shipmentsList = document.getElementById('shipmentsList');
-    shipmentsList.innerHTML = '<div class="no-data"><p>Loading your shipments...</p></div>';
+    shipmentsList.innerHTML = '<div class="no-data"><p data-translate="loadingShipments">Loading your shipments...</p></div>';
 
     try {
         const { data: shipments, error } = await supabase
@@ -127,7 +138,7 @@ async function loadActiveShipments(user) {
             shipmentsList.innerHTML = `
                 <div class="no-data">
                     <i class="fas fa-box-open" style="font-size: 3rem; color: var(--text-lighter); margin-bottom: 1rem;"></i>
-                    <p>No active shipments. <a href="../create-shipment/create-shipment.html" style="color: var(--primary);">Create one now!</a></p>
+                    <p><span data-translate="noActiveShipments">No active shipments.</span> <a href="../create-shipment/create-shipment.html" style="color: var(--primary);" data-translate="createOneNow">Create one now!</a></p>
                 </div>
             `;
         } else {
@@ -135,17 +146,21 @@ async function loadActiveShipments(user) {
             <a href="../live-tracking/live-tracking.html?shipment_id=${shipment.id}" class="shipment-card-link">
                 <div class="shipment-card">
                     <div class="shipment-info">
-                        <h4>${shipment.goods_description || 'Shipment'}</h4>
+                        <h4>${shipment.goods_description || '<span data-translate="shipmentGeneric">Shipment</span>'}</h4>
                         <div class="shipment-details">
                             <span><i class="fas fa-map-marker-alt"></i> ${shipment.origin_address}</span>
                             <span><i class="fas fa-arrow-right"></i> ${shipment.destination_address}</span>
                             <span><i class="fas fa-weight"></i> ${shipment.weight_kg || 0} kg</span>
                         </div>
                     </div>
-                    <div class="shipment-status status-${shipment.status.toLowerCase()}">${shipment.status.toUpperCase()}</div>
+                    <div class="shipment-status status-${shipment.status.toLowerCase()}" data-translate="${shipment.status.toLowerCase()}">${shipment.status.toUpperCase()}</div>
                 </div>
             </a>
         `).join('');
+        }
+        // Re-apply translations after dynamic content is loaded
+        if (window.appTranslations && typeof window.appTranslations.translatePage === 'function') {
+            window.appTranslations.translatePage(window.appTranslations.getLanguage());
         }
     } catch (err) {
         console.error("Error loading shipments:", err);
@@ -155,7 +170,7 @@ async function loadActiveShipments(user) {
 
 async function loadRecentActivity(user) {
     const activityList = document.getElementById('activityList');
-    activityList.innerHTML = '<div class="no-data"><p>Loading activity...</p></div>';
+    activityList.innerHTML = '<div class="no-data"><p data-translate="loadingActivity">Loading activity...</p></div>';
 
     try {
         const { data: shipments, error } = await supabase
@@ -171,7 +186,7 @@ async function loadRecentActivity(user) {
             activityList.innerHTML = `
                 <div class="no-data">
                     <i class="fas fa-clock" style="font-size: 3rem; color: var(--text-lighter); margin-bottom: 1rem;"></i>
-                    <p>No recent activity</p>
+                    <p data-translate="noRecentActivity">No recent activity</p>
                 </div>
             `;
             return;
@@ -179,24 +194,24 @@ async function loadRecentActivity(user) {
 
         activityList.innerHTML = shipments.map(shipment => {
             const timeAgo = getTimeAgo(new Date(shipment.created_at));
-            let icon, iconClass, text;
+            let icon, iconClass, textKey;
             
             if (shipment.status === 'delivered') {
                 icon = 'fa-check-circle';
                 iconClass = 'success';
-                text = `Shipment #${shipment.id.slice(-8)} was delivered`;
+                textKey = 'shipmentDeliveredText';
             } else if (shipment.status === 'in_transit') {
                 icon = 'fa-truck';
                 iconClass = 'info';
-                text = `Shipment #${shipment.id.slice(-8)} is in transit`;
+                textKey = 'shipmentInTransitText';
             } else if (shipment.status === 'accepted') {
                 icon = 'fa-gavel';
                 iconClass = 'warning';
-                text = `Shipment #${shipment.id.slice(-8)} was accepted by carrier`;
+                textKey = 'shipmentAcceptedByCarrierText';
             } else {
                 icon = 'fa-plus-circle';
                 iconClass = 'info';
-                text = `Shipment #${shipment.id.slice(-8)} created`;
+                textKey = 'shipmentCreatedText';
             }
 
             return `
@@ -205,12 +220,16 @@ async function loadRecentActivity(user) {
                         <i class="fas ${icon}"></i>
                     </div>
                     <div class="activity-content">
-                        <p>${text}</p>
+                        <p><span data-translate="${textKey}"></span> #${shipment.id.slice(-8)}</p>
                         <span class="activity-time">${timeAgo}</span>
                     </div>
                 </div>
             `;
         }).join('');
+        // Re-apply translations after dynamic content is loaded
+        if (window.appTranslations && typeof window.appTranslations.translatePage === 'function') {
+            window.appTranslations.translatePage(window.appTranslations.getLanguage());
+        }
     } catch (err) {
         console.error('Error loading activity:', err);
         activityList.innerHTML = '<div class="no-data" style="color: var(--danger);">Failed to load activity.</div>';
@@ -237,7 +256,8 @@ function getTimeAgo(date) {
     return 'Just now';
 }
 
-async function loadAvailableTrucks() {
+/* Removed from shipper dashboard
+async function loadAvailableTrucks() { // This function is not used in shipper dashboard
     const trucksGrid = document.getElementById('trucksGrid');
     trucksGrid.innerHTML = '<div class="no-data"><p>Loading available trucks...</p></div>';
 
@@ -283,14 +303,14 @@ async function loadAvailableTrucks() {
         console.error('Error loading trucks:', err);
         trucksGrid.innerHTML = '<div class="no-data" style="color: var(--danger);">Failed to load trucks.</div>';
     }
-}
+}*/
 
 // Auto-refresh trucks every 30 seconds
-setInterval(() => {
+/*setInterval(() => { // This interval is not used in shipper dashboard
     if (document.getElementById('trucksGrid')) {
         loadAvailableTrucks();
     }
-}, 30000);
+}, 30000);*/
 async function loadStats(user) {
     try {
         const { data: shipments, error } = await supabase
