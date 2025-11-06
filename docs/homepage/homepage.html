@@ -175,15 +175,11 @@
       <p data-translate="footerText">&copy; 2025 Ramz-Freight. All rights reserved.</p>
     </div>
   </footer>
-  <script src="../assets/main.js" type="module"></script>
-  <!-- translations.js and language-switcher.js are now loaded by main.js -->
+  <script src="../assets/main.js"></script>
+  <script src="../assets/translations.js" type="module"></script>
+  <script src="../assets/language-switcher.js" type="module"></script>
   <script src="scroll-animations.js"></script>
   <script>
-    // Mobile Navigation Toggle
-    const hamburger = document.getElementById('hamburger');
-    const navMenu = document.getElementById('nav-menu');
-
-  <script type="module">
     document.addEventListener('DOMContentLoaded', () => {
       // Mobile Navigation Toggle
       const hamburger = document.getElementById('hamburger');
@@ -215,7 +211,7 @@
           if (targetId === '#') return;
           const targetElement = document.querySelector(targetId);
           if (targetElement) {
-            const offsetTop = targetElement.offsetTop - 80; // Adjust for fixed header
+            const offsetTop = targetElement.offsetTop - 80;
             window.scrollTo({ top: offsetTop, behavior: 'smooth' });
           }
         });
