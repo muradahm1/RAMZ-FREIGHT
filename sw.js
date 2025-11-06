@@ -25,6 +25,7 @@ const STATIC_ASSETS = [
   './docs/trucks-dashboard-cheak/truck-dashboard.js',
   './docs/live-tracking/live-tracking.html',
   './docs/live-tracking/live-tracking.js',
+  './assets/sounds/notification.mp3', // Add your notification sound file here
   './docs/assets/supabaseClient.js'
 ];
 
@@ -201,7 +202,8 @@ self.addEventListener('push', event => {
     icon: './assets/images/icon.png',
     badge: './assets/images/icon.png',
     vibrate: [200, 100, 200],
-    data: data.data
+    data: data.data,
+    sound: './assets/sounds/notification.mp3' // Path to your notification sound file
   };
   
   event.waitUntil(
