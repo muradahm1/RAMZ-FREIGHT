@@ -81,6 +81,12 @@
     }
 }
 
+/* Language Switcher Container Positioning */
+.lang-switcher-container {
+    margin-left: auto;
+    margin-right: 20px;
+}
+
 /* Mobile Responsive Styles */
 @media (max-width: 768px) {
     .language-switcher {
