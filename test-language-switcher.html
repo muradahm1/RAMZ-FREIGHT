@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Language Switcher Test</title>
+    <link rel="stylesheet" href="docs/assets/language-switcher.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background: #f0f0f0; }
+        .test-container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; }
+        .navbar { background: #2563eb; color: white; padding: 15px; border-radius: 8px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
+        .logo { font-size: 1.5rem; font-weight: bold; }
+        h1 { color: #2563eb; }
+        p { margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <div class="navbar">
+            <div class="logo">Ramz-Freight Test</div>
+            <div id="langSwitcher"></div>
+        </div>
+        
+        <h1 data-translate="heroTitle">Welcome to Ramz Freight</h1>
+        <p data-translate="heroSubtitle">Connecting Shippers and Truck Owners across Ethiopia</p>
+        <p data-translate="aboutText1">At RAMZ-FREIGHT, we are redefining logistics...</p>
+        
+        <div style="margin-top: 30px; padding: 15px; background: #f8f9fa; border-radius: 5px;">
+            <strong>Test Instructions:</strong>
+            <ol>
+                <li>Check if the language switcher appears in the top right</li>
+                <li>Click on it to see the dropdown menu</li>
+                <li>Try switching between EN, አማ, and OM</li>
+                <li>Verify that the text changes language</li>
+            </ol>
+        </div>
+    </div>
+
+    <script src="docs/assets/translations.js" type="module"></script>
+    <script src="docs/assets/language-switcher.js" type="module"></script>
+</body>
+</html>
