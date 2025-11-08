@@ -192,8 +192,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                 status: 'pending_approval',
                 id_front_url: fileUrls.idFront,
                 id_back_url: fileUrls.idBack,
-                driving_license_front_url: fileUrls.drivingLicenseFront,
-                driving_license_back_url: fileUrls.drivingLicenseBack,
+                driving_licence_front_url: fileUrls.drivingLicenseFront,
+                driving_licence_back_url: fileUrls.drivingLicenseBack,
                 vehicle_photo_url: fileUrls.carPhoto,
                 vehicle_license_url: fileUrls.carLicense
             };
