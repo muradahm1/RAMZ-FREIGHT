@@ -35,7 +35,14 @@ async function loadSupabaseCdnIfNeeded() {
   }
 
   const { createClient } = window.supabase;
-  supabase = createClient(supabaseUrl, supabaseAnonKey);
+  supabase = createClient(supabaseUrl, supabaseAnonKey, {
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: true,
+      storageKey: 'ramz-freight-auth'
+    }
+  });
   return supabase;
 }
 

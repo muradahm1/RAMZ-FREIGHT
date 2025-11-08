@@ -7,7 +7,23 @@ function getAppBasePath() {
     return '';
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+    // Check if user is already logged in
+    try {
+        await supabaseReady;
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (session && session.user) {
+            const userRole = session.user.user_metadata?.user_role;
+            if (userRole === 'shipper') {
+                window.location.replace('../shippers-dashboard/shippers-dashboard.html');
+                return;
+            }
+        }
+    } catch (error) {
+        console.log('No existing session found');
+    }
+    
     // Load saved language preference
     const savedLang = localStorage.getItem('preferredLanguage');
     if (savedLang && typeof switchLanguage === 'function') {

@@ -8,7 +8,40 @@ function getAppBasePath() {
     return '';
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+    // Check if user is already logged in
+    try {
+        await supabaseReady;
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (session && session.user) {
+            const userRole = session.user.user_metadata?.user_role;
+            if (userRole === 'truck_owner') {
+                // Check if profile is completed
+                try {
+                    const { data: vehicle } = await supabase
+                        .from('vehicles')
+                        .select('*')
+                        .eq('user_id', session.user.id)
+                        .single();
+                    
+                    if (vehicle) {
+                        window.location.replace('../trucks-dashboard-cheak/truck-dashboard.html');
+                        return;
+                    } else {
+                        window.location.replace('../trucks-register/complete-profile.html');
+                        return;
+                    }
+                } catch (err) {
+                    window.location.replace('../trucks-register/complete-profile.html');
+                    return;
+                }
+            }
+        }
+    } catch (error) {
+        console.log('No existing session found');
+    }
+    
     const form = document.getElementById('truckLoginForm');
 
     // --- Validation Logic ---
