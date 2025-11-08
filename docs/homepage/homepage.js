@@ -1,4 +1,14 @@
 import { isUserLoggedIn } from '../assets/auth.js'
+import { createLanguageSwitcher } from '../assets/language-switcher.js'
+import { setLanguage, getLanguage } from '../assets/translations.js'
+
+// Initialize language switcher
+document.addEventListener('DOMContentLoaded', () => {
+  const langContainer = document.getElementById('langSwitcher');
+  if (langContainer) {
+    langContainer.appendChild(createLanguageSwitcher());
+  }
+});
 
 // Immediately check for a previous session and redirect if applicable
 (function() {
@@ -11,33 +21,6 @@ import { isUserLoggedIn } from '../assets/auth.js'
         window.location.replace(lastVisitedPage);
     }
 })();
-
-// Mobile Navigation Toggle
-const hamburger = document.getElementById('hamburger');
-const navMenu = document.getElementById('nav-menu');
-
-// Add both click and touchend for mobile support
-const toggleMenu = (e) => {
-  e.preventDefault();
-  hamburger.classList.toggle('active');
-  navMenu.classList.toggle('active');
-  
-  // Update aria-expanded attribute
-  const isExpanded = hamburger.getAttribute('aria-expanded') === 'true';
-  hamburger.setAttribute('aria-expanded', !isExpanded);
-};
-
-hamburger.addEventListener('click', toggleMenu);
-hamburger.addEventListener('touchend', toggleMenu);
-
-// Close mobile menu when clicking on a link
-document.querySelectorAll('.nav-menu a').forEach(link => {
-  link.addEventListener('click', () => {
-    hamburger.classList.remove('active');
-    navMenu.classList.remove('active');
-    hamburger.setAttribute('aria-expanded', 'false');
-  });
-});
 
 // Contact Form Submission
 const contactForm = document.getElementById('contactForm');

@@ -322,7 +322,7 @@ export const translations = {
         createAccountSubtitle: "የ RAMZ-FREIGHT ሺህ የሚቆጠሩ ተጠቃሚዎች ጋር ተቀላቀሉ",
         createAccountButton: "አካውንት ይፍጠሩ",
         alreadyHaveAccount: "አካውንት ከዘገቡ በፊት?",
-        logInHere: "እዚህ ይግቡ"
+        logInHere: "እዚህ ይግቡ",
         easyManagementTitle: "ቀላል አስተዳደር",
         easyManagementText: "ጭነቶችን ይከታተሉ፣ አቅርቦቶችን ያስተዳድሩ እና ንግድዎን ያሳድጉ።",
 
@@ -608,7 +608,7 @@ export const translations = {
         createAccountSubtitle: "Karaa RAMZ-FREIGHT nama kuma hedduu waliin hirmaadhu",
         createAccountButton: "Akaawunti Uumi",
         alreadyHaveAccount: "Akaawunti duraan qabdaa?",
-        logInHere: "Asitti seeni"
+        logInHere: "Asitti seeni",
 
         // About Us
         aboutUsTitle: "Waa'ee Keenya",
