@@ -119,12 +119,25 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (!user) throw new Error('User registration failed unexpectedly.');
 
             // 2. Display success message
-            document.getElementById('truckRegisterForm').style.display = 'none';
+            const form = document.getElementById('truckRegisterForm');
             const successSection = document.getElementById('registrationSuccess');
-            successSection.style.display = 'block';
-            document.getElementById('userEmail').textContent = email;
+            
+            if (form) form.style.display = 'none';
+            
+            if (successSection) {
+                successSection.style.display = 'block';
+                const userEmailEl = document.getElementById('userEmail');
+                if (userEmailEl) userEmailEl.textContent = email;
+            } else {
+                // Fallback if success section doesn't exist
+                alert(`Registration successful! Please check your email (${email}) for verification.`);
+                window.location.href = '../trucks-login/trucks-login.html';
+            }
+            
             // Re-translate the page to ensure the success message is in the correct language
-            window.appTranslations.translatePage(window.appTranslations.getLanguage());
+            if (window.appTranslations?.translatePage) {
+                window.appTranslations.translatePage(window.appTranslations.getLanguage());
+            }
 
         } catch (err) {
             console.error('Registration error:', err);
