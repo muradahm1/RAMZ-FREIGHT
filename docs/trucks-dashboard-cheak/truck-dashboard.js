@@ -38,7 +38,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         const userRole = user.user_metadata?.user_role;
         if (!userRole || !userRole.includes('truck')) {
              console.warn("User role is not 'truck_owner'. This may cause issues.", user);
-             // Potentially redirect or log out if they don't belong here.
+             // Fix user role for existing users
+             try {
+                 await supabase.auth.updateUser({
+                     data: { user_role: 'truck_owner' }
+                 });
+                 console.log('Updated user role to truck_owner');
+             } catch (err) {
+                 console.error('Failed to update user role:', err);
+             }
         }
 
         // Check if profile is completed by checking vehicles table
