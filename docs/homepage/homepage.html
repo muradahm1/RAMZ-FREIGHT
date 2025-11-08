@@ -23,6 +23,7 @@
   <link rel="stylesheet" href="../assets/language-switcher.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <link rel="stylesheet" href="animations.css">
+  <link rel="stylesheet" href="install-banner.css">
 </head>
 <body>
   <header class="navbar">
@@ -60,9 +61,7 @@
               <button class="big-btn" data-translate="truckOwnerButton">I'm a Truck Owner</button>
             </a>
           </div>
-          <button id="installBtn" class="install-btn" style="display: none; margin-top: 15px; background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 10px 20px; border-radius: 8px; cursor: pointer;">
-            📱 Install App
-          </button>
+
         </div>
       </div>
     </div>
@@ -173,6 +172,26 @@
       </div>
     </div>
   </section>
+
+  <!-- PWA Install Banner -->
+  <div id="installBanner" class="install-banner">
+    <div class="install-content">
+      <div class="install-icon">
+        <i class="fas fa-mobile-alt"></i>
+      </div>
+      <div class="install-text">
+        <h3>Get the App!</h3>
+        <p>Install RAMZ-FREIGHT for faster access and offline features</p>
+      </div>
+      <button id="installBtn" class="install-btn-main">
+        <i class="fas fa-download"></i>
+        Install
+      </button>
+      <button id="closeBanner" class="close-banner">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+  </div>
 
   <footer>
     <div class="container">

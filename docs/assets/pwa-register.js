@@ -23,25 +23,67 @@ if ('serviceWorker' in navigator) {
   });
 }
 
-// Install prompt
+// Install prompt with impressive banner
 let deferredPrompt;
+let bannerShown = false;
+
 window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
   deferredPrompt = e;
   
-  // Show install button or banner
+  // Show banner after 3 seconds if not already shown
+  if (!bannerShown && !localStorage.getItem('pwa-banner-dismissed')) {
+    setTimeout(showInstallBanner, 3000);
+  }
+});
+
+function showInstallBanner() {
+  const banner = document.getElementById('installBanner');
   const installBtn = document.getElementById('installBtn');
-  if (installBtn) {
-    installBtn.style.display = 'block';
+  const closeBtn = document.getElementById('closeBanner');
+  
+  if (banner && deferredPrompt) {
+    bannerShown = true;
+    banner.classList.add('show');
+    
+    // Install button click
     installBtn.addEventListener('click', () => {
       deferredPrompt.prompt();
       deferredPrompt.userChoice.then((choiceResult) => {
         if (choiceResult.outcome === 'accepted') {
           console.log('User accepted the install prompt');
         }
+        hideInstallBanner();
         deferredPrompt = null;
-        installBtn.style.display = 'none';
       });
     });
+    
+    // Close button click
+    closeBtn.addEventListener('click', () => {
+      hideInstallBanner();
+      localStorage.setItem('pwa-banner-dismissed', 'true');
+    });
+  }
+}
+
+function hideInstallBanner() {
+  const banner = document.getElementById('installBanner');
+  if (banner) {
+    banner.classList.add('hide');
+    setTimeout(() => {
+      banner.style.display = 'none';
+      banner.classList.remove('show', 'hide');
+    }, 400);
+  }
+}
+
+// Show banner on scroll if not dismissed
+let scrollTriggered = false;
+window.addEventListener('scroll', () => {
+  if (!scrollTriggered && !bannerShown && !localStorage.getItem('pwa-banner-dismissed') && window.scrollY > 500) {
+    scrollTriggered = true;
+    if (deferredPrompt) {
+      showInstallBanner();
+    }
   }
 });
