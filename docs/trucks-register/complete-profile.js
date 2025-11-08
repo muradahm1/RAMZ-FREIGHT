@@ -71,6 +71,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // File upload handlers
     setupFileUploads();
+    
+    // Initialize button text
+    const btnText = submitBtn.querySelector('.btn-text');
+    if (btnText) {
+        const translations = window.appTranslations?.translations;
+        const currentLang = window.appTranslations?.getLanguage() || 'en';
+        btnText.textContent = translations?.[currentLang]?.completeRegistration || 'Complete Registration';
+    }
 
     function validateStep1() {
         const fields = [
@@ -268,5 +276,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     function setLoading(isLoading) {
         submitBtn.disabled = isLoading;
         submitBtn.classList.toggle('loading', isLoading);
+        
+        const btnText = submitBtn.querySelector('.btn-text');
+        if (btnText) {
+            if (isLoading) {
+                btnText.textContent = 'Processing...';
+            } else {
+                // Use translation if available, otherwise fallback to English
+                const translations = window.appTranslations?.translations;
+                const currentLang = window.appTranslations?.getLanguage() || 'en';
+                btnText.textContent = translations?.[currentLang]?.completeRegistration || 'Complete Registration';
+            }
+        }
     }
 });
