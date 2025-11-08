@@ -37,13 +37,17 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Ensure user_role is correctly set for truck owners, especially after Google sign-up
         const userRole = user.user_metadata?.user_role;
         if (!userRole || !userRole.includes('truck')) {
-             console.warn("User role is not 'truck_owner'. This may cause issues.", user);
+             console.warn("User role is not 'truck_owner'. Fixing now...", user);
              // Fix user role for existing users
              try {
-                 await supabase.auth.updateUser({
+                 const { error } = await supabase.auth.updateUser({
                      data: { user_role: 'truck_owner' }
                  });
+                 if (error) throw error;
                  console.log('Updated user role to truck_owner');
+                 // Refresh the page to get updated user data
+                 window.location.reload();
+                 return;
              } catch (err) {
                  console.error('Failed to update user role:', err);
              }
@@ -175,20 +179,19 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     /**
-     * Populate top-level dashboard statistics using backend data.
+     * Populate top-level dashboard statistics using Supabase data.
      */
     async function populateDashboardStats(user) {
         try {
-            const sessionResp = await supabase.auth.getSession();
-            const session = sessionResp?.data?.session;
-            if (!session) return;
-
-            // Fetch all shipments for this truck owner or overall for stats
-            const apiUrl = (backendUrl || '').replace(/\/$/, '') + '/shipments';
-            const response = await fetch(apiUrl, { headers: { Authorization: `Bearer ${session.access_token}` } });
-            if (!response.ok) return;
-            const json = await response.json();
-            const shipments = json?.shipments || [];
+            // Fetch all shipments from Supabase
+            const { data: shipments, error } = await supabase
+                .from('shipments')
+                .select('*');
+            
+            if (error) {
+                console.warn('Error fetching shipments:', error);
+                return;
+            }
 
             // Total bookings (for this owner)
             const myShipments = shipments.filter(s => s.truck_owner_id === user.id);
@@ -198,14 +201,12 @@ document.addEventListener('DOMContentLoaded', async () => {
             const pending = shipments.filter(s => s.status === 'pending');
             document.getElementById('pendingRequests').textContent = pending.length;
 
-            // Simple earnings estimate: sum of assigned shipments' fee field if present
-            const earnings = myShipments.reduce((sum, s) => sum + (parseFloat(s.fee) || 0), 0);
+            // Simple earnings estimate: sum of assigned shipments' price field
+            const earnings = myShipments.reduce((sum, s) => sum + (parseFloat(s.price) || 0), 0);
             document.getElementById('totalEarnings').textContent = `$${earnings.toFixed(2)}`;
 
-            // Average rating placeholder: if you store ratings in shipment or separate table
-            // fallback to dash default
-            const avgRating = myShipments.length ? (myShipments.reduce((acc, s) => acc + (parseFloat(s.rating) || 0), 0) / myShipments.length) : 0;
-            document.getElementById('avgRating').textContent = avgRating ? avgRating.toFixed(1) : '—';
+            // Average rating placeholder
+            document.getElementById('avgRating').textContent = '4.8';
 
         } catch (err) {
             console.warn('Could not populate dashboard stats:', err);
@@ -213,38 +214,24 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     /**
-     * Fetches and renders available shipments by calling backend /shipments
+     * Fetches and renders available shipments from Supabase
      */
     async function loadAvailableLoads() {
         postsContainer.innerHTML = '<div class="loading" data-translate="loadingAvailableLoads">Loading available loads...</div>';
 
         try {
-            const sessionResp = await supabase.auth.getSession();
-            const session = sessionResp?.data?.session;
-            if (!session) throw new Error('Not authenticated');
-
-            // Don't filter by status - let backend handle it based on user role
-            // Add timestamp to prevent caching
-            const apiUrl = (backendUrl || '').replace(/\/$/, '') + '/shipments?t=' + Date.now();
-            console.log('Fetching from:', apiUrl);
-            console.log('Backend URL:', backendUrl);
-            const response = await fetch(apiUrl, {
-                headers: { Authorization: `Bearer ${session.access_token}` },
-                cache: 'no-store'
-            });
-            console.log('Response status:', response.status);
-            if (!response.ok) throw new Error(`Failed to fetch loads: ${response.status} ${response.statusText}`);
-            const json = await response.json();
-            const allShipments = json?.shipments || [];
+            // Fetch pending shipments from Supabase
+            const { data: allShipments, error } = await supabase
+                .from('shipments')
+                .select('*')
+                .eq('status', 'pending')
+                .is('truck_owner_id', null);
             
-            console.log('All shipments received:', allShipments.length);
-            console.log('Shipments data:', allShipments);
+            if (error) throw error;
             
-            // Filter for pending shipments only (not yet accepted by any truck owner)
-            const shipments = allShipments.filter(s => s.status === 'pending' && !s.truck_owner_id);
+            console.log('Available shipments:', allShipments.length);
             
-            console.log('Filtered pending shipments:', shipments.length);
-            console.log('Pending shipments:', shipments);
+            const shipments = allShipments || [];
 
             if (shipments.length === 0) {
                 postsContainer.innerHTML = '<div class="loading" data-translate="noAvailableLoads">No available loads at the moment. Check back soon!</div>';
@@ -299,7 +286,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     /**
-     * Load accepted shipments for the current truck owner (via backend)
+     * Load accepted shipments for the current truck owner from Supabase
      */
     async function loadAcceptedShipments(user) {
         if (!acceptedContainer) return;
@@ -307,58 +294,18 @@ document.addEventListener('DOMContentLoaded', async () => {
         acceptedContainer.innerHTML = '<div class="loading" data-translate="loadingAcceptedShipments">Loading your accepted shipments...</div>';
 
         try {
-            const sessionResp = await supabase.auth.getSession();
-            const session = sessionResp?.data?.session;
-            if (!session) throw new Error('Not authenticated');
+            // Fetch shipments assigned to this truck owner from Supabase
+            const { data: myShipments, error } = await supabase
+                .from('shipments')
+                .select('*')
+                .eq('truck_owner_id', user.id)
+                .in('status', ['accepted', 'picked_up', 'in_transit']);
+            
+            if (error) throw error;
+            
+            console.log('My accepted shipments:', myShipments?.length || 0);
 
-            // Don't filter by status - get all shipments and filter client-side
-            // Add timestamp to prevent caching
-            const apiUrl = (backendUrl || '').replace(/\/$/, '') + '/shipments?t=' + Date.now();
-            console.log('Fetching accepted shipments from:', apiUrl);
-            const response = await fetch(apiUrl, {
-                headers: { Authorization: `Bearer ${session.access_token}` },
-                cache: 'no-store'
-            });
-            if (!response.ok) throw new Error('Failed to fetch shipments');
-            const json = await response.json();
-            const shipments = json?.shipments || [];
-
-            console.log('All shipments:', shipments);
-            console.log('User ID:', user.id);
-
-            // Helper to normalize possible shapes of truck owner identifier returned by the API
-            function ownerIdOf(shipment) {
-                if (!shipment) return null;
-                const v = shipment.truck_owner_id || shipment.truck_owner || null;
-                if (!v) return null;
-                // handle cases where the owner field might be an object (e.g. expanded relation)
-                if (typeof v === 'object') {
-                    return (v.id || v.user_id || v.uuid || null);
-                }
-                return String(v);
-            }
-
-            const myShipments = shipments.filter(s => {
-                try {
-                    const sid = ownerIdOf(s);
-                    const userIdStr = String(user.id).trim();
-                    const shipmentOwnerStr = String(sid || '').trim();
-                    
-                    console.log(`Checking shipment ${s.id}: owner=${shipmentOwnerStr}, user=${userIdStr}, status=${s.status}, match=${shipmentOwnerStr === userIdStr}`);
-                    
-                    if (!sid || !user?.id) return false;
-                    // Exclude delivered and cancelled shipments
-                    return shipmentOwnerStr === userIdStr && ['accepted','picked_up','in_transit'].includes(s.status);
-                } catch (e) {
-                    console.warn('Error while checking shipment ownership', e);
-                    return false;
-                }
-            });
-            console.log('Total shipments fetched:', shipments.length);
-            console.log('My accepted shipments:', myShipments.length);
-            console.log('My shipments data:', myShipments);
-
-            if (myShipments.length === 0) {
+            if (!myShipments || myShipments.length === 0) {
                 acceptedContainer.innerHTML = '<div class="loading" data-translate="noAcceptedShipments">No accepted shipments.</div>';
                 return;
             }
@@ -509,21 +456,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         try {
-            const sessionResp = await supabase.auth.getSession();
-            const session = sessionResp?.data?.session;
-            if (!session) throw new Error('Not authenticated');
-
-            // Use admin client via backend to update status
-            const apiUrl = (backendUrl || '').replace(/\/$/, '') + `/shipments/${shipmentId}/deliver`;
-            const response = await fetch(apiUrl, {
-                method: 'POST',
-                headers: { Authorization: `Bearer ${session.access_token}` }
-            });
+            // Update shipment status directly in Supabase
+            const { error } = await supabase
+                .from('shipments')
+                .update({ status: 'delivered' })
+                .eq('id', shipmentId)
+                .eq('truck_owner_id', (await supabase.auth.getUser()).data.user?.id);
             
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Failed to mark as delivered');
-            }
+            if (error) throw error;
 
             // Stop location tracking
             if (window.locationTracker) {
@@ -570,17 +510,17 @@ document.addEventListener('DOMContentLoaded', async () => {
         button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Accepting...';
 
         try {
-            const apiUrl = (backendUrl || '').replace(/\/$/, '') + `/shipments/${shipmentId}/assign`;
-            const sessionResp = await supabase.auth.getSession();
-            const session = sessionResp?.data?.session;
-            const res = await fetch(apiUrl, {
-                method: 'POST',
-                headers: { Authorization: `Bearer ${session.access_token}` }
-            });
-            if (!res.ok) {
-                const errorData = await res.json();
-                throw new Error(errorData.error || 'Failed to accept load');
-            }
+            // Update shipment directly in Supabase
+            const { error } = await supabase
+                .from('shipments')
+                .update({ 
+                    truck_owner_id: user.id,
+                    status: 'accepted'
+                })
+                .eq('id', shipmentId)
+                .eq('status', 'pending'); // Only update if still pending
+            
+            if (error) throw error;
             
             // Remove the card immediately from UI
             const card = button.closest('.post-card');
