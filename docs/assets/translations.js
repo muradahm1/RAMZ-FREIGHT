@@ -72,10 +72,6 @@ export const translations = {
         // Footer
         footerText: "© 2025 Ramz-Freight. All rights reserved.",
         
-        // SEO Meta
-        pageTitle: "RAMZ-FREIGHT - Connecting Shippers and Truck Owners",
-        metaDescription: "RAMZ-FREIGHT connects shippers and truck owners across Ethiopia. Fast, reliable, and affordable freight solutions.",
-        
         // Shipment
         origin: "Origin Address",
         destination: "Destination Address",
@@ -495,11 +491,7 @@ export const translations = {
         scheduling: "መርሐግብር",
         additionalInformation: "ተጨማሪ መረጃ",
         specialInstructionsPlaceholder: "ለምሳሌ፣ በጥንቃቄ ይያዙ፣ ሲደርሱ ይደውሉ።",
-        postShipmentRequest: "የጭነት ጥያቄ ይለጥፉ",
-        
-        // SEO Meta
-        pageTitle: "RAMZ-FREIGHT - ላኪዎችን እና የጭነት መኪና ባለቤቶችን ማገናኘት",
-        metaDescription: "RAMZ-FREIGHT ላኪዎችን እና የጭነት መኪና ባለቤቶችን በመላው ኢትዮጵያ ያገናኛል። ፈጣን፣ አስተማማኝ እና የሚፈታ የጭነት መፍትሄዎች።"
+        postShipmentRequest: "የጭነት ጥያቄ ይለጥፉ"
     },
     
     om: {
@@ -828,9 +820,6 @@ function updateURL(lang) {
 export function translatePage(lang) {
     const t = translations[lang] || translations.en;
     
-    // Update page title and meta tags for SEO
-    updatePageMeta(lang, t);
-    
     document.querySelectorAll('[data-translate]').forEach(el => {
         const key = el.getAttribute('data-translate');
         if (t[key]) {
@@ -841,30 +830,6 @@ export function translatePage(lang) {
             }
         }
     });
-}
-
-function updatePageMeta(lang, t) {
-    // Update page title
-    if (t.heroTitle) {
-        document.title = `${t.heroTitle} - RAMZ-FREIGHT`;
-    }
-    
-    // Update meta description
-    const metaDesc = document.querySelector('meta[name="description"]');
-    if (metaDesc && t.heroSubtitle) {
-        metaDesc.content = t.heroSubtitle;
-    }
-    
-    // Update Open Graph tags
-    const ogTitle = document.querySelector('meta[property="og:title"]');
-    if (ogTitle && t.heroTitle) {
-        ogTitle.content = t.heroTitle;
-    }
-    
-    const ogDesc = document.querySelector('meta[property="og:description"]');
-    if (ogDesc && t.heroSubtitle) {
-        ogDesc.content = t.heroSubtitle;
-    }
 }
 
 // Expose switchLanguage globally
