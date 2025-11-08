@@ -93,6 +93,26 @@ document.addEventListener('DOMContentLoaded', function() {
 	// Initialize floating labels on any page that uses them
 	initializeFloatingLabels();
 
+	// Initialize hamburger menu
+	const hamburger = document.getElementById('hamburger');
+	const navMenu = document.getElementById('nav-menu');
+
+	if (hamburger && navMenu) {
+		hamburger.addEventListener('click', function(e) {
+			e.preventDefault();
+			hamburger.classList.toggle('active');
+			navMenu.classList.toggle('active');
+		});
+
+		// Close mobile menu when clicking on a link
+		document.querySelectorAll('.nav-menu a').forEach(link => {
+			link.addEventListener('click', () => {
+				hamburger.classList.remove('active');
+				navMenu.classList.remove('active');
+			});
+		});
+	}
+
 	// --- Language and Translation Setup ---
 	// This is the single source of truth for initializing translations.
 	try {
@@ -144,14 +164,27 @@ document.addEventListener('DOMContentLoaded', function() {
 	}
 });
 
-// Example: Responsive mobile menu toggle (if you have a nav)
-const menuBtn = document.querySelector('.menu-btn');
-const navMenu = document.querySelector('.nav-menu');
-if (menuBtn && navMenu) {
-	menuBtn.addEventListener('click', () => {
-		navMenu.classList.toggle('active');
-	});
-}
+// Hamburger menu functionality
+document.addEventListener('DOMContentLoaded', function() {
+	const hamburger = document.getElementById('hamburger');
+	const navMenu = document.getElementById('nav-menu');
+
+	if (hamburger && navMenu) {
+		hamburger.addEventListener('click', function(e) {
+			e.preventDefault();
+			hamburger.classList.toggle('active');
+			navMenu.classList.toggle('active');
+		});
+
+		// Close mobile menu when clicking on a link
+		document.querySelectorAll('.nav-menu a').forEach(link => {
+			link.addEventListener('click', () => {
+				hamburger.classList.remove('active');
+				navMenu.classList.remove('active');
+			});
+		});
+	}
+});
 
 // Save the last visited page before the window unloads
 window.addEventListener('beforeunload', () => {
