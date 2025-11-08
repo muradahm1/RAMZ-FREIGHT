@@ -72,6 +72,10 @@ export const translations = {
         // Footer
         footerText: "© 2025 Ramz-Freight. All rights reserved.",
         
+        // SEO Meta
+        pageTitle: "RAMZ-FREIGHT - Connecting Shippers and Truck Owners",
+        metaDescription: "RAMZ-FREIGHT connects shippers and truck owners across Ethiopia. Fast, reliable, and affordable freight solutions.",
+        
         // Shipment
         origin: "Origin Address",
         destination: "Destination Address",
@@ -491,7 +495,11 @@ export const translations = {
         scheduling: "መርሐግብር",
         additionalInformation: "ተጨማሪ መረጃ",
         specialInstructionsPlaceholder: "ለምሳሌ፣ በጥንቃቄ ይያዙ፣ ሲደርሱ ይደውሉ።",
-        postShipmentRequest: "የጭነት ጥያቄ ይለጥፉ"
+        postShipmentRequest: "የጭነት ጥያቄ ይለጥፉ",
+        
+        // SEO Meta
+        pageTitle: "RAMZ-FREIGHT - ላኪዎችን እና የጭነት መኪና ባለቤቶችን ማገናኘት",
+        metaDescription: "RAMZ-FREIGHT ላኪዎችን እና የጭነት መኪና ባለቤቶችን በመላው ኢትዮጵያ ያገናኛል። ፈጣን፣ አስተማማኝ እና የሚፈታ የጭነት መፍትሄዎች።"
     },
     
     om: {
@@ -771,7 +779,11 @@ export const translations = {
         scheduling: "Saganteessuu",
         additionalInformation: "Odeeffannoo Dabalataa",
         specialInstructionsPlaceholder: "fkn., Of eeggannoodhaan qabi, yeroo geessu bilbili.",
-        postShipmentRequest: "Gaaffii Fe'iinsaa Maxxansi"
+        postShipmentRequest: "Gaaffii Fe'iinsaa Maxxansi",
+        
+        // SEO Meta
+        pageTitle: "RAMZ-FREIGHT - Ergitootaa fi Abbootii Konkolaataa Wal Qabsiisuu",
+        metaDescription: "RAMZ-FREIGHT ergitootaa fi abbootii konkolaataa Itoophiyaa guutuu wal qabsiisa. Tajaajila fe'umsaa ariifataa, amanamaa fi gatii madaalawaa."
     }
 };
 
@@ -779,17 +791,45 @@ export function setLanguage(lang) {
     localStorage.setItem('preferredLanguage', lang);
     // set document language attribute for accessibility and SEO
     try { document.documentElement.lang = lang; } catch (e) {}
+    // update URL to reflect current language
+    updateURL(lang);
     translatePage(lang);
     // dispatch a custom event so other modules can react
     try { window.dispatchEvent(new CustomEvent('appLanguageChanged', { detail: { lang } })); } catch (e) {}
 }
 
 export function getLanguage() {
+    // Check URL first, then localStorage, then default to 'en'
+    const urlLang = getLanguageFromURL();
+    if (urlLang) return urlLang;
     return localStorage.getItem('preferredLanguage') || 'en';
+}
+
+function getLanguageFromURL() {
+    const params = new URLSearchParams(window.location.search);
+    const lang = params.get('lang');
+    return ['en', 'am', 'om'].includes(lang) ? lang : null;
+}
+
+function updateURL(lang) {
+    if (lang === 'en') {
+        // Remove lang parameter for default language
+        const url = new URL(window.location);
+        url.searchParams.delete('lang');
+        window.history.replaceState({}, '', url);
+    } else {
+        // Add lang parameter for non-default languages
+        const url = new URL(window.location);
+        url.searchParams.set('lang', lang);
+        window.history.replaceState({}, '', url);
+    }
 }
 
 export function translatePage(lang) {
     const t = translations[lang] || translations.en;
+    
+    // Update page title and meta tags for SEO
+    updatePageMeta(lang, t);
     
     document.querySelectorAll('[data-translate]').forEach(el => {
         const key = el.getAttribute('data-translate');
@@ -803,6 +843,30 @@ export function translatePage(lang) {
     });
 }
 
+function updatePageMeta(lang, t) {
+    // Update page title
+    if (t.heroTitle) {
+        document.title = `${t.heroTitle} - RAMZ-FREIGHT`;
+    }
+    
+    // Update meta description
+    const metaDesc = document.querySelector('meta[name="description"]');
+    if (metaDesc && t.heroSubtitle) {
+        metaDesc.content = t.heroSubtitle;
+    }
+    
+    // Update Open Graph tags
+    const ogTitle = document.querySelector('meta[property="og:title"]');
+    if (ogTitle && t.heroTitle) {
+        ogTitle.content = t.heroTitle;
+    }
+    
+    const ogDesc = document.querySelector('meta[property="og:description"]');
+    if (ogDesc && t.heroSubtitle) {
+        ogDesc.content = t.heroSubtitle;
+    }
+}
+
 // Expose switchLanguage globally
 window.switchLanguage = setLanguage;
 
@@ -810,6 +874,10 @@ window.switchLanguage = setLanguage;
 document.addEventListener('DOMContentLoaded', () => {
     const lang = getLanguage();
     try { document.documentElement.lang = lang; } catch (e) {}
+    // Update localStorage if URL has language preference
+    if (getLanguageFromURL()) {
+        localStorage.setItem('preferredLanguage', lang);
+    }
     translatePage(lang);
     // expose to window for non-module scripts
     try { window.appTranslations = { setLanguage, getLanguage, translatePage, translations, switchLanguage: setLanguage }; } catch (e) {}
