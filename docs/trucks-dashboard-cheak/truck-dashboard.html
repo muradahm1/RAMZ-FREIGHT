@@ -12,15 +12,49 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
 <body>
+    <!-- Hamburger Menu -->
+    <button class="hamburger" id="hamburger">
+        <span></span>
+        <span></span>
+        <span></span>
+    </button>
+
     <div class="dashboard-container">
-        <!-- idebar -->
+        <!-- Sidebar -->
         <aside class="sidebar">
             <div class="sidebar-header">
                 <h2>🚛 RAMZ-FREIGHT</h2>
                 <p data-translate="truckOwnerPortal">Truck Owner Portal</p>
             </div>
             
-
+            <nav class="sidebar-nav">
+                <ul>
+                    <li><a href="#dashboard" class="nav-link active">
+                        <i class="fas fa-tachometer-alt"></i>
+                        <span data-translate="dashboard">Dashboard</span>
+                    </a></li>
+                    <li><a href="#available-loads" class="nav-link">
+                        <i class="fas fa-truck-loading"></i>
+                        <span data-translate="availableLoads">Available Loads</span>
+                    </a></li>
+                    <li><a href="#my-shipments" class="nav-link">
+                        <i class="fas fa-boxes"></i>
+                        <span data-translate="myAcceptedShipments">My Shipments</span>
+                    </a></li>
+                    <li><a href="#my-trucks" class="nav-link">
+                        <i class="fas fa-truck"></i>
+                        <span data-translate="myTrucks">My Trucks</span>
+                    </a></li>
+                    <li><a href="#earnings" class="nav-link">
+                        <i class="fas fa-chart-line"></i>
+                        <span data-translate="totalEarnings">Earnings</span>
+                    </a></li>
+                    <li><a href="#settings" class="nav-link">
+                        <i class="fas fa-cog"></i>
+                        <span data-translate="settings">Settings</span>
+                    </a></li>
+                </ul>
+            </nav>
             
             <div class="sidebar-footer">
                 <div class="user-info">
@@ -207,6 +241,9 @@
     <script src="../assets/offline-sync.js"></script>
     <script src="../assets/location-tracker.js" type="module"></script>
     <script src="../assets/notification-system.js"></script>
+    <script src="../assets/hamburger-menu.js" type="module"></script>
     <script src="truck-dashboard.js" type="module"></script>
+    <script src="../assets/translations.js" type="module"></script>
+    <script src="../assets/language-switcher.js" type="module"></script>
 </body>
 </html>
