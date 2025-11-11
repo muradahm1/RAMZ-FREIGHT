@@ -51,16 +51,16 @@ export function createLanguageSwitcher() {
 }
 
 // Auto-add to header
-let languageSwitcherInitialized = false;
-
 document.addEventListener('DOMContentLoaded', () => {
-    if (languageSwitcherInitialized) return;
+    // Check if already initialized globally
+    if (window.languageSwitcherInitialized) return;
     
     const langContainer = document.getElementById('langSwitcher');
     if (langContainer) {
-        // Clear any existing content first
-        langContainer.innerHTML = '';
-        langContainer.appendChild(createLanguageSwitcher());
-        languageSwitcherInitialized = true;
+        // Only add if no language switcher exists
+        if (!langContainer.querySelector('.language-switcher')) {
+            langContainer.appendChild(createLanguageSwitcher());
+            window.languageSwitcherInitialized = true;
+        }
     }
 });
