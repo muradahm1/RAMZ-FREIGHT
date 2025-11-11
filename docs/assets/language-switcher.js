@@ -53,12 +53,7 @@ export function createLanguageSwitcher() {
 // Auto-add to header
 document.addEventListener('DOMContentLoaded', () => {
     const langContainer = document.getElementById('langSwitcher');
-    if (langContainer) {
+    if (langContainer && langContainer.children.length === 0) {
         langContainer.appendChild(createLanguageSwitcher());
-    } else {
-        const headerActions = document.querySelector('.header-actions') || document.querySelector('.header-right');
-        if (headerActions) {
-            headerActions.insertBefore(createLanguageSwitcher(), headerActions.firstChild);
-        }
     }
 });
