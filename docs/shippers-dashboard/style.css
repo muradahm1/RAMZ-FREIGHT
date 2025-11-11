@@ -592,8 +592,53 @@ body {
   100% { transform: scale(1); opacity: 0.2; }
 }
 
+/* ===== HAMBURGER MENU ===== */
+.hamburger {
+  display: none;
+  flex-direction: column;
+  cursor: pointer;
+  padding: 8px;
+  background: none;
+  border: none;
+  z-index: 1001;
+}
+
+.hamburger span {
+  width: 25px;
+  height: 3px;
+  background-color: var(--text);
+  margin: 3px 0;
+  transition: 0.3s;
+  border-radius: 2px;
+}
+
+.hamburger.active span:nth-child(1) {
+  transform: rotate(-45deg) translate(-5px, 6px);
+}
+
+.hamburger.active span:nth-child(2) {
+  opacity: 0;
+}
+
+.hamburger.active span:nth-child(3) {
+  transform: rotate(45deg) translate(-5px, -6px);
+}
+
 /* ===== RESPONSIVE DESIGN ===== */
 @media (max-width: 768px) {
+  .hamburger {
+    display: flex;
+  }
+  
+  .bottom-nav {
+    transform: translateY(100%);
+    transition: transform 0.3s ease;
+  }
+  
+  .bottom-nav.active {
+    transform: translateY(0);
+  }
+  
   .main-content {
     padding: 1rem;
   }
