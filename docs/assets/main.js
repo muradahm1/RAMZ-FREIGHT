@@ -143,19 +143,6 @@ if (menuBtn && navMenu) {
 	});
 }
 
-// Hamburger menu for dashboards
-// Hamburger menu for dashboards
-document.addEventListener('DOMContentLoaded', () => {
-	const hamburger = document.querySelector('#hamburger');
-	const bottomNav = document.querySelector('.bottom-nav');
-	if (hamburger && bottomNav) {
-		hamburger.addEventListener('click', () => {
-			hamburger.classList.toggle('active');
-			bottomNav.classList.toggle('active');
-		});
-	}
-});
-
 // Save the last visited page before the window unloads
 window.addEventListener('beforeunload', () => {
     // List of pages that should not be saved as the last location

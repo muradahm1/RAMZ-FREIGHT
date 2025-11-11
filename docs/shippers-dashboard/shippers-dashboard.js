@@ -101,6 +101,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         // --- 6. Initialize Language Switcher ---
         const langContainer = document.getElementById('langSwitcher');
         if (langContainer) {
+            langContainer.innerHTML = ''; // Clear existing switcher to prevent duplicates
             langContainer.appendChild(createLanguageSwitcher());
         }
 
