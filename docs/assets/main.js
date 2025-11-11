@@ -1,7 +1,6 @@
 
 // main.js - Global JS for RAMZ-FREIGHT
 import { setLanguage, getLanguage } from './translations.js';
-import { createLanguageSwitcher } from './language-switcher.js';
 
 // Clean URLs - Remove .html from address bar
 (function() {
@@ -94,19 +93,10 @@ document.addEventListener('DOMContentLoaded', function() {
 	initializeFloatingLabels();
 
 	// --- Language and Translation Setup ---
-	// This is the single source of truth for initializing translations.
+	// Apply the saved language immediately on script load.
 	try {
-		// 1. Apply the saved language immediately on script load.
 		const savedLang = getLanguage();
 		setLanguage(savedLang);
-
-		// 2. Create and inject the language switcher UI component once the DOM is ready.
-		const langContainer = document.getElementById('langSwitcher');
-		if (langContainer) {
-			// Clear any potential fallback content before appending.
-			langContainer.innerHTML = '';
-			langContainer.appendChild(createLanguageSwitcher());
-		}
 	} catch (err) {
 		console.error('Error initializing translations:', err);
 	}
