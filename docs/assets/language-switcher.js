@@ -50,17 +50,14 @@ export function createLanguageSwitcher() {
     return switcher;
 }
 
-// Auto-add to header
-document.addEventListener('DOMContentLoaded', () => {
-    // Check if already initialized globally
-    if (window.languageSwitcherInitialized) return;
+// Auto-add to header - use immediate execution to prevent duplicates
+if (!window.languageSwitcherInitialized) {
+    window.languageSwitcherInitialized = true;
     
-    const langContainer = document.getElementById('langSwitcher');
-    if (langContainer) {
-        // Only add if no language switcher exists
-        if (!langContainer.querySelector('.language-switcher')) {
+    document.addEventListener('DOMContentLoaded', () => {
+        const langContainer = document.getElementById('langSwitcher');
+        if (langContainer && !langContainer.hasChildNodes()) {
             langContainer.appendChild(createLanguageSwitcher());
-            window.languageSwitcherInitialized = true;
         }
-    }
-});
+    });
+}
