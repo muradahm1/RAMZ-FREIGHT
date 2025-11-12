@@ -6,18 +6,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     const submitBtn = document.getElementById('submitProfile');
     const form = document.getElementById('completeProfileForm');
     
-    // Debug: Check if elements are found
-    console.log('Elements found:');
-    console.log('nextBtn:', nextBtn);
-    console.log('prevBtn:', prevBtn);
-    console.log('submitBtn:', submitBtn);
-    console.log('form:', form);
-    
-    if (!nextBtn) {
-        console.error('Next button not found!');
-        return;
-    }
-    
     // Show loading indicator
     const showLoading = (message = 'Loading...') => {
         const loading = document.createElement('div');
@@ -38,7 +26,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     showLoading('Checking profile status...');
     
-    // Ensure Supabase client is ready before calling auth methods
+    // Ensure Supabase client is ready
     try {
         await supabaseReady;
     } catch (err) {
@@ -48,15 +36,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         return;
     }
 
-    // Fast session and profile check with caching
+    // Session check
     try {
-        // Check cached profile status first
-        const cachedProfileStatus = localStorage.getItem('profile_completed');
-        if (cachedProfileStatus === 'true') {
-            window.location.href = '../trucks-dashboard-cheak/truck-dashboard.html';
-            return;
-        }
-
         const { data: { session } } = await supabase.auth.getSession();
         if (!session || !session.user) {
             hideLoading();
@@ -67,136 +48,55 @@ document.addEventListener('DOMContentLoaded', async () => {
         
         if (!session.user.email_confirmed_at) {
             hideLoading();
-            alert('Please verify your email before completing your profile. Check your inbox for the verification link.');
+            alert('Please verify your email before completing your profile.');
             await supabase.auth.signOut();
             window.location.href = '../trucks-login/trucks-login.html';
             return;
         }
         
-        // Fast profile check with cache
-        let existingVehicle = null;
-        const cachedVehicle = localStorage.getItem(`vehicle_${session.user.id}`);
-        if (cachedVehicle) {
-            try {
-                const parsed = JSON.parse(cachedVehicle);
-                if (parsed.expires_at > Date.now()) {
-                    existingVehicle = parsed.data;
-                }
-            } catch (e) {}
-        }
-        
-        if (!existingVehicle) {
-            const { data } = await supabase
-                .from('vehicles')
-                .select('id')
-                .eq('user_id', session.user.id)
-                .limit(1)
-                .maybeSingle();
-            existingVehicle = data;
-            
-            // Cache for 10 minutes
-            localStorage.setItem(`vehicle_${session.user.id}`, JSON.stringify({
-                data: existingVehicle,
-                expires_at: Date.now() + 600000
-            }));
-        }
+        // Check if profile already completed
+        const { data: existingVehicle } = await supabase
+            .from('vehicles')
+            .select('id')
+            .eq('user_id', session.user.id)
+            .limit(1)
+            .maybeSingle();
         
         if (existingVehicle) {
-            // Cache the result to avoid future checks
-            localStorage.setItem('profile_completed', 'true');
             hideLoading();
             alert('Profile already completed. Redirecting to dashboard...');
             window.location.href = '../trucks-dashboard-cheak/truck-dashboard.html';
             return;
         }
         
-        // Profile not completed, show form
         hideLoading();
     } catch (err) {
         console.error('Error checking session:', err);
-        // Clear all caches on error
-        localStorage.removeItem('profile_completed');
-        localStorage.removeItem(`vehicle_${session?.user?.id}`);
         hideLoading();
         alert('Failed to verify authentication. Please log in again.');
         window.location.href = '../trucks-login/trucks-login.html';
         return;
     }
 
-    // Step navigation with debugging
+    // Step navigation
     nextBtn.addEventListener('click', (e) => {
         e.preventDefault();
-        e.stopPropagation();
-        console.log('Next button clicked');
         if (validateStep1()) {
-            console.log('Validation passed, moving to step 2');
             showStep(2);
-        } else {
-            console.log('Validation failed');
         }
     });
-    
-    // Additional event listener as backup
-    nextBtn.onclick = function(e) {
+
+    prevBtn.addEventListener('click', (e) => {
         e.preventDefault();
-        e.stopPropagation();
-        console.log('Next button onclick triggered');
-        if (validateStep1()) {
-            showStep(2);
-        }
-    };
+        showStep(1);
+    });
 
-    if (prevBtn) {
-        prevBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            console.log('Previous button clicked');
-            showStep(1);
-        });
-    }
-
-    // Form submission with immediate feedback
+    // Form submission
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
-        
-        // Immediate visual feedback
-        submitBtn.style.transform = 'scale(0.98)';
-        setTimeout(() => {
-            submitBtn.style.transform = '';
-        }, 150);
-        
         if (validateStep2()) {
             await submitProfile();
         }
-    });
-    
-    // Add click feedback to submit button
-    submitBtn.addEventListener('mousedown', () => {
-        submitBtn.style.transform = 'scale(0.95)';
-        // Haptic feedback for mobile
-        if (navigator.vibrate) {
-            navigator.vibrate(50);
-        }
-    });
-    
-    submitBtn.addEventListener('mouseup', () => {
-        submitBtn.style.transform = '';
-    });
-    
-    submitBtn.addEventListener('mouseleave', () => {
-        submitBtn.style.transform = '';
-    });
-    
-    // Touch events for mobile
-    submitBtn.addEventListener('touchstart', (e) => {
-        e.preventDefault();
-        submitBtn.style.transform = 'scale(0.95)';
-        if (navigator.vibrate) {
-            navigator.vibrate(50);
-        }
-    });
-    
-    submitBtn.addEventListener('touchend', () => {
-        submitBtn.style.transform = '';
     });
 
     // File upload handlers
@@ -205,13 +105,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Initialize button text
     const btnText = submitBtn.querySelector('.btn-text');
     if (btnText) {
-        const translations = window.appTranslations?.translations;
-        const currentLang = window.appTranslations?.getLanguage() || 'en';
-        btnText.textContent = translations?.[currentLang]?.completeRegistration || 'Complete Registration';
+        btnText.textContent = 'Complete Registration';
     }
 
     function validateStep1() {
-        console.log('Validating step 1...');
         const fields = [
             { id: 'basicName', error: 'name-error', message: 'Full name is required' },
             { id: 'basicphone', error: 'phone-error', message: 'Phone number is required' },
@@ -223,33 +120,18 @@ document.addEventListener('DOMContentLoaded', async () => {
         ];
 
         let isValid = true;
-        const missingFields = [];
         
         fields.forEach(field => {
             const input = document.getElementById(field.id);
             const errorEl = document.getElementById(field.error);
             
-            console.log(`Checking field ${field.id}:`, input?.value);
-            
             if (!input || !input.value.trim()) {
-                if (errorEl) {
-                    errorEl.textContent = field.message;
-                    errorEl.style.display = 'block';
-                }
+                if (errorEl) errorEl.textContent = field.message;
                 isValid = false;
-                missingFields.push(field.message);
             } else {
-                if (errorEl) {
-                    errorEl.textContent = '';
-                    errorEl.style.display = 'none';
-                }
+                if (errorEl) errorEl.textContent = '';
             }
         });
-
-        console.log('Validation result:', isValid);
-        if (!isValid) {
-            alert('Please fill in all required fields:\n' + missingFields.join('\n'));
-        }
 
         return isValid;
     }
@@ -265,7 +147,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         ];
 
         let isValid = true;
-        const missingFiles = [];
         
         files.forEach(file => {
             const input = document.getElementById(file.id);
@@ -274,45 +155,27 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (!input || !input.files[0]) {
                 if (errorEl) errorEl.textContent = file.message;
                 isValid = false;
-                missingFiles.push(file.message);
             } else {
                 if (errorEl) errorEl.textContent = '';
             }
         });
-        
-        if (!isValid) {
-            alert('Please upload all required documents:\n' + missingFiles.join('\n'));
-        }
 
         return isValid;
     }
 
     function showStep(stepNumber) {
-        console.log('Showing step:', stepNumber);
-        
         // Update progress steps
         document.querySelectorAll('.step').forEach(step => {
             step.classList.remove('active');
         });
-        const progressStep = document.querySelector(`[data-step="${stepNumber}"]`);
-        if (progressStep) {
-            progressStep.classList.add('active');
-        }
+        document.querySelector(`[data-step="${stepNumber}"]`).classList.add('active');
 
         // Update form steps
         document.querySelectorAll('.step-form').forEach(form => {
             form.classList.remove('active');
         });
-        const formStep = document.querySelector(`.step-form[data-step="${stepNumber}"]`);
-        if (formStep) {
-            formStep.classList.add('active');
-            console.log('Step', stepNumber, 'is now active');
-        } else {
-            console.error('Could not find form step:', stepNumber);
-        }
+        document.querySelector(`.step-form[data-step="${stepNumber}"]`).classList.add('active');
     }
-    
-
 
     function setupFileUploads() {
         const fileInputs = ['idFront', 'idBack', 'drivingLicenseFront', 'drivingLicenseBack', 'carPhoto', 'carLicense'];
@@ -332,39 +195,23 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     async function submitProfile() {
-        console.log('Starting profile submission...');
         setLoading(true);
         
-        // Haptic feedback for completion start
-        if (navigator.vibrate) {
-            navigator.vibrate([100, 50, 100]);
-        }
-        
         try {
-            console.log('Getting session...');
             const { data: { session } } = await supabase.auth.getSession();
             if (!session || !session.user) {
                 throw new Error('User not authenticated');
             }
             const user = session.user;
-            console.log('User authenticated:', user.id);
 
-            // Check if user email is verified
             if (!user.email_confirmed_at) {
-                throw new Error('Please verify your email before completing your profile. Check your inbox for the verification link.');
+                throw new Error('Please verify your email before completing your profile.');
             }
 
-            // Upload files with progress
-            const btnText = submitBtn.querySelector('.btn-text');
-            if (btnText) btnText.textContent = 'Preparing files...';
-            
-            console.log('Starting file upload...');
+            // Upload files
             const fileUrls = await uploadFiles();
-            console.log('Files uploaded successfully:', fileUrls);
-            
-            if (btnText) btnText.textContent = 'Saving profile...';
 
-            // Save vehicle data to database
+            // Save vehicle data
             const vehicleData = {
                 user_id: user.id,
                 vehicle_type: document.getElementById('carType').value,
@@ -380,9 +227,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                 vehicle_photo_url: fileUrls.carPhoto,
                 vehicle_license_url: fileUrls.carLicense
             };
-            
-            console.log('User ID:', user.id);
-            console.log('User verified:', user.email_confirmed_at);
 
             const { error } = await supabase
                 .from('vehicles')
@@ -401,46 +245,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             if (profileError) throw profileError;
 
-            // Cache profile completion status and vehicle data
-            localStorage.setItem('profile_completed', 'true');
-            localStorage.setItem(`vehicle_${user.id}`, JSON.stringify({
-                data: { id: 'completed' },
-                expires_at: Date.now() + 86400000 // 24 hours
-            }));
-            
-            // Success haptic feedback and animation
-            if (navigator.vibrate) {
-                navigator.vibrate([200, 100, 200, 100, 200]);
-            }
-            
-            // Success animation
-            submitBtn.style.background = 'linear-gradient(135deg, #28a745 0%, #20c997 100%)';
-            const btnText = submitBtn.querySelector('.btn-text');
-            if (btnText) btnText.textContent = '✓ Registration Complete!';
-            
-            setTimeout(() => {
-                alert('Profile completed successfully! Please wait for approval.');
-                window.location.href = '../trucks-dashboard-cheak/truck-dashboard.html';
-            }, 1500);
+            alert('Profile completed successfully! Please wait for approval.');
+            window.location.href = '../trucks-dashboard-cheak/truck-dashboard.html';
 
         } catch (error) {
             console.error('Error submitting profile:', error);
-            console.error('Error stack:', error.stack);
-            
-            // Error haptic feedback
-            if (navigator.vibrate) {
-                navigator.vibrate([300, 100, 300]);
-            }
-            
-            // Show detailed error message
-            let errorMessage = error.message || 'Unknown error occurred';
-            if (error.message.includes('documents')) {
-                errorMessage = 'File upload failed. Please check your internet connection and try again.';
-            }
-            
-            alert('Failed to complete profile: ' + errorMessage);
+            alert('Failed to complete profile: ' + error.message);
         } finally {
-            console.log('Profile submission completed');
             setLoading(false);
         }
     }
@@ -458,41 +269,23 @@ document.addEventListener('DOMContentLoaded', async () => {
         const { data: { session } } = await supabase.auth.getSession();
         const user = session?.user;
         
-        // Simple file processing - no compression to avoid issues
-        const processFile = (file) => {
-            return Promise.resolve(file); // Return file as-is for reliability
-        };
-        
         const uploadPromises = Object.entries(fileInputs).map(async ([key, file]) => {
             if (!file) return [key, null];
+
+            const fileExt = file.name.split('.').pop();
+            const fileName = `${user.id}/${key}_${Date.now()}.${fileExt}`;
             
-            try {
-                // Update progress
-                const btnText = submitBtn.querySelector('.btn-text');
-                if (btnText) btnText.textContent = `Uploading ${key}...`;
+            const { data, error } = await supabase.storage
+                .from('documents')
+                .upload(fileName, file);
 
-                const processedFile = await processFile(file);
-                const fileExt = file.name.split('.').pop();
-                const fileName = `${user.id}/${key}_${Date.now()}.${fileExt}`;
-                
-                const { data, error } = await supabase.storage
-                    .from('documents')
-                    .upload(fileName, processedFile);
+            if (error) throw error;
 
-                if (error) {
-                    console.error(`Upload error for ${key}:`, error);
-                    throw new Error(`Failed to upload ${key}: ${error.message}`);
-                }
+            const { data: { publicUrl } } = supabase.storage
+                .from('documents')
+                .getPublicUrl(fileName);
 
-                const { data: { publicUrl } } = supabase.storage
-                    .from('documents')
-                    .getPublicUrl(fileName);
-
-                return [key, publicUrl];
-            } catch (error) {
-                console.error(`Error processing ${key}:`, error);
-                throw error;
-            }
+            return [key, publicUrl];
         });
 
         const results = await Promise.all(uploadPromises);
@@ -503,38 +296,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         submitBtn.disabled = isLoading;
         submitBtn.classList.toggle('loading', isLoading);
         
-        // Prevent form resubmission
-        if (isLoading) {
-            form.style.pointerEvents = 'none';
-        } else {
-            form.style.pointerEvents = '';
-        }
-        
-        // Add visual feedback
-        if (isLoading) {
-            submitBtn.style.opacity = '0.8';
-            submitBtn.style.cursor = 'not-allowed';
-            submitBtn.style.transform = 'scale(0.98)';
-            submitBtn.style.pointerEvents = 'none';
-            submitBtn.style.background = 'linear-gradient(135deg, #cc5529 0%, #cc6b42 100%)';
-        } else {
-            submitBtn.style.opacity = '';
-            submitBtn.style.cursor = '';
-            submitBtn.style.transform = '';
-            submitBtn.style.pointerEvents = '';
-            submitBtn.style.background = '';
-        }
-        
         const btnText = submitBtn.querySelector('.btn-text');
         if (btnText) {
-            if (isLoading) {
-                btnText.textContent = 'Processing Files...';
-            } else {
-                // Use translation if available, otherwise fallback to English
-                const translations = window.appTranslations?.translations;
-                const currentLang = window.appTranslations?.getLanguage() || 'en';
-                btnText.textContent = translations?.[currentLang]?.completeRegistration || 'Complete Registration';
-            }
+            btnText.textContent = isLoading ? 'Processing...' : 'Complete Registration';
         }
     }
 });
