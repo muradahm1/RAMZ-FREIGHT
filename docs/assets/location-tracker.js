@@ -4,6 +4,17 @@ class LocationTracker {
     this.watchId = null;
     this.currentPosition = null;
     this.updateInterval = 30000; // 30 seconds
+    this.syncInterval = null;
+    
+    // Listen for network changes
+    window.addEventListener('online', () => {
+      console.log('Network online - syncing locations');
+      this.syncOfflineLocations();
+    });
+    
+    window.addEventListener('offline', () => {
+      console.log('Network offline - queuing locations');
+    });
   }
 
   async requestPermission() {
@@ -51,6 +62,11 @@ class LocationTracker {
   startTracking(callback) {
     if (this.watchId) return;
 
+    // Sync any offline locations first
+    if (navigator.onLine) {
+      this.syncOfflineLocations();
+    }
+
     this.watchId = navigator.geolocation.watchPosition(
       position => {
         this.currentPosition = {
@@ -59,6 +75,7 @@ class LocationTracker {
           accuracy: position.coords.accuracy,
           speed: position.coords.speed,
           heading: position.coords.heading,
+          altitude: position.coords.altitude,
           timestamp: position.timestamp
         };
 
@@ -70,10 +87,8 @@ class LocationTracker {
         // Call callback with new position
         if (callback) callback(this.currentPosition);
 
-        // Sync to backend if online
-        if (navigator.onLine) {
-          this.syncLocation(this.currentPosition);
-        }
+        // Always try to sync (will queue if offline)
+        this.syncLocation(this.currentPosition);
       },
       error => {
         console.error('Location error:', error);
@@ -84,6 +99,13 @@ class LocationTracker {
         maximumAge: 5000
       }
     );
+
+    // Set up periodic offline sync
+    this.syncInterval = setInterval(() => {
+      if (navigator.onLine) {
+        this.syncOfflineLocations();
+      }
+    }, 30000); // Every 30 seconds
   }
 
   stopTracking() {
@@ -91,14 +113,45 @@ class LocationTracker {
       navigator.geolocation.clearWatch(this.watchId);
       this.watchId = null;
     }
+    
+    if (this.syncInterval) {
+      clearInterval(this.syncInterval);
+      this.syncInterval = null;
+    }
+    
+    // Final sync before stopping
+    if (navigator.onLine) {
+      this.syncOfflineLocations();
+    }
   }
 
   async syncLocation(position) {
     try {
       // Get current user and shipment from session
-      const shipmentId = sessionStorage.getItem('activeShipmentId');
+      const shipmentId = sessionStorage.getItem('activeShipmentId') || localStorage.getItem('active_shipment_id');
       if (!shipmentId) return;
 
+      // Try Supabase first (faster and more reliable)
+      if (window.supabase) {
+        const { error } = await window.supabase
+          .from('shipment_tracking')
+          .insert({
+            shipment_id: shipmentId,
+            latitude: position.latitude,
+            longitude: position.longitude,
+            speed: position.speed || 0,
+            accuracy: position.accuracy || 0,
+            heading: position.heading || 0,
+            altitude: position.altitude || 0,
+            timestamp: new Date(position.timestamp).toISOString()
+          });
+
+        if (error) throw error;
+        console.log('Location synced via Supabase');
+        return;
+      }
+
+      // Fallback to API endpoint
       const response = await fetch('/api/update-location', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -115,14 +168,56 @@ class LocationTracker {
     } catch (error) {
       console.error('Failed to sync location:', error);
       // Save for later sync
-      if (window.offlineSync) {
-        window.offlineSync.savePendingSync({
-          url: '/api/update-location',
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          data: position
-        });
+      this.saveForOfflineSync(position);
+    }
+  }
+
+  saveForOfflineSync(position) {
+    try {
+      const offlineQueue = JSON.parse(localStorage.getItem('location_offline_queue') || '[]');
+      const shipmentId = sessionStorage.getItem('activeShipmentId') || localStorage.getItem('active_shipment_id');
+      
+      offlineQueue.push({
+        shipment_id: shipmentId,
+        latitude: position.latitude,
+        longitude: position.longitude,
+        speed: position.speed || 0,
+        accuracy: position.accuracy || 0,
+        timestamp: new Date(position.timestamp).toISOString(),
+        queued_at: new Date().toISOString()
+      });
+      
+      // Keep only last 100 positions to prevent memory issues
+      if (offlineQueue.length > 100) {
+        offlineQueue.splice(0, offlineQueue.length - 100);
       }
+      
+      localStorage.setItem('location_offline_queue', JSON.stringify(offlineQueue));
+    } catch (e) {
+      console.error('Failed to save offline location:', e);
+    }
+  }
+
+  async syncOfflineLocations() {
+    try {
+      const offlineQueue = JSON.parse(localStorage.getItem('location_offline_queue') || '[]');
+      if (offlineQueue.length === 0) return;
+
+      console.log(`Syncing ${offlineQueue.length} offline locations...`);
+
+      if (window.supabase) {
+        // Batch insert for better performance
+        const { error } = await window.supabase
+          .from('shipment_tracking')
+          .insert(offlineQueue);
+
+        if (!error) {
+          localStorage.removeItem('location_offline_queue');
+          console.log('Offline locations synced successfully');
+        }
+      }
+    } catch (error) {
+      console.error('Failed to sync offline locations:', error);
     }
   }
 
