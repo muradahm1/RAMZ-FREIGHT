@@ -34,6 +34,37 @@ async function handleCallback() {
     const role = localStorage.getItem('userRole');
     localStorage.removeItem('userRole'); // Clean up after use
 
+    // Check for role conflicts
+    if (role && data.session?.user) {
+      const currentRole = data.session.user.user_metadata?.user_role;
+      
+      // If user already has a different role, prevent access
+      if (currentRole && currentRole !== role) {
+        await supabase.auth.signOut();
+        const errorMsg = currentRole === 'shipper' 
+          ? 'This account is registered as a Shipper. Please use the Shipper login or create a new Truck Owner account.'
+          : 'This account is registered as a Truck Owner. Please use the Truck Owner login or create a new Shipper account.';
+        
+        const redirectUrl = currentRole === 'shipper'
+          ? `${origin}${basePath}/docs/shippers-login/shippers-login.html?error=${encodeURIComponent(errorMsg)}`
+          : `${origin}${basePath}/docs/trucks-login/trucks-login.html?error=${encodeURIComponent(errorMsg)}`;
+        
+        window.location.href = redirectUrl;
+        return;
+      }
+      
+      // Set role if not already set
+      if (!currentRole) {
+        try {
+          await supabase.auth.updateUser({
+            data: { user_role: role }
+          });
+        } catch (updateError) {
+          console.error('Failed to update user role:', updateError);
+        }
+      }
+    }
+
     // Also check for a specific post-auth redirect path.
     const intendedPath = localStorage.getItem('post_auth_redirect');
     localStorage.removeItem('post_auth_redirect');

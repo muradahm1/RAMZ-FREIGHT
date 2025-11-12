@@ -9,6 +9,15 @@ function getAppBasePath() {
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
+    // Check for error message in URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const errorMsg = urlParams.get('error');
+    if (errorMsg) {
+        alert(errorMsg);
+        // Clean URL
+        window.history.replaceState({}, document.title, window.location.pathname);
+    }
+    
     // Check if user is already logged in
     try {
         await supabaseReady;
