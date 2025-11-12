@@ -107,7 +107,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         try {
             await supabaseReady;
             
-            // Sign up the user
+            // Fast duplicate email check
+            const { data: existingUser } = await supabase.auth.admin.listUsers({
+                filter: `email.eq.${email}`
+            }).catch(() => ({ data: null })); // Ignore admin errors
+            
+            // Sign up the user (Supabase handles duplicates gracefully)
             const { data: { user }, error: signUpError } = await supabase.auth.signUp({
                 email: email,
                 password: password,

@@ -5,46 +5,86 @@ document.addEventListener('DOMContentLoaded', async () => {
     const prevBtn = document.getElementById('backToStep1');
     const submitBtn = document.getElementById('submitProfile');
     const form = document.getElementById('completeProfileForm');
+    
+    // Show loading indicator
+    const showLoading = (message = 'Loading...') => {
+        const loading = document.createElement('div');
+        loading.id = 'profile-loading';
+        loading.style.cssText = `
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8); display: flex; align-items: center;
+            justify-content: center; z-index: 9999; color: white;
+        `;
+        loading.innerHTML = `<div><i class="fas fa-spinner fa-spin"></i> ${message}</div>`;
+        document.body.appendChild(loading);
+    };
+    
+    const hideLoading = () => {
+        const loading = document.getElementById('profile-loading');
+        if (loading) loading.remove();
+    };
+    
+    showLoading('Checking profile status...');
+    
     // Ensure Supabase client is ready before calling auth methods
     try {
         await supabaseReady;
     } catch (err) {
         console.error('Supabase failed to initialize:', err);
-        // Allow user to interact but prevent profile submission
+        hideLoading();
         alert('Authentication service is temporarily unavailable. Please try again later.');
-        // still attach navigation handlers so UI doesn't appear broken
+        return;
     }
 
-    // Check if user is authenticated and email is verified
+    // Fast session and profile check with caching
     try {
+        // Check cached profile status first
+        const cachedProfileStatus = localStorage.getItem('profile_completed');
+        if (cachedProfileStatus === 'true') {
+            window.location.href = '../trucks-dashboard-cheak/truck-dashboard.html';
+            return;
+        }
+
         const { data: { session } } = await supabase.auth.getSession();
         if (!session || !session.user) {
+            hideLoading();
             alert('Please log in first.');
             window.location.href = '../trucks-login/trucks-login.html';
             return;
         }
+        
         if (!session.user.email_confirmed_at) {
+            hideLoading();
             alert('Please verify your email before completing your profile. Check your inbox for the verification link.');
             await supabase.auth.signOut();
             window.location.href = '../trucks-login/trucks-login.html';
             return;
         }
         
-        // Check if profile already completed
+        // Fast profile check - only select ID for speed
         const { data: existingVehicle } = await supabase
             .from('vehicles')
-            .select('*')
+            .select('id')
             .eq('user_id', session.user.id)
-            .single();
+            .limit(1)
+            .maybeSingle();
         
         if (existingVehicle) {
+            // Cache the result to avoid future checks
+            localStorage.setItem('profile_completed', 'true');
+            hideLoading();
             alert('Profile already completed. Redirecting to dashboard...');
             window.location.href = '../trucks-dashboard-cheak/truck-dashboard.html';
             return;
         }
+        
+        // Profile not completed, show form
+        hideLoading();
     } catch (err) {
         console.error('Error checking session:', err);
-        // If session check fails, redirect to login as a fallback
+        // Clear cache on error
+        localStorage.removeItem('profile_completed');
+        hideLoading();
         alert('Failed to verify authentication. Please log in again.');
         window.location.href = '../trucks-login/trucks-login.html';
         return;
@@ -226,6 +266,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             if (profileError) throw profileError;
 
+            // Cache profile completion status
+            localStorage.setItem('profile_completed', 'true');
+            
             alert('Profile completed successfully! Please wait for approval.');
             window.location.href = '../trucks-dashboard-cheak/truck-dashboard.html';
 
