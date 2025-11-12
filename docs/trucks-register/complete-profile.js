@@ -223,17 +223,24 @@ document.addEventListener('DOMContentLoaded', async () => {
         ];
 
         let isValid = true;
+        const missingFiles = [];
+        
         files.forEach(file => {
             const input = document.getElementById(file.id);
             const errorEl = document.getElementById(file.error);
             
-            if (!input.files[0]) {
-                errorEl.textContent = file.message;
+            if (!input || !input.files[0]) {
+                if (errorEl) errorEl.textContent = file.message;
                 isValid = false;
+                missingFiles.push(file.message);
             } else {
-                errorEl.textContent = '';
+                if (errorEl) errorEl.textContent = '';
             }
         });
+        
+        if (!isValid) {
+            alert('Please upload all required documents:\n' + missingFiles.join('\n'));
+        }
 
         return isValid;
     }
@@ -270,6 +277,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     async function submitProfile() {
+        console.log('Starting profile submission...');
         setLoading(true);
         
         // Haptic feedback for completion start
@@ -278,11 +286,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
         
         try {
+            console.log('Getting session...');
             const { data: { session } } = await supabase.auth.getSession();
             if (!session || !session.user) {
                 throw new Error('User not authenticated');
             }
             const user = session.user;
+            console.log('User authenticated:', user.id);
 
             // Check if user email is verified
             if (!user.email_confirmed_at) {
@@ -293,7 +303,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             const btnText = submitBtn.querySelector('.btn-text');
             if (btnText) btnText.textContent = 'Preparing files...';
             
+            console.log('Starting file upload...');
             const fileUrls = await uploadFiles();
+            console.log('Files uploaded successfully:', fileUrls);
             
             if (btnText) btnText.textContent = 'Saving profile...';
 
@@ -358,14 +370,22 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         } catch (error) {
             console.error('Error submitting profile:', error);
+            console.error('Error stack:', error.stack);
             
             // Error haptic feedback
             if (navigator.vibrate) {
                 navigator.vibrate([300, 100, 300]);
             }
             
-            alert('Failed to complete profile: ' + error.message);
+            // Show detailed error message
+            let errorMessage = error.message || 'Unknown error occurred';
+            if (error.message.includes('documents')) {
+                errorMessage = 'File upload failed. Please check your internet connection and try again.';
+            }
+            
+            alert('Failed to complete profile: ' + errorMessage);
         } finally {
+            console.log('Profile submission completed');
             setLoading(false);
         }
     }
@@ -383,66 +403,41 @@ document.addEventListener('DOMContentLoaded', async () => {
         const { data: { session } } = await supabase.auth.getSession();
         const user = session?.user;
         
-        // Compress and upload files in batches for speed
-        const compressFile = (file) => {
-            return new Promise((resolve) => {
-                if (file.size < 500000) { // < 500KB, no compression
-                    resolve(file);
-                    return;
-                }
-                
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
-                const img = new Image();
-                
-                img.onload = () => {
-                    const maxSize = 1200;
-                    let { width, height } = img;
-                    
-                    if (width > height && width > maxSize) {
-                        height = (height * maxSize) / width;
-                        width = maxSize;
-                    } else if (height > maxSize) {
-                        width = (width * maxSize) / height;
-                        height = maxSize;
-                    }
-                    
-                    canvas.width = width;
-                    canvas.height = height;
-                    ctx.drawImage(img, 0, 0, width, height);
-                    
-                    canvas.toBlob(resolve, 'image/jpeg', 0.8);
-                };
-                
-                img.src = URL.createObjectURL(file);
-            });
+        // Simple file processing - no compression to avoid issues
+        const processFile = (file) => {
+            return Promise.resolve(file); // Return file as-is for reliability
         };
         
         const uploadPromises = Object.entries(fileInputs).map(async ([key, file]) => {
             if (!file) return [key, null];
             
-            // Update progress
-            const btnText = submitBtn.querySelector('.btn-text');
-            if (btnText) btnText.textContent = `Uploading ${key}...`;
+            try {
+                // Update progress
+                const btnText = submitBtn.querySelector('.btn-text');
+                if (btnText) btnText.textContent = `Uploading ${key}...`;
 
-            const compressedFile = await compressFile(file);
-            const fileExt = file.name.split('.').pop();
-            const fileName = `${user.id}/${key}_${Date.now()}.${fileExt}`;
-            
-            const { data, error } = await supabase.storage
-                .from('documents')
-                .upload(fileName, compressedFile, {
-                    cacheControl: '3600',
-                    upsert: false
-                });
+                const processedFile = await processFile(file);
+                const fileExt = file.name.split('.').pop();
+                const fileName = `${user.id}/${key}_${Date.now()}.${fileExt}`;
+                
+                const { data, error } = await supabase.storage
+                    .from('documents')
+                    .upload(fileName, processedFile);
 
-            if (error) throw error;
+                if (error) {
+                    console.error(`Upload error for ${key}:`, error);
+                    throw new Error(`Failed to upload ${key}: ${error.message}`);
+                }
 
-            const { data: { publicUrl } } = supabase.storage
-                .from('documents')
-                .getPublicUrl(fileName);
+                const { data: { publicUrl } } = supabase.storage
+                    .from('documents')
+                    .getPublicUrl(fileName);
 
-            return [key, publicUrl];
+                return [key, publicUrl];
+            } catch (error) {
+                console.error(`Error processing ${key}:`, error);
+                throw error;
+            }
         });
 
         const results = await Promise.all(uploadPromises);
