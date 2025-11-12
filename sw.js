@@ -4,36 +4,24 @@ const DYNAMIC_CACHE = `${CACHE_VERSION}-dynamic`;
 const OFFLINE_PAGE = './offline.html';
 
 const STATIC_ASSETS = [
-  './offline.html',
-  './index.html',
   './docs/homepage/homepage.html',
   './docs/assets/main.css',
-  './docs/assets/main.js',
   './docs/assets/translations.js',
-  './docs/assets/language-switcher.js',
-  './assets/images/icon.png',
-  './assets/images/background.jpg',
-
-  // Add core app pages for better offline experience
-  './docs/shippers-login/shippers-login.html',
-  './docs/shippers-login/shippers-login.js',
-  './docs/shippers-dashboard/shippers-dashboard.html',
-  './docs/shippers-dashboard/shippers-dashboard.js',
-  './docs/trucks-login/trucks-login.html',
-  './docs/trucks-login/trucks-login.js',
-  './docs/trucks-dashboard-cheak/truck-dashboard.html',
-  './docs/trucks-dashboard-cheak/truck-dashboard.js',
-  './docs/live-tracking/live-tracking.html',
-  './docs/live-tracking/live-tracking.js',
-  './assets/sounds/notification.mp3', // Add your notification sound file here
   './docs/assets/supabaseClient.js'
 ];
 
-// Install event - cache static assets
+// Install event - cache static assets safely
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(STATIC_CACHE)
-      .then(cache => cache.addAll(STATIC_ASSETS))
+      .then(cache => {
+        // Add files one by one to avoid failing on missing files
+        return Promise.allSettled(
+          STATIC_ASSETS.map(url => 
+            cache.add(url).catch(err => console.warn(`Failed to cache ${url}:`, err))
+          )
+        );
+      })
       .then(() => self.skipWaiting())
   );
 });
