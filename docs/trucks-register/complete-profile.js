@@ -6,6 +6,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     const submitBtn = document.getElementById('submitProfile');
     const form = document.getElementById('completeProfileForm');
     
+    // Debug: Check if elements are found
+    console.log('Elements found:');
+    console.log('nextBtn:', nextBtn);
+    console.log('prevBtn:', prevBtn);
+    console.log('submitBtn:', submitBtn);
+    console.log('form:', form);
+    
+    if (!nextBtn) {
+        console.error('Next button not found!');
+        return;
+    }
+    
     // Show loading indicator
     const showLoading = (message = 'Loading...') => {
         const loading = document.createElement('div');
@@ -111,16 +123,25 @@ document.addEventListener('DOMContentLoaded', async () => {
         return;
     }
 
-    // Step navigation
-    nextBtn.addEventListener('click', () => {
+    // Step navigation with debugging
+    nextBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        console.log('Next button clicked');
         if (validateStep1()) {
+            console.log('Validation passed, moving to step 2');
             showStep(2);
+        } else {
+            console.log('Validation failed');
         }
     });
 
-    prevBtn.addEventListener('click', () => {
-        showStep(1);
-    });
+    if (prevBtn) {
+        prevBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            console.log('Previous button clicked');
+            showStep(1);
+        });
+    }
 
     // Form submission with immediate feedback
     form.addEventListener('submit', async (e) => {
@@ -179,6 +200,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     function validateStep1() {
+        console.log('Validating step 1...');
         const fields = [
             { id: 'basicName', error: 'name-error', message: 'Full name is required' },
             { id: 'basicphone', error: 'phone-error', message: 'Phone number is required' },
@@ -196,15 +218,24 @@ document.addEventListener('DOMContentLoaded', async () => {
             const input = document.getElementById(field.id);
             const errorEl = document.getElementById(field.error);
             
+            console.log(`Checking field ${field.id}:`, input?.value);
+            
             if (!input || !input.value.trim()) {
-                if (errorEl) errorEl.textContent = field.message;
+                if (errorEl) {
+                    errorEl.textContent = field.message;
+                    errorEl.style.display = 'block';
+                }
                 isValid = false;
                 missingFields.push(field.message);
             } else {
-                if (errorEl) errorEl.textContent = '';
+                if (errorEl) {
+                    errorEl.textContent = '';
+                    errorEl.style.display = 'none';
+                }
             }
         });
 
+        console.log('Validation result:', isValid);
         if (!isValid) {
             alert('Please fill in all required fields:\n' + missingFields.join('\n'));
         }
@@ -246,17 +277,28 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     function showStep(stepNumber) {
+        console.log('Showing step:', stepNumber);
+        
         // Update progress steps
         document.querySelectorAll('.step').forEach(step => {
             step.classList.remove('active');
         });
-        document.querySelector(`[data-step="${stepNumber}"]`).classList.add('active');
+        const progressStep = document.querySelector(`[data-step="${stepNumber}"]`);
+        if (progressStep) {
+            progressStep.classList.add('active');
+        }
 
         // Update form steps
         document.querySelectorAll('.step-form').forEach(form => {
             form.classList.remove('active');
         });
-        document.querySelector(`.step-form[data-step="${stepNumber}"]`).classList.add('active');
+        const formStep = document.querySelector(`.step-form[data-step="${stepNumber}"]`);
+        if (formStep) {
+            formStep.classList.add('active');
+            console.log('Step', stepNumber, 'is now active');
+        } else {
+            console.error('Could not find form step:', stepNumber);
+        }
     }
 
     function setupFileUploads() {
