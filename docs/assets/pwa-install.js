@@ -1,5 +1,5 @@
 // PWA Install Prompt Handler
-let deferredPrompt;
+let pwaPrompt;
 let installBtnShown = false;
 
 // Show install button immediately on page load
@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
-  deferredPrompt = e;
+  pwaPrompt = e;
   if (!installBtnShown) {
     showInstallButton();
   }
@@ -58,15 +58,15 @@ function showInstallButton() {
   document.head.appendChild(style);
   
   installBtn.addEventListener('click', async () => {
-    if (deferredPrompt) {
-      deferredPrompt.prompt();
-      const { outcome } = await deferredPrompt.userChoice;
+    if (pwaPrompt) {
+      pwaPrompt.prompt();
+      const { outcome } = await pwaPrompt.userChoice;
       
       if (outcome === 'accepted') {
         console.log('PWA installed');
       }
       
-      deferredPrompt = null;
+      pwaPrompt = null;
     } else {
       // Fallback for browsers that don't support beforeinstallprompt
       alert('To install this app:\n\n1. Click the menu button (⋮) in your browser\n2. Select "Install app" or "Add to Home Screen"');
@@ -81,7 +81,7 @@ function showInstallButton() {
 
 window.addEventListener('appinstalled', () => {
   console.log('PWA was installed');
-  deferredPrompt = null;
+  pwaPrompt = null;
   const installBtn = document.getElementById('pwa-install-btn');
   if (installBtn) {
     installBtn.remove();

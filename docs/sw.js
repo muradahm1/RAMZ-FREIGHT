@@ -1,12 +1,12 @@
 // Service Worker for RAMZ-FREIGHT PWA
 const CACHE_NAME = 'ramz-freight-v1';
 const urlsToCache = [
-  '/docs/homepage/homepage.html',
-  '/docs/assets/main.css',
-  '/docs/assets/main.js',
-  '/docs/assets/notifications.js',
-  '/docs/assets/supabaseClient.js',
-  '/docs/manifest.json'
+  './homepage/homepage.html',
+  './assets/main.css',
+  './assets/main.js',
+  './assets/notifications.js',
+  './assets/supabaseClient.js',
+  './manifest.json'
 ];
 
 // Install event
