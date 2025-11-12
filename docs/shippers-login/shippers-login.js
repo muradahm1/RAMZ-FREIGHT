@@ -84,16 +84,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         try {
             await supabaseReady;
             
-            // First validate if this email has the correct role
-            const { data: roleCheck, error: roleError } = await supabase.rpc('validate_login_role', {
-                user_email: loginData.email,
-                expected_role: 'shipper'
-            });
-            
-            if (roleError) {
-                console.error('Role validation error:', roleError);
-            }
-            
             // Attempt login
             const { data, error } = await supabase.auth.signInWithPassword({
                 email: loginData.email,
@@ -102,21 +92,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             if (error) throw error;
 
-            // Double-check user role after successful authentication
+            // Check user role after successful authentication
             const userRole = data.user?.user_metadata?.user_role;
-            if (!userRole || (userRole !== 'shipper' && !userRole.startsWith('shipper'))) {
+            if (userRole === 'truck_owner' || userRole === 'truck') {
                 await supabase.auth.signOut();
-                
-                // Get the actual role to provide helpful error message
-                const { data: actualRole } = await supabase.rpc('get_user_role_by_email', {
-                    user_email: loginData.email
-                });
-                
-                if (actualRole === 'truck_owner' || actualRole === 'truck') {
-                    throw new Error('This account is registered as a truck owner. Please use the truck owner login page.');
-                } else {
-                    throw new Error('This account does not have shipper access. Please contact support.');
-                }
+                throw new Error('This account is registered as a truck owner. Please use the truck owner login page.');
             }
 
             alert('Login successful! Redirecting to your dashboard...');

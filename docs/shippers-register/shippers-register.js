@@ -118,21 +118,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             await supabaseReady;
             
-            // Check for existing account with different role
-            const { data: hasConflict, error: conflictError } = await supabase.rpc('check_user_role_conflict', {
-                user_email: signupData.email,
-                new_role: 'shipper'
-            });
-            
-            if (conflictError) {
-                console.error('Role conflict check error:', conflictError);
-            }
-            
-            if (hasConflict) {
-                throw new Error('An account with this email already exists as a truck owner. Please use a different email or login with your existing account.');
-            }
-            
-            // Use backend for secure registration
+            // Use backend for secure registration (includes role conflict check)
             const response = await fetch(`${backendUrl}/auth/signup`, {
                 method: 'POST',
                 headers: {

@@ -149,16 +149,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         const password = document.getElementById('loginPassword').value.trim();
 
         try {
-            // First validate if this email has the correct role
-            const { data: roleCheck, error: roleError } = await supabase.rpc('validate_login_role', {
-                user_email: email,
-                expected_role: 'truck_owner'
-            });
-            
-            if (roleError) {
-                console.error('Role validation error:', roleError);
-            }
-            
             // Attempt login
             const { data, error } = await supabase.auth.signInWithPassword({
                 email: email,
@@ -167,21 +157,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             if (error) throw error;
 
-            // Double-check user role after successful authentication
+            // Check user role after successful authentication
             const userRole = data.user?.user_metadata?.user_role;
-            if (!userRole || (userRole !== 'truck_owner' && userRole !== 'truck' && !userRole.startsWith('truck'))) {
+            if (userRole && userRole.startsWith('shipper')) {
                 await supabase.auth.signOut();
-                
-                // Get the actual role to provide helpful error message
-                const { data: actualRole } = await supabase.rpc('get_user_role_by_email', {
-                    user_email: email
-                });
-                
-                if (actualRole === 'shipper' || actualRole?.startsWith('shipper')) {
-                    throw new Error('This account is registered as a shipper. Please use the shipper login page.');
-                } else {
-                    throw new Error('This account does not have truck owner access. Please contact support.');
-                }
+                throw new Error('This account is registered as a shipper. Please use the shipper login page.');
             }
 
             // Check if profile is completed
