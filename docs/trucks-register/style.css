@@ -361,6 +361,16 @@ header p {
   animation: pulse 2s infinite;
 }
 
+.btn-submit.success {
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%) !important;
+  animation: success-bounce 0.6s ease;
+}
+
+@keyframes success-bounce {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
 @keyframes pulse {
   0%, 100% {
     opacity: 0.8;

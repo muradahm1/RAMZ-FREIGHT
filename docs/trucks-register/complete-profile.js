@@ -289,8 +289,13 @@ document.addEventListener('DOMContentLoaded', async () => {
                 throw new Error('Please verify your email before completing your profile. Check your inbox for the verification link.');
             }
 
-            // Upload files
+            // Upload files with progress
+            const btnText = submitBtn.querySelector('.btn-text');
+            if (btnText) btnText.textContent = 'Preparing files...';
+            
             const fileUrls = await uploadFiles();
+            
+            if (btnText) btnText.textContent = 'Saving profile...';
 
             // Save vehicle data to database
             const vehicleData = {
@@ -336,13 +341,20 @@ document.addEventListener('DOMContentLoaded', async () => {
                 expires_at: Date.now() + 86400000 // 24 hours
             }));
             
-            // Success haptic feedback
+            // Success haptic feedback and animation
             if (navigator.vibrate) {
                 navigator.vibrate([200, 100, 200, 100, 200]);
             }
             
-            alert('Profile completed successfully! Please wait for approval.');
-            window.location.href = '../trucks-dashboard-cheak/truck-dashboard.html';
+            // Success animation
+            submitBtn.style.background = 'linear-gradient(135deg, #28a745 0%, #20c997 100%)';
+            const btnText = submitBtn.querySelector('.btn-text');
+            if (btnText) btnText.textContent = '✓ Registration Complete!';
+            
+            setTimeout(() => {
+                alert('Profile completed successfully! Please wait for approval.');
+                window.location.href = '../trucks-dashboard-cheak/truck-dashboard.html';
+            }, 1500);
 
         } catch (error) {
             console.error('Error submitting profile:', error);
@@ -371,15 +383,58 @@ document.addEventListener('DOMContentLoaded', async () => {
         const { data: { session } } = await supabase.auth.getSession();
         const user = session?.user;
         
+        // Compress and upload files in batches for speed
+        const compressFile = (file) => {
+            return new Promise((resolve) => {
+                if (file.size < 500000) { // < 500KB, no compression
+                    resolve(file);
+                    return;
+                }
+                
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                const img = new Image();
+                
+                img.onload = () => {
+                    const maxSize = 1200;
+                    let { width, height } = img;
+                    
+                    if (width > height && width > maxSize) {
+                        height = (height * maxSize) / width;
+                        width = maxSize;
+                    } else if (height > maxSize) {
+                        width = (width * maxSize) / height;
+                        height = maxSize;
+                    }
+                    
+                    canvas.width = width;
+                    canvas.height = height;
+                    ctx.drawImage(img, 0, 0, width, height);
+                    
+                    canvas.toBlob(resolve, 'image/jpeg', 0.8);
+                };
+                
+                img.src = URL.createObjectURL(file);
+            });
+        };
+        
         const uploadPromises = Object.entries(fileInputs).map(async ([key, file]) => {
             if (!file) return [key, null];
+            
+            // Update progress
+            const btnText = submitBtn.querySelector('.btn-text');
+            if (btnText) btnText.textContent = `Uploading ${key}...`;
 
+            const compressedFile = await compressFile(file);
             const fileExt = file.name.split('.').pop();
             const fileName = `${user.id}/${key}_${Date.now()}.${fileExt}`;
             
             const { data, error } = await supabase.storage
                 .from('documents')
-                .upload(fileName, file);
+                .upload(fileName, compressedFile, {
+                    cacheControl: '3600',
+                    upsert: false
+                });
 
             if (error) throw error;
 
@@ -411,17 +466,19 @@ document.addEventListener('DOMContentLoaded', async () => {
             submitBtn.style.cursor = 'not-allowed';
             submitBtn.style.transform = 'scale(0.98)';
             submitBtn.style.pointerEvents = 'none';
+            submitBtn.style.background = 'linear-gradient(135deg, #cc5529 0%, #cc6b42 100%)';
         } else {
             submitBtn.style.opacity = '';
             submitBtn.style.cursor = '';
             submitBtn.style.transform = '';
             submitBtn.style.pointerEvents = '';
+            submitBtn.style.background = '';
         }
         
         const btnText = submitBtn.querySelector('.btn-text');
         if (btnText) {
             if (isLoading) {
-                btnText.textContent = 'Completing Registration...';
+                btnText.textContent = 'Processing Files...';
             } else {
                 // Use translation if available, otherwise fallback to English
                 const translations = window.appTranslations?.translations;
