@@ -62,59 +62,30 @@
                                 <p>Select a shipment to view tracking information</p>
                             </div>
                         </div>
-                        
-                        <!-- Driver Info Card -->
-                        <div class="info-card driver-info" id="driverInfo">
-                            <h3><i class="fas fa-user"></i> Driver Information</h3>
-                            <div class="info-content">
-                                <div class="driver-details">
-                                    <img id="driverPhoto" src="" alt="Driver" class="driver-photo">
-                                    <div class="driver-text">
-                                        <strong id="driverName">-</strong>
-                                        <span id="driverPhone">-</span>
-                                        <span id="vehicleInfo">-</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
                     </div>
                 </div>
             </section>
 
-            <!-- Tracking Timeline -->
-            <section class="tracking-timeline">
-                <h3>Shipment Progress</h3>
-          <div class="timeline" id="progressTimeline">
-                    <div class="timeline-item" id="timelinePickup">
-                        <div class="timeline-marker">
-                            <i class="fas fa-map-marker-alt"></i>
-                        </div>
-                        <div class="timeline-content">
-                            <h4>Pickup Location</h4>
-                            <p id="pickupAddress">-</p>
-                            <span class="timeline-time" id="pickupTime">Pending</span>
-                        </div>
-                    </div>
-                    
-                    <div class="timeline-item" id="timelineTransit">
-                        <div class="timeline-marker">
-                            <i class="fas fa-truck-loading"></i>
-                        </div>
-                        <div class="timeline-content">
-                            <h4>In Transit</h4>
-                            <p>Shipment is on the way</p>
-                            <span class="timeline-time" id="transitTime">Not started</span>
-                        </div>
-                    </div>
-                    
-                    <div class="timeline-item" id="timelineDelivery">
-                        <div class="timeline-marker">
-                            <i class="fas fa-flag-checkered"></i>
-                        </div>
-                        <div class="timeline-content">
-                            <h4>Delivery Location</h4>
-                            <p id="deliveryAddress">-</p>
-                            <span class="timeline-time" id="deliveryTime">Estimated</span>
+            <!-- Driver Information Section -->
+            <section class="driver-section">
+                <div class="driver-card" id="driverInfo">
+                    <h3><i class="fas fa-user"></i> Driver Information</h3>
+                    <div class="driver-content">
+                        <div class="driver-details">
+                            <img id="driverPhoto" src="" alt="Driver" class="driver-photo">
+                            <div class="driver-info-text">
+                                <div class="driver-name">
+                                    <strong id="driverName">Select a shipment to view driver details</strong>
+                                </div>
+                                <div class="driver-contact">
+                                    <i class="fas fa-phone"></i>
+                                    <span id="driverPhone">-</span>
+                                </div>
+                                <div class="vehicle-info">
+                                    <i class="fas fa-truck"></i>
+                                    <span id="vehicleInfo">-</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

@@ -86,7 +86,7 @@ async function loadShipments(currentUser) {
         shipments.forEach(s => {
             const opt = document.createElement('option');
             opt.value = s.id;
-            opt.textContent = `${s.goods_description} - To: ${s.destination_address} (${s.status})`;
+            opt.textContent = `${sanitizeHTML(s.goods_description)} - To: ${sanitizeHTML(s.destination_address)} (${sanitizeHTML(s.status)})`;
             shipmentSelect.appendChild(opt);
         });
     } catch (err) {
@@ -155,10 +155,10 @@ async function loadShipmentTracking() {
         cachedShipmentData = { shipment, originCoord, destCoord };
         console.log('Shipment data cached:', cachedShipmentData);
 
-        document.getElementById('driverName').textContent = shipment.truck_owner?.full_name || 'N/A';
-        document.getElementById('driverPhone').textContent = shipment.truck_owner?.phone || 'N/A';
-        document.getElementById('vehicleInfo').textContent = shipment.vehicle ? `${shipment.vehicle.vehicle_model} (${shipment.vehicle.license_plate})` : 'N/A';
-        document.getElementById('driverPhoto').src = shipment.truck_owner?.avatar_url || `https://api.dicebear.com/8.x/initials/svg?seed=${shipment.truck_owner?.full_name || 'D'}`;
+        document.getElementById('driverName').textContent = sanitizeHTML(shipment.truck_owner?.full_name || 'N/A');
+        document.getElementById('driverPhone').textContent = sanitizeHTML(shipment.truck_owner?.phone || 'N/A');
+        document.getElementById('vehicleInfo').textContent = shipment.vehicle ? sanitizeHTML(`${shipment.vehicle.vehicle_model} (${shipment.vehicle.license_plate})`) : 'N/A';
+        document.getElementById('driverPhoto').src = shipment.truck_owner?.avatar_url || `https://api.dicebear.com/8.x/initials/svg?seed=${encodeURIComponent(shipment.truck_owner?.full_name || 'D')}`;
 
         const { data: latestTracking } = await supabase
             .from('shipment_tracking')
@@ -234,17 +234,40 @@ function updateTruckPosition(trackingData) {
     if (!map.getBounds().contains(newPos)) map.panTo(newPos);
 }
 
+function sanitizeHTML(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+}
+
 function updateTrackingUI(truckPos) {
     const distToPickup = L.latLng(truckPos).distanceTo(L.latLng(cachedShipmentData.originCoord)) / 1000;
     const distToDest = L.latLng(truckPos).distanceTo(L.latLng(cachedShipmentData.destCoord)) / 1000;
 
-    document.getElementById('trackingDetails').innerHTML = `
-        <p><strong>From:</strong> ${cachedShipmentData.shipment.origin_address}</p>
-        <p><strong>To:</strong> ${cachedShipmentData.shipment.destination_address}</p>
-        <p style="color: #ff6b35; margin-top: 10px;"><strong>Truck Location:</strong></p>
-        <p>📍 Distance to Pickup: ${distToPickup.toFixed(1)} km</p>
-        <p>📍 Distance to Destination: ${distToDest.toFixed(1)} km</p>
-    `;
+    const trackingDetails = document.getElementById('trackingDetails');
+    trackingDetails.innerHTML = '';
+    
+    const fromP = document.createElement('p');
+    fromP.innerHTML = '<strong>From:</strong> ' + sanitizeHTML(cachedShipmentData.shipment.origin_address);
+    trackingDetails.appendChild(fromP);
+    
+    const toP = document.createElement('p');
+    toP.innerHTML = '<strong>To:</strong> ' + sanitizeHTML(cachedShipmentData.shipment.destination_address);
+    trackingDetails.appendChild(toP);
+    
+    const locationP = document.createElement('p');
+    locationP.style.color = '#ff6b35';
+    locationP.style.marginTop = '10px';
+    locationP.innerHTML = '<strong>Truck Location:</strong>';
+    trackingDetails.appendChild(locationP);
+    
+    const pickupP = document.createElement('p');
+    pickupP.textContent = `📍 Distance to Pickup: ${distToPickup.toFixed(1)} km`;
+    trackingDetails.appendChild(pickupP);
+    
+    const destP = document.createElement('p');
+    destP.textContent = `📍 Distance to Destination: ${distToDest.toFixed(1)} km`;
+    trackingDetails.appendChild(destP);
 
     truckMarker.getPopup().setContent(`
         <div style="min-width: 220px;">
@@ -271,7 +294,7 @@ async function geocodeAddress(address) {
 function resetUI() {
     cachedShipmentData = null;
     document.getElementById('trackingDetails').innerHTML = '<p>Select a shipment to view tracking information</p>';
-    document.getElementById('driverName').textContent = '-';
+    document.getElementById('driverName').textContent = 'Select a shipment to view driver details';
     document.getElementById('driverPhone').textContent = '-';
     document.getElementById('vehicleInfo').textContent = '-';
     document.getElementById('trackingStatus').querySelector('span').textContent = 'Select a shipment';

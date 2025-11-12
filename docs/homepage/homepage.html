@@ -7,6 +7,11 @@
   <meta name="description" content="Ramz-Freight connects shippers and truck owners across Ethiopia. Fast, reliable, and affordable freight solutions." />
   <meta name="keywords" content="freight, shipping, logistics, Ethiopia, trucks, transport" />
   <meta name="author" content="Ramz-Freight" />
+  <!-- Security Headers -->
+  <meta http-equiv="X-Content-Type-Options" content="nosniff">
+  <meta http-equiv="X-Frame-Options" content="DENY">
+  <meta http-equiv="X-XSS-Protection" content="1; mode=block">
+  <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
   <!-- Open Graph (for social media) -->
   <meta property="og:title" content="Ramz-Freight" />
   <meta property="og:description" content="Connecting Shippers and Truck Owners across Ethiopia." />
@@ -198,6 +203,9 @@
       <p data-translate="footerText">&copy; 2025 Ramz-Freight. All rights reserved.</p>
     </div>
   </footer>
+  <!-- Environment Configuration (load first) -->
+  <script src="../env-config.js"></script>
+  <script src="../security-config.js" type="module"></script>
   <script src="../assets/main.js" type="module"></script>
   <script src="../assets/translations.js" type="module"></script>
   <script src="../assets/language-switcher.js" type="module"></script>

@@ -1,13 +1,20 @@
 // assets/supabaseClient.js
 
 // Production configuration - use environment variables
-const supabaseUrl = window.location.hostname === 'localhost' 
-  ? 'https://sgmcuwmqmgchvnncbarb.supabase.co'
-  : 'https://sgmcuwmqmgchvnncbarb.supabase.co'; // Replace with your production URL
+const supabaseUrl = window.SUPABASE_URL || 
+  (window.location.hostname === 'localhost' 
+    ? 'https://sgmcuwmqmgchvnncbarb.supabase.co'
+    : 'https://sgmcuwmqmgchvnncbarb.supabase.co');
 
-const supabaseAnonKey = window.location.hostname === 'localhost'
-  ? 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNnbWN1d21xbWdjaHZubmNiYXJiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkzODk5ODYsImV4cCI6MjA3NDk2NTk4Nn0.zytOCIukl2NJCq2ZSXeCo_XCOpSxH6bqV3wk9iLXqM0'
-  : 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNnbWN1d21xbWdjaHZubmNiYXJiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkzODk5ODYsImV4cCI6MjA3NDk2NTk4Nn0.zytOCIukl2NJCq2ZSXeCo_XCOpSxH6bqV3wk9iLXqM0'; // Same for now
+const supabaseAnonKey = window.SUPABASE_ANON_KEY ||
+  (window.location.hostname === 'localhost'
+    ? 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNnbWN1d21xbWdjaHZubmNiYXJiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkzODk5ODYsImV4cCI6MjA3NDk2NTk4Nn0.zytOCIukl2NJCq2ZSXeCo_XCOpSxH6bqV3wk9iLXqM0'
+    : 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNnbWN1d21xbWdjaHZubmNiYXJiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkzODk5ODYsImV4cCI6MjA3NDk2NTk4Nn0.zytOCIukl2NJCq2ZSXeCo_XCOpSxH6bqV3wk9iLXqM0');
+
+// Validate configuration
+if (!supabaseUrl || !supabaseAnonKey) {
+  throw new Error('Supabase configuration is missing. Please check environment variables.');
+}
 
 // The CDN script creates a global 'supabase' object. We can access the createClient function from it.
 // Export a mutable binding for the Supabase client and a promise that resolves
@@ -50,6 +57,12 @@ async function loadSupabaseCdnIfNeeded() {
 export const supabaseReady = loadSupabaseCdnIfNeeded();
 
 // The backend URL - environment based
-export const backendUrl = window.location.hostname === 'localhost'
-  ? 'http://localhost:4000'
-  : 'https://ramz-freight.onrender.com';
+export const backendUrl = window.BACKEND_URL ||
+  (window.location.hostname === 'localhost'
+    ? 'http://localhost:4000'
+    : 'https://ramz-freight.onrender.com');
+
+// Validate backend URL uses HTTPS in production
+if (window.location.protocol === 'https:' && backendUrl.startsWith('http:')) {
+  console.warn('Backend URL should use HTTPS in production');
+}

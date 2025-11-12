@@ -4,6 +4,13 @@ import { initHamburgerMenu } from '../assets/hamburger-menu.js';
 import { createLanguageSwitcher } from '../assets/language-switcher.js';
 import { setLanguage, getLanguage } from '../assets/translations.js';
 
+// Sanitization function
+function sanitizeHTML(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
     const userProfile = document.querySelector('.user-profile');
     const userNameSpan = document.querySelector('.user-name');
@@ -66,7 +73,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     function setupDashboard(user) {
         // --- 2. Populate User Info ---
-        const profileName = user.user_metadata?.full_name || user.email.split('@')[0];
+        const profileName = sanitizeHTML(user.user_metadata?.full_name || user.email.split('@')[0]);
         userNameSpan.textContent = profileName;
         
         // Use translation for welcome message
@@ -79,7 +86,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
         
         // Use a default avatar or one from metadata if available
-        userAvatar.src = user.user_metadata?.avatar_url || `https://api.dicebear.com/8.x/initials/svg?seed=${profileName}`;
+        userAvatar.src = user.user_metadata?.avatar_url || `https://api.dicebear.com/8.x/initials/svg?seed=${encodeURIComponent(profileName)}`;
 
         // --- 3. Logout Functionality ---
         userProfile.addEventListener('click', async () => {
@@ -141,21 +148,50 @@ async function loadActiveShipments(user) {
                 </div>
             `;
         } else {
-            shipmentsList.innerHTML = shipments.map(shipment => `
-            <a href="../live-tracking/live-tracking.html?shipment_id=${shipment.id}" class="shipment-card-link">
-                <div class="shipment-card">
-                    <div class="shipment-info">
-                        <h4>${shipment.goods_description || '<span data-translate="shipmentGeneric">Shipment</span>'}</h4>
-                        <div class="shipment-details">
-                            <span><i class="fas fa-map-marker-alt"></i> ${shipment.origin_address}</span>
-                            <span><i class="fas fa-arrow-right"></i> ${shipment.destination_address}</span>
-                            <span><i class="fas fa-weight"></i> ${shipment.weight_kg || 0} kg</span>
-                        </div>
-                    </div>
-                    <div class="shipment-status status-${shipment.status.toLowerCase()}" data-translate="${shipment.status.toLowerCase()}">${shipment.status.toUpperCase()}</div>
-                </div>
-            </a>
-        `).join('');
+            shipmentsList.innerHTML = '';
+            shipments.forEach(shipment => {
+                const shipmentLink = document.createElement('a');
+                shipmentLink.href = `../live-tracking/live-tracking.html?shipment_id=${encodeURIComponent(shipment.id)}`;
+                shipmentLink.className = 'shipment-card-link';
+                
+                const shipmentCard = document.createElement('div');
+                shipmentCard.className = 'shipment-card';
+                
+                const shipmentInfo = document.createElement('div');
+                shipmentInfo.className = 'shipment-info';
+                
+                const title = document.createElement('h4');
+                title.textContent = shipment.goods_description || 'Shipment';
+                
+                const details = document.createElement('div');
+                details.className = 'shipment-details';
+                
+                const origin = document.createElement('span');
+                origin.innerHTML = '<i class="fas fa-map-marker-alt"></i> ' + sanitizeHTML(shipment.origin_address);
+                
+                const arrow = document.createElement('span');
+                arrow.innerHTML = '<i class="fas fa-arrow-right"></i> ' + sanitizeHTML(shipment.destination_address);
+                
+                const weight = document.createElement('span');
+                weight.innerHTML = '<i class="fas fa-weight"></i> ' + sanitizeHTML(shipment.weight_kg || '0') + ' kg';
+                
+                const status = document.createElement('div');
+                status.className = `shipment-status status-${sanitizeHTML(shipment.status.toLowerCase())}`;
+                status.textContent = shipment.status.toUpperCase();
+                
+                details.appendChild(origin);
+                details.appendChild(arrow);
+                details.appendChild(weight);
+                
+                shipmentInfo.appendChild(title);
+                shipmentInfo.appendChild(details);
+                
+                shipmentCard.appendChild(shipmentInfo);
+                shipmentCard.appendChild(status);
+                
+                shipmentLink.appendChild(shipmentCard);
+                shipmentsList.appendChild(shipmentLink);
+            });
         }
         // Re-apply translations after dynamic content is loaded
         if (window.appTranslations && typeof window.appTranslations.translatePage === 'function') {
