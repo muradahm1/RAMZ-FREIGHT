@@ -1,13 +1,29 @@
 // PWA Install Prompt Handler
 let deferredPrompt;
+let installBtnShown = false;
+
+// Show install button immediately on page load
+document.addEventListener('DOMContentLoaded', () => {
+  // Wait a bit for page to load, then show install button
+  setTimeout(() => {
+    if (!installBtnShown) {
+      showInstallButton();
+    }
+  }, 2000); // Show after 2 seconds
+});
 
 window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
   deferredPrompt = e;
-  showInstallButton();
+  if (!installBtnShown) {
+    showInstallButton();
+  }
 });
 
 function showInstallButton() {
+  if (installBtnShown) return;
+  installBtnShown = true;
+  
   const installBtn = document.createElement('button');
   installBtn.id = 'pwa-install-btn';
   installBtn.innerHTML = '<i class="fas fa-download"></i> Install App';
@@ -28,20 +44,36 @@ function showInstallButton() {
     display: flex;
     align-items: center;
     gap: 8px;
+    animation: slideIn 0.5s ease-out;
   `;
   
+  // Add animation
+  const style = document.createElement('style');
+  style.textContent = `
+    @keyframes slideIn {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+  `;
+  document.head.appendChild(style);
+  
   installBtn.addEventListener('click', async () => {
-    if (!deferredPrompt) return;
-    
-    deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
-    
-    if (outcome === 'accepted') {
-      console.log('PWA installed');
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      
+      if (outcome === 'accepted') {
+        console.log('PWA installed');
+      }
+      
+      deferredPrompt = null;
+    } else {
+      // Fallback for browsers that don't support beforeinstallprompt
+      alert('To install this app:\n\n1. Click the menu button (⋮) in your browser\n2. Select "Install app" or "Add to Home Screen"');
     }
     
-    deferredPrompt = null;
     installBtn.remove();
+    installBtnShown = false;
   });
   
   document.body.appendChild(installBtn);
@@ -50,4 +82,9 @@ function showInstallButton() {
 window.addEventListener('appinstalled', () => {
   console.log('PWA was installed');
   deferredPrompt = null;
+  const installBtn = document.getElementById('pwa-install-btn');
+  if (installBtn) {
+    installBtn.remove();
+  }
+  installBtnShown = false;
 });
