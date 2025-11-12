@@ -289,11 +289,29 @@ header p {
 .btn-next, .btn-submit {
   background: linear-gradient(135deg, #ff6b35 0%, #ff8e53 100%);
   color: white;
+  position: relative;
+  overflow: hidden;
 }
 
-.btn-next:hover, .btn-submit:hover {
+.btn-next:hover, .btn-submit:hover:not(:disabled) {
   transform: translateY(-2px);
   box-shadow: 0 8px 20px rgba(255, 107, 53, 0.4);
+}
+
+.btn-next:active, .btn-submit:active:not(:disabled) {
+  transform: translateY(0) scale(0.98);
+  box-shadow: 0 4px 10px rgba(255, 107, 53, 0.3);
+}
+
+.btn-submit:disabled {
+  opacity: 0.8;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+.btn-submit:disabled:hover {
+  transform: none;
+  box-shadow: none;
 }
 
 /* Button loader */
@@ -321,12 +339,54 @@ header p {
   }
 }
 
+/* Enhanced button transitions */
+.btn-next, .btn-submit {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-submit .btn-text {
+  transition: opacity 0.2s ease;
+}
+
 .btn-submit.loading .btn-text {
   opacity: 0;
 }
 
 .btn-submit.loading .btn-loader {
   display: block;
+}
+
+.btn-submit.loading {
+  background: linear-gradient(135deg, #cc5529 0%, #cc6b42 100%);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 0.8;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* Button ripple effect */
+.btn-submit::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  transform: translate(-50%, -50%);
+  transition: width 0.3s, height 0.3s;
+}
+
+.btn-submit:active::before {
+  width: 300px;
+  height: 300px;
 }
 
 /* Google Button */

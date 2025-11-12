@@ -61,13 +61,33 @@ document.addEventListener('DOMContentLoaded', async () => {
             return;
         }
         
-        // Fast profile check - only select ID for speed
-        const { data: existingVehicle } = await supabase
-            .from('vehicles')
-            .select('id')
-            .eq('user_id', session.user.id)
-            .limit(1)
-            .maybeSingle();
+        // Fast profile check with cache
+        let existingVehicle = null;
+        const cachedVehicle = localStorage.getItem(`vehicle_${session.user.id}`);
+        if (cachedVehicle) {
+            try {
+                const parsed = JSON.parse(cachedVehicle);
+                if (parsed.expires_at > Date.now()) {
+                    existingVehicle = parsed.data;
+                }
+            } catch (e) {}
+        }
+        
+        if (!existingVehicle) {
+            const { data } = await supabase
+                .from('vehicles')
+                .select('id')
+                .eq('user_id', session.user.id)
+                .limit(1)
+                .maybeSingle();
+            existingVehicle = data;
+            
+            // Cache for 10 minutes
+            localStorage.setItem(`vehicle_${session.user.id}`, JSON.stringify({
+                data: existingVehicle,
+                expires_at: Date.now() + 600000
+            }));
+        }
         
         if (existingVehicle) {
             // Cache the result to avoid future checks
@@ -82,8 +102,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         hideLoading();
     } catch (err) {
         console.error('Error checking session:', err);
-        // Clear cache on error
+        // Clear all caches on error
         localStorage.removeItem('profile_completed');
+        localStorage.removeItem(`vehicle_${session?.user?.id}`);
         hideLoading();
         alert('Failed to verify authentication. Please log in again.');
         window.location.href = '../trucks-login/trucks-login.html';
@@ -101,12 +122,49 @@ document.addEventListener('DOMContentLoaded', async () => {
         showStep(1);
     });
 
-    // Form submission
+    // Form submission with immediate feedback
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
+        
+        // Immediate visual feedback
+        submitBtn.style.transform = 'scale(0.98)';
+        setTimeout(() => {
+            submitBtn.style.transform = '';
+        }, 150);
+        
         if (validateStep2()) {
             await submitProfile();
         }
+    });
+    
+    // Add click feedback to submit button
+    submitBtn.addEventListener('mousedown', () => {
+        submitBtn.style.transform = 'scale(0.95)';
+        // Haptic feedback for mobile
+        if (navigator.vibrate) {
+            navigator.vibrate(50);
+        }
+    });
+    
+    submitBtn.addEventListener('mouseup', () => {
+        submitBtn.style.transform = '';
+    });
+    
+    submitBtn.addEventListener('mouseleave', () => {
+        submitBtn.style.transform = '';
+    });
+    
+    // Touch events for mobile
+    submitBtn.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        submitBtn.style.transform = 'scale(0.95)';
+        if (navigator.vibrate) {
+            navigator.vibrate(50);
+        }
+    });
+    
+    submitBtn.addEventListener('touchend', () => {
+        submitBtn.style.transform = '';
     });
 
     // File upload handlers
@@ -214,6 +272,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     async function submitProfile() {
         setLoading(true);
         
+        // Haptic feedback for completion start
+        if (navigator.vibrate) {
+            navigator.vibrate([100, 50, 100]);
+        }
+        
         try {
             const { data: { session } } = await supabase.auth.getSession();
             if (!session || !session.user) {
@@ -266,14 +329,29 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             if (profileError) throw profileError;
 
-            // Cache profile completion status
+            // Cache profile completion status and vehicle data
             localStorage.setItem('profile_completed', 'true');
+            localStorage.setItem(`vehicle_${user.id}`, JSON.stringify({
+                data: { id: 'completed' },
+                expires_at: Date.now() + 86400000 // 24 hours
+            }));
+            
+            // Success haptic feedback
+            if (navigator.vibrate) {
+                navigator.vibrate([200, 100, 200, 100, 200]);
+            }
             
             alert('Profile completed successfully! Please wait for approval.');
             window.location.href = '../trucks-dashboard-cheak/truck-dashboard.html';
 
         } catch (error) {
             console.error('Error submitting profile:', error);
+            
+            // Error haptic feedback
+            if (navigator.vibrate) {
+                navigator.vibrate([300, 100, 300]);
+            }
+            
             alert('Failed to complete profile: ' + error.message);
         } finally {
             setLoading(false);
@@ -320,10 +398,30 @@ document.addEventListener('DOMContentLoaded', async () => {
         submitBtn.disabled = isLoading;
         submitBtn.classList.toggle('loading', isLoading);
         
+        // Prevent form resubmission
+        if (isLoading) {
+            form.style.pointerEvents = 'none';
+        } else {
+            form.style.pointerEvents = '';
+        }
+        
+        // Add visual feedback
+        if (isLoading) {
+            submitBtn.style.opacity = '0.8';
+            submitBtn.style.cursor = 'not-allowed';
+            submitBtn.style.transform = 'scale(0.98)';
+            submitBtn.style.pointerEvents = 'none';
+        } else {
+            submitBtn.style.opacity = '';
+            submitBtn.style.cursor = '';
+            submitBtn.style.transform = '';
+            submitBtn.style.pointerEvents = '';
+        }
+        
         const btnText = submitBtn.querySelector('.btn-text');
         if (btnText) {
             if (isLoading) {
-                btnText.textContent = 'Processing...';
+                btnText.textContent = 'Completing Registration...';
             } else {
                 // Use translation if available, otherwise fallback to English
                 const translations = window.appTranslations?.translations;

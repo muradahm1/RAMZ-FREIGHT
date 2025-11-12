@@ -16,9 +16,29 @@ document.addEventListener('DOMContentLoaded', async () => {
         return;
     }
 
-    // Check session once and require login
-    const { data: sessionData } = await supabase.auth.getSession();
-    const session = sessionData?.session || null;
+    // Fast session check with cache
+    let session = null;
+    const cachedSession = localStorage.getItem('fast_session_cache');
+    if (cachedSession) {
+        try {
+            const parsed = JSON.parse(cachedSession);
+            if (parsed.expires_at > Date.now()) {
+                session = parsed.session;
+            }
+        } catch (e) {}
+    }
+    
+    if (!session) {
+        const { data: sessionData } = await supabase.auth.getSession();
+        session = sessionData?.session || null;
+        if (session) {
+            localStorage.setItem('fast_session_cache', JSON.stringify({
+                session,
+                expires_at: Date.now() + 300000 // 5 min cache
+            }));
+        }
+    }
+    
     if (!session) {
         window.location.replace('../shippers-login/shippers-login.html');
         return;
@@ -67,6 +87,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         submitBtn.disabled = true;
         submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Posting Request...';
+        form.style.pointerEvents = 'none';
 
         const formData = new FormData(form);
 
@@ -136,6 +157,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 alert(`Error: ${error.message}`);
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Post Shipment Request';
+                form.style.pointerEvents = '';
             }
         }
     });
