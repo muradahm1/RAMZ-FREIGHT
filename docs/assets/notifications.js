@@ -4,12 +4,47 @@ export class NotificationManager {
     constructor() {
         this.notifications = [];
         this.unreadCount = 0;
+        this.lastNotificationCount = 0;
+        this.audioContext = null;
+        this.initAudio();
+    }
+
+    initAudio() {
+        try {
+            this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        } catch (e) {
+            console.log('Audio not supported');
+        }
+    }
+
+    playNotificationSound() {
+        if (!this.audioContext) return;
+        
+        try {
+            const oscillator = this.audioContext.createOscillator();
+            const gainNode = this.audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(this.audioContext.destination);
+            
+            oscillator.frequency.setValueAtTime(800, this.audioContext.currentTime);
+            oscillator.frequency.setValueAtTime(600, this.audioContext.currentTime + 0.1);
+            
+            gainNode.gain.setValueAtTime(0.3, this.audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.3);
+            
+            oscillator.start(this.audioContext.currentTime);
+            oscillator.stop(this.audioContext.currentTime + 0.3);
+        } catch (e) {
+            console.log('Could not play notification sound');
+        }
     }
 
     async init(userId, userRole) {
         await supabaseReady;
         this.userId = userId;
         this.userRole = userRole;
+        await this.requestNotificationPermission();
         await this.loadNotifications();
         this.setupRealtimeSubscription();
     }
@@ -26,10 +61,38 @@ export class NotificationManager {
             if (error) throw error;
 
             this.notifications = this.generateNotifications(data || []);
-            this.unreadCount = this.notifications.filter(n => !n.read).length;
+            const newUnreadCount = this.notifications.filter(n => !n.read).length;
+            
+            // Play sound if new notifications arrived
+            if (newUnreadCount > this.lastNotificationCount && this.lastNotificationCount > 0) {
+                this.playNotificationSound();
+                this.showBrowserNotification();
+            }
+            
+            this.lastNotificationCount = this.unreadCount;
+            this.unreadCount = newUnreadCount;
             this.updateUI();
         } catch (err) {
             console.error('Error loading notifications:', err);
+        }
+    }
+
+    showBrowserNotification() {
+        if ('Notification' in window && Notification.permission === 'granted') {
+            const latestNotification = this.notifications.find(n => !n.read);
+            if (latestNotification) {
+                new Notification('RAMZ-FREIGHT', {
+                    body: latestNotification.message,
+                    icon: '/docs/assets/images/icon.png',
+                    badge: '/docs/assets/images/icon.png'
+                });
+            }
+        }
+    }
+
+    async requestNotificationPermission() {
+        if ('Notification' in window && Notification.permission === 'default') {
+            await Notification.requestPermission();
         }
     }
 
@@ -117,14 +180,39 @@ export class NotificationManager {
         const bellEl = document.querySelector('.notification-bell');
         
         if (countEl) {
-            countEl.textContent = this.unreadCount;
+            countEl.textContent = this.unreadCount > 99 ? '99+' : this.unreadCount;
             countEl.style.display = this.unreadCount > 0 ? 'flex' : 'none';
+            
+            // Add pulse animation for new notifications
+            if (this.unreadCount > this.lastNotificationCount) {
+                countEl.style.animation = 'pulse 0.5s ease-in-out 3';
+                setTimeout(() => {
+                    countEl.style.animation = '';
+                }, 1500);
+            }
         }
 
         if (bellEl && !bellEl.dataset.listenerAdded) {
-            bellEl.addEventListener('click', () => this.showNotificationPanel());
+            bellEl.addEventListener('click', () => {
+                this.showNotificationPanel();
+                this.markAllAsRead();
+            });
             bellEl.dataset.listenerAdded = 'true';
         }
+        
+        // Update page title with notification count
+        this.updatePageTitle();
+    }
+
+    updatePageTitle() {
+        const originalTitle = document.title.replace(/^\(\d+\) /, '');
+        document.title = this.unreadCount > 0 ? `(${this.unreadCount}) ${originalTitle}` : originalTitle;
+    }
+
+    markAllAsRead() {
+        this.notifications.forEach(n => n.read = true);
+        this.unreadCount = 0;
+        this.updateUI();
     }
 
     showNotificationPanel() {
