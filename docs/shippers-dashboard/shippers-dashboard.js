@@ -3,6 +3,7 @@ import { notificationManager } from '../assets/notifications.js';
 import { initHamburgerMenu } from '../assets/hamburger-menu.js';
 import { createLanguageSwitcher } from '../assets/language-switcher.js';
 import { setLanguage, getLanguage } from '../assets/translations.js';
+import { persistentAuth } from '../assets/persistent-auth.js';
 
 // Sanitization function
 function sanitizeHTML(str) {
@@ -17,10 +18,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     const userAvatar = document.querySelector('.user-avatar');
     const welcomeMessage = document.getElementById('welcome-message');
 
-    // Wait for Supabase to be ready
+    // Fast persistent auth check
+    const isValid = await persistentAuth.initDashboard();
+    if (!isValid) {
+        return; // Will redirect to homepage
+    }
+
     await supabaseReady;
-    
-    // Check for existing session first
     const { data: { session } } = await supabase.auth.getSession();
     
     if (session) {
@@ -28,11 +32,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         const userRole = localStorage.getItem('userRole');
         if (userRole === 'shipper' && session.user.app_metadata.provider === 'google') {
             await createShipperProfile(session.user);
-            localStorage.removeItem('userRole'); // Clean up role
+            localStorage.removeItem('userRole');
         }
         setupDashboard(session.user);
     } else {
-        window.location.replace('../shippers-login/shippers-login.html');
+        persistentAuth.logout();
     }
 
     // Listen for auth changes
@@ -91,7 +95,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         // --- 3. Logout Functionality ---
         userProfile.addEventListener('click', async () => {
             if (confirm('Are you sure you want to log out?')) {
-                await supabase.auth.signOut();
+                persistentAuth.logout();
             }
         });
 
