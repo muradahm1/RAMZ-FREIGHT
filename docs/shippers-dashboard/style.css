@@ -594,7 +594,7 @@ body {
 
 /* ===== HAMBURGER MENU ===== */
 .hamburger {
-  display: flex;
+  display: none;
   flex-direction: column;
   cursor: pointer;
   padding: 8px;
@@ -627,7 +627,11 @@ body {
 /* ===== RESPONSIVE DESIGN ===== */
 @media (max-width: 768px) {
   .hamburger {
-    display: flex;
+    display: flex !important;
+  }
+  
+  .user-profile .user-name {
+    display: none;
   }
   
   .bottom-nav {
