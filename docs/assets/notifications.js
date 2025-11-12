@@ -81,18 +81,66 @@ export class NotificationManager {
         if ('Notification' in window && Notification.permission === 'granted') {
             const latestNotification = this.notifications.find(n => !n.read);
             if (latestNotification) {
-                new Notification('RAMZ-FREIGHT', {
+                const notification = new Notification('RAMZ-FREIGHT', {
                     body: latestNotification.message,
                     icon: '/docs/assets/images/icon.png',
-                    badge: '/docs/assets/images/icon.png'
+                    badge: '/docs/assets/images/icon.png',
+                    tag: 'ramz-freight-notification',
+                    requireInteraction: true,
+                    actions: [
+                        {
+                            action: 'view',
+                            title: 'View Details'
+                        },
+                        {
+                            action: 'dismiss',
+                            title: 'Dismiss'
+                        }
+                    ]
                 });
+                
+                // Auto close after 5 seconds if not interacted with
+                setTimeout(() => {
+                    notification.close();
+                }, 5000);
+            }
+        }
+        
+        // Update PWA badge (like app icon badge on phone)
+        this.updateAppBadge();
+    }
+    
+    updateAppBadge() {
+        if ('setAppBadge' in navigator) {
+            if (this.unreadCount > 0) {
+                navigator.setAppBadge(this.unreadCount);
+            } else {
+                navigator.clearAppBadge();
             }
         }
     }
 
     async requestNotificationPermission() {
         if ('Notification' in window && Notification.permission === 'default') {
-            await Notification.requestPermission();
+            const permission = await Notification.requestPermission();
+            if (permission === 'granted') {
+                // Show welcome notification
+                new Notification('RAMZ-FREIGHT Notifications Enabled', {
+                    body: 'You\'ll now receive notifications for shipment updates',
+                    icon: '/docs/assets/images/icon.png',
+                    tag: 'welcome-notification'
+                });
+            }
+        }
+        
+        // Request persistent notification permission for PWA
+        if ('serviceWorker' in navigator && 'PushManager' in window) {
+            try {
+                const registration = await navigator.serviceWorker.ready;
+                // Could set up push notifications here in the future
+            } catch (error) {
+                console.log('Service worker not available for push notifications');
+            }
         }
     }
 
@@ -207,12 +255,57 @@ export class NotificationManager {
     updatePageTitle() {
         const originalTitle = document.title.replace(/^\(\d+\) /, '');
         document.title = this.unreadCount > 0 ? `(${this.unreadCount}) ${originalTitle}` : originalTitle;
+        
+        // Update favicon with notification count
+        this.updateFavicon();
+    }
+    
+    updateFavicon() {
+        const canvas = document.createElement('canvas');
+        canvas.width = 32;
+        canvas.height = 32;
+        const ctx = canvas.getContext('2d');
+        
+        // Draw base icon (orange circle)
+        ctx.fillStyle = '#ff6b35';
+        ctx.beginPath();
+        ctx.arc(16, 16, 16, 0, 2 * Math.PI);
+        ctx.fill();
+        
+        // Draw truck icon
+        ctx.fillStyle = 'white';
+        ctx.font = '16px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('🚛', 16, 20);
+        
+        // Draw notification badge if there are unread notifications
+        if (this.unreadCount > 0) {
+            ctx.fillStyle = '#ff4444';
+            ctx.beginPath();
+            ctx.arc(24, 8, 8, 0, 2 * Math.PI);
+            ctx.fill();
+            
+            ctx.fillStyle = 'white';
+            ctx.font = 'bold 10px Arial';
+            ctx.textAlign = 'center';
+            const text = this.unreadCount > 9 ? '9+' : this.unreadCount.toString();
+            ctx.fillText(text, 24, 12);
+        }
+        
+        // Update favicon
+        const link = document.querySelector('link[rel="icon"]') || document.createElement('link');
+        link.rel = 'icon';
+        link.href = canvas.toDataURL();
+        if (!document.querySelector('link[rel="icon"]')) {
+            document.head.appendChild(link);
+        }
     }
 
     markAllAsRead() {
         this.notifications.forEach(n => n.read = true);
         this.unreadCount = 0;
         this.updateUI();
+        this.updateAppBadge();
     }
 
     showNotificationPanel() {

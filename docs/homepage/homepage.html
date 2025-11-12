@@ -211,6 +211,14 @@
   <script src="../assets/language-switcher.js" type="module"></script>
   <script src="../assets/pwa-register.js"></script>
   <script src="../assets/pwa-install.js"></script>
+  <script>
+    // Register service worker for notifications
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('../sw.js')
+        .then(registration => console.log('SW registered'))
+        .catch(error => console.log('SW registration failed'));
+    }
+  </script>
   <script src="session-check.js" type="module"></script>
   <script src="scroll-animations.js"></script>
   <script src="homepage.js" type="module"></script>

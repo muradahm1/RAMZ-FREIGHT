@@ -1,0 +1,43 @@
+{
+  "name": "RAMZ-FREIGHT",
+  "short_name": "RAMZ-FREIGHT",
+  "description": "Connecting Shippers and Truck Owners across Ethiopia",
+  "start_url": "/docs/homepage/homepage.html",
+  "display": "standalone",
+  "background_color": "#0f0f0f",
+  "theme_color": "#ff6b35",
+  "orientation": "portrait-primary",
+  "scope": "/docs/",
+  "icons": [
+    {
+      "src": "assets/images/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "assets/images/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "categories": ["business", "logistics", "transport"],
+  "lang": "en",
+  "dir": "ltr",
+  "prefer_related_applications": false,
+  "shortcuts": [
+    {
+      "name": "Create Shipment",
+      "short_name": "Create",
+      "description": "Create a new shipment",
+      "url": "/docs/create-shipment/create-shipment.html",
+      "icons": [{ "src": "assets/images/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Track Shipment",
+      "short_name": "Track",
+      "description": "Track your shipments",
+      "url": "/docs/live-tracking/live-tracking.html",
+      "icons": [{ "src": "assets/images/icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}
