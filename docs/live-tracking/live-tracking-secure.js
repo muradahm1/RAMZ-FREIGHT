@@ -120,27 +120,31 @@ async function loadShipmentTracking() {
             return;
         }
 
-        // Fetch truck owner and vehicle separately
-        let truckOwner = null;
+        // Fetch vehicle info (truck owner info is in auth.users, not accessible via client)
+        let truckOwner = {
+            full_name: 'Driver',
+            phone: 'Contact via app',
+            avatar_url: null
+        };
         let vehicle = null;
 
         if (shipment.truck_owner_id) {
-            const { data: ownerData } = await supabase
-                .from('truck_owners')
-                .select('full_name, phone, avatar_url')
-                .eq('id', shipment.truck_owner_id)
-                .single();
-            truckOwner = ownerData;
-        }
-
-        if (shipment.vehicle_id) {
+            // Try to get vehicle info for this truck owner
             const { data: vehicleData } = await supabase
                 .from('vehicles')
-                .select('vehicle_model, license_plate')
-                .eq('id', shipment.vehicle_id)
+                .select('vehicle_type, license_plate, vehicle_model')
+                .eq('user_id', shipment.truck_owner_id)
                 .single();
-            vehicle = vehicleData;
+            
+            if (vehicleData) {
+                vehicle = {
+                    vehicle_model: vehicleData.vehicle_model || vehicleData.vehicle_type,
+                    license_plate: vehicleData.license_plate
+                };
+            }
         }
+
+
 
         shipment.truck_owner = truckOwner;
         shipment.vehicle = vehicle;
