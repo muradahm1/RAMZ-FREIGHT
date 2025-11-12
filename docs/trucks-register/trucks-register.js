@@ -57,9 +57,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             googleBtn.disabled = true;
             googleBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Connecting...';
             
-            localStorage.setItem('post_auth_redirect', window.location.href);
-            localStorage.setItem('userRole', 'truck_owner');
-            const redirectUrl = getRedirectUrl('/docs/trucks-dashboard-cheak/truck-dashboard.html');
+            // Set expected role for OAuth callback validation
+            localStorage.setItem('expectedRole', 'truck_owner');
+            localStorage.setItem('post_auth_redirect', '../trucks-register/complete-profile.html');
+            const redirectUrl = getRedirectUrl('/docs/auth/callback.html');
             const { data, error } = await supabase.auth.signInWithOAuth({
                 provider: 'google',
                 options: {
@@ -104,7 +105,23 @@ document.addEventListener('DOMContentLoaded', async () => {
         const password = document.getElementById('basicPassword').value.trim();
 
         try {
-            // 1. Sign up the user
+            await supabaseReady;
+            
+            // 1. Check if user already exists with different role
+            const { data: hasConflict, error: conflictError } = await supabase.rpc('check_user_role_conflict', {
+                user_email: email,
+                new_role: 'truck_owner'
+            });
+            
+            if (conflictError) {
+                console.error('Role conflict check error:', conflictError);
+            }
+            
+            if (hasConflict) {
+                throw new Error('An account with this email already exists as a shipper. Please use a different email or login with your existing account.');
+            }
+
+            // 2. Sign up the user
             const { data: { user }, error: signUpError } = await supabase.auth.signUp({
                 email: email,
                 password: password,
@@ -118,7 +135,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (signUpError) throw signUpError;
             if (!user) throw new Error('User registration failed unexpectedly.');
 
-            // 2. Display success message
+            // 3. Display success message
             const form = document.getElementById('truckRegisterForm');
             const successSection = document.getElementById('registrationSuccess');
             

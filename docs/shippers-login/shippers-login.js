@@ -83,6 +83,18 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         try {
             await supabaseReady;
+            
+            // First validate if this email has the correct role
+            const { data: roleCheck, error: roleError } = await supabase.rpc('validate_login_role', {
+                user_email: loginData.email,
+                expected_role: 'shipper'
+            });
+            
+            if (roleError) {
+                console.error('Role validation error:', roleError);
+            }
+            
+            // Attempt login
             const { data, error } = await supabase.auth.signInWithPassword({
                 email: loginData.email,
                 password: loginData.password,
@@ -90,11 +102,21 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             if (error) throw error;
 
-            // Check user role
+            // Double-check user role after successful authentication
             const userRole = data.user?.user_metadata?.user_role;
-            if (userRole === 'truck_owner' || userRole === 'truck') {
+            if (!userRole || (userRole !== 'shipper' && !userRole.startsWith('shipper'))) {
                 await supabase.auth.signOut();
-                throw new Error('This is a shipper login. Please use the truck owner login page.');
+                
+                // Get the actual role to provide helpful error message
+                const { data: actualRole } = await supabase.rpc('get_user_role_by_email', {
+                    user_email: loginData.email
+                });
+                
+                if (actualRole === 'truck_owner' || actualRole === 'truck') {
+                    throw new Error('This account is registered as a truck owner. Please use the truck owner login page.');
+                } else {
+                    throw new Error('This account does not have shipper access. Please contact support.');
+                }
             }
 
             alert('Login successful! Redirecting to your dashboard...');
@@ -115,22 +137,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             googleBtn.disabled = true;
             googleBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Connecting...';
             
-            // Check if user already exists with different role
-            const { data: existingSession } = await supabase.auth.getSession();
-            if (existingSession?.user) {
-                const userRole = existingSession.user.user_metadata?.user_role;
-                if (userRole && userRole !== 'shipper') {
-                    await supabase.auth.signOut();
-                    alert('This account is registered as a truck owner. Please use the truck owner login or create a new shipper account.');
-                    googleBtn.disabled = false;
-                    googleBtn.innerHTML = '<img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTgiIGhlaWdodD0iMTgiIHZpZXdCb3g9IjAgMCAxOCAxOCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTE2LjUxIDkuMjA0NTVWOS4wOTU0NUg5LjE4VjEwLjc5NTVIMTMuNDZDMTMuMDIgMTIuODU1NSAxMS4xNCAxNC4zMTU1IDkgMTQuMzE1NUM1LjY5IDE0LjMxNTUgMy4wMiAxMS42NDU1IDMuMDIgOC4zMzU1QzMuMDIgNS4wMjU1IDUuNjkgMi4zNTU1IDkgMi4zNTU1QzEwLjQ3IDIuMzU1NSAxMS44MSAyLjk5NTUgMTIuNzggMy45NDU1TDE0Ljg5NSAxLjgzQzEzLjM2IDAuMzkgMTEuMzkgLTAuNDUgOSAtMC40NUM0LjA2IC0wLjQ1IDAgMy42MDU1IDAgOC4zMzU1QzAgMTMuMDY1NSA0LjA2IDE3LjUxNTUgOSAxNy41MTU1QzEzLjYzIDE3LjUxNTUgMTcuMjMgMTMuNzE1NSAxNy4yMyA8.MzM1NUMxNy4yMyA3LjY0NTUgMTcuMTMgNi45OTU1IDE2Ljk3IDYuMzc0NUwxNi41MSA5LjIwNDVaIiBmaWxsPSIjNDI4NUYzIi8+Cjwvc3ZnPgo=" alt="Google"> Continue with Google';
-                    return;
-                }
-            }
-            
-            localStorage.setItem('userRole', 'shipper'); // Set role before redirect
-            localStorage.setItem('post_auth_redirect', window.location.href);
-            const redirectUrl = getRedirectUrl('/docs/shippers-dashboard/shippers-dashboard.html');
+            // Set expected role for OAuth callback validation
+            localStorage.setItem('expectedRole', 'shipper');
+            localStorage.setItem('post_auth_redirect', '../shippers-dashboard/shippers-dashboard.html');
+            const redirectUrl = getRedirectUrl('/docs/auth/callback.html');
             const { data, error } = await supabase.auth.signInWithOAuth({
                 provider: 'google',
                 options: {

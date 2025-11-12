@@ -52,7 +52,27 @@ app.post('/auth/signup', async (req, res) => {
   if (!email || !password) {
     return res.status(400).json({ error: 'Email and password are required.' });
   }
+  
+  const role = userType === 'shipper' ? 'shipper' : 'truck_owner';
+  
   try {
+    // Check for role conflicts before registration
+    const { data: hasConflict, error: conflictError } = await supabase.rpc('check_user_role_conflict', {
+      user_email: email,
+      new_role: role
+    });
+    
+    if (conflictError) {
+      console.error('Role conflict check error:', conflictError);
+    }
+    
+    if (hasConflict) {
+      const conflictMsg = role === 'shipper' 
+        ? 'An account with this email already exists as a truck owner. Please use a different email or login with your existing account.'
+        : 'An account with this email already exists as a shipper. Please use a different email or login with your existing account.';
+      return res.status(400).json({ error: conflictMsg });
+    }
+    
     const { data, error } = await supabase.auth.signUp({ 
       email, 
       password,
@@ -60,7 +80,7 @@ app.post('/auth/signup', async (req, res) => {
         data: {
           full_name: fullName,
           phone: phone,
-          user_role: userType === 'shipper' ? 'shipper' : 'truck_owner'
+          user_role: role
         }
       }
     });

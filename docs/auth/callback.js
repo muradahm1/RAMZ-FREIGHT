@@ -30,37 +30,75 @@ async function handleCallback() {
 
     statusEl.textContent = 'Authentication successful — resolving account...';
 
-    // The user role should have been stored in localStorage before the OAuth redirect.
-    const role = localStorage.getItem('userRole');
-    localStorage.removeItem('userRole'); // Clean up after use
+    // The expected role should have been stored in localStorage before the OAuth redirect.
+    const expectedRole = localStorage.getItem('expectedRole');
+    localStorage.removeItem('expectedRole'); // Clean up after use
+
+    const basePath = getAppBasePath();
+    const origin = window.location.origin;
 
     // Check for role conflicts
-    if (role && data.session?.user) {
-      const currentRole = data.session.user.user_metadata?.user_role;
+    if (expectedRole && data.session?.user) {
+      const user = data.session.user;
+      const currentRole = user.user_metadata?.user_role;
       
       // If user already has a different role, prevent access
-      if (currentRole && currentRole !== role) {
+      if (currentRole && currentRole !== expectedRole) {
         await supabase.auth.signOut();
-        const errorMsg = currentRole === 'shipper' 
-          ? 'This account is registered as a Shipper. Please use the Shipper login or create a new Truck Owner account.'
-          : 'This account is registered as a Truck Owner. Please use the Truck Owner login or create a new Shipper account.';
         
-        const redirectUrl = currentRole === 'shipper'
-          ? `${origin}${basePath}/docs/shippers-login/shippers-login.html?error=${encodeURIComponent(errorMsg)}`
-          : `${origin}${basePath}/docs/trucks-login/trucks-login.html?error=${encodeURIComponent(errorMsg)}`;
+        let errorMsg, redirectPath;
+        if (currentRole === 'shipper' || currentRole?.startsWith('shipper')) {
+          errorMsg = 'This Google account is already registered as a Shipper. Please use the Shipper login or create a new Google account for Truck Owner access.';
+          redirectPath = expectedRole === 'truck_owner' 
+            ? `${origin}${basePath}/docs/trucks-login/trucks-login.html`
+            : `${origin}${basePath}/docs/shippers-login/shippers-login.html`;
+        } else if (currentRole === 'truck_owner' || currentRole === 'truck' || currentRole?.startsWith('truck')) {
+          errorMsg = 'This Google account is already registered as a Truck Owner. Please use the Truck Owner login or create a new Google account for Shipper access.';
+          redirectPath = expectedRole === 'shipper'
+            ? `${origin}${basePath}/docs/shippers-login/shippers-login.html`
+            : `${origin}${basePath}/docs/trucks-login/trucks-login.html`;
+        } else {
+          errorMsg = 'This account has an incompatible role. Please contact support.';
+          redirectPath = `${origin}${basePath}/docs/homepage/homepage.html`;
+        }
         
-        window.location.href = redirectUrl;
+        window.location.href = `${redirectPath}?error=${encodeURIComponent(errorMsg)}`;
         return;
       }
       
-      // Set role if not already set
+      // For new users or users without a role, check for email conflicts
       if (!currentRole) {
         try {
+          const { data: hasConflict, error: conflictError } = await supabase.rpc('check_user_role_conflict', {
+            user_email: user.email,
+            new_role: expectedRole
+          });
+          
+          if (hasConflict) {
+            await supabase.auth.signOut();
+            const errorMsg = 'An account with this email already exists with a different role. Please use a different email or login with your existing account.';
+            const redirectPath = expectedRole === 'shipper'
+              ? `${origin}${basePath}/docs/shippers-login/shippers-login.html`
+              : `${origin}${basePath}/docs/trucks-login/trucks-login.html`;
+            
+            window.location.href = `${redirectPath}?error=${encodeURIComponent(errorMsg)}`;
+            return;
+          }
+          
+          // Set role for new user
           await supabase.auth.updateUser({
-            data: { user_role: role }
+            data: { user_role: expectedRole }
           });
         } catch (updateError) {
           console.error('Failed to update user role:', updateError);
+          await supabase.auth.signOut();
+          const errorMsg = 'Failed to set up your account. Please try again.';
+          const redirectPath = expectedRole === 'shipper'
+            ? `${origin}${basePath}/docs/shippers-login/shippers-login.html`
+            : `${origin}${basePath}/docs/trucks-login/trucks-login.html`;
+          
+          window.location.href = `${redirectPath}?error=${encodeURIComponent(errorMsg)}`;
+          return;
         }
       }
     }
@@ -71,12 +109,23 @@ async function handleCallback() {
 
     // Decide destination based on role
     let destination = null;
-    const basePath = getAppBasePath();
-    const origin = window.location.origin;
 
-    if (role === 'truck_owner') {
-      destination = `${origin}${basePath}/docs/trucks-dashboard-cheak/truck-dashboard.html`;
-    } else if (role === 'shipper') {
+    if (expectedRole === 'truck_owner') {
+      // For truck owners, check if profile is completed
+      try {
+        const { data: vehicle } = await supabase
+          .from('vehicles')
+          .select('*')
+          .eq('user_id', data.session.user.id)
+          .single();
+        
+        destination = vehicle 
+          ? `${origin}${basePath}/docs/trucks-dashboard-cheak/truck-dashboard.html`
+          : `${origin}${basePath}/docs/trucks-register/complete-profile.html`;
+      } catch (err) {
+        destination = `${origin}${basePath}/docs/trucks-register/complete-profile.html`;
+      }
+    } else if (expectedRole === 'shipper') {
       destination = `${origin}${basePath}/docs/shippers-dashboard/shippers-dashboard.html`;
     }
 
