@@ -126,6 +126,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Step navigation with debugging
     nextBtn.addEventListener('click', (e) => {
         e.preventDefault();
+        e.stopPropagation();
         console.log('Next button clicked');
         if (validateStep1()) {
             console.log('Validation passed, moving to step 2');
@@ -134,6 +135,16 @@ document.addEventListener('DOMContentLoaded', async () => {
             console.log('Validation failed');
         }
     });
+    
+    // Additional event listener as backup
+    nextBtn.onclick = function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log('Next button onclick triggered');
+        if (validateStep1()) {
+            showStep(2);
+        }
+    };
 
     if (prevBtn) {
         prevBtn.addEventListener('click', (e) => {
@@ -300,6 +311,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             console.error('Could not find form step:', stepNumber);
         }
     }
+    
+
 
     function setupFileUploads() {
         const fileInputs = ['idFront', 'idBack', 'drivingLicenseFront', 'drivingLicenseBack', 'carPhoto', 'carLicense'];

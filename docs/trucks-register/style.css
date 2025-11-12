@@ -291,6 +291,8 @@ header p {
   color: white;
   position: relative;
   overflow: hidden;
+  z-index: 10;
+  pointer-events: auto;
 }
 
 .btn-next:hover, .btn-submit:hover:not(:disabled) {
