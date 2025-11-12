@@ -115,6 +115,19 @@ document.addEventListener('DOMContentLoaded', async () => {
             googleBtn.disabled = true;
             googleBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Connecting...';
             
+            // Check if user already exists with different role
+            const { data: existingSession } = await supabase.auth.getSession();
+            if (existingSession?.user) {
+                const userRole = existingSession.user.user_metadata?.user_role;
+                if (userRole && userRole !== 'shipper') {
+                    await supabase.auth.signOut();
+                    alert('This account is registered as a truck owner. Please use the truck owner login or create a new shipper account.');
+                    googleBtn.disabled = false;
+                    googleBtn.innerHTML = '<img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTgiIGhlaWdodD0iMTgiIHZpZXdCb3g9IjAgMCAxOCAxOCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTE2LjUxIDkuMjA0NTVWOS4wOTU0NUg5LjE4VjEwLjc5NTVIMTMuNDZDMTMuMDIgMTIuODU1NSAxMS4xNCAxNC4zMTU1IDkgMTQuMzE1NUM1LjY5IDE0LjMxNTUgMy4wMiAxMS42NDU1IDMuMDIgOC4zMzU1QzMuMDIgNS4wMjU1IDUuNjkgMi4zNTU1IDkgMi4zNTU1QzEwLjQ3IDIuMzU1NSAxMS44MSAyLjk5NTUgMTIuNzggMy45NDU1TDE0Ljg5NSAxLjgzQzEzLjM2IDAuMzkgMTEuMzkgLTAuNDUgOSAtMC40NUM0LjA2IC0wLjQ1IDAgMy42MDU1IDAgOC4zMzU1QzAgMTMuMDY1NSA0LjA2IDE3LjUxNTUgOSAxNy41MTU1QzEzLjYzIDE3LjUxNTUgMTcuMjMgMTMuNzE1NSAxNy4yMyA8.MzM1NUMxNy4yMyA3LjY0NTUgMTcuMTMgNi45OTU1IDE2Ljk3IDYuMzc0NUwxNi41MSA5LjIwNDVaIiBmaWxsPSIjNDI4NUYzIi8+Cjwvc3ZnPgo=" alt="Google"> Continue with Google';
+                    return;
+                }
+            }
+            
             localStorage.setItem('userRole', 'shipper'); // Set role before redirect
             localStorage.setItem('post_auth_redirect', window.location.href);
             const redirectUrl = getRedirectUrl('/docs/shippers-dashboard/shippers-dashboard.html');
