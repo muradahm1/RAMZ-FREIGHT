@@ -244,19 +244,6 @@ function startRealTimeTracking() {
     const realTimeBtn = document.getElementById('realTimeBtn');
     realTimeBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Tracking Active';
     realTimeBtn.disabled = true;
-    
-    // Add stop tracking button
-    const stopBtn = document.createElement('button');
-    stopBtn.className = 'btn-secondary';
-    stopBtn.innerHTML = '<i class="fas fa-stop"></i> Stop Tracking';
-    stopBtn.onclick = () => {
-        clearInterval(trackingInterval);
-        realTimeBtn.innerHTML = '<i class="fas fa-satellite"></i> Enable Live Tracking';
-        realTimeBtn.disabled = false;
-        stopBtn.remove();
-        console.log('Tracking stopped by user');
-    };
-    realTimeBtn.parentNode.insertBefore(stopBtn, realTimeBtn.nextSibling);
 
     // Start real-time tracking with Leaflet
     trackingInterval = setInterval(async () => {
@@ -381,9 +368,7 @@ function startRealTimeTracking() {
                     console.log('Shipment arrived, stopping tracking');
                     clearInterval(trackingInterval);
                     document.getElementById('trackingStatus').querySelector('span').textContent = 'Arrived';
-                    const realTimeBtn = document.getElementById('realTimeBtn');
                     realTimeBtn.innerHTML = '<i class="fas fa-check"></i> Arrived';
-                    realTimeBtn.disabled = true;
                 }
             }
         } catch (err) {
