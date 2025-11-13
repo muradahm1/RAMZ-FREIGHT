@@ -84,6 +84,22 @@ async function loadShipments(currentUser) {
  */
 async function loadShipmentTracking() {
     clearInterval(trackingInterval); // Stop any previous tracking
+    
+    // Clear all map layers and reset truck position
+    if (routePolyline) {
+        map.removeLayer(routePolyline);
+        routePolyline = null;
+    }
+    
+    // Remove all markers except truck marker
+    map.eachLayer(function(layer) {
+        if (layer instanceof L.Marker && layer !== truckMarker) {
+            map.removeLayer(layer);
+        }
+    });
+    
+    // Reset truck marker to default position
+    truckMarker.setLatLng([0, 0]);
 
     const shipmentId = document.getElementById('shipmentSelect').value;
     if (!shipmentId) {
@@ -221,7 +237,13 @@ function startRealTimeTracking() {
         return;
     }
 
-    clearInterval(trackingInterval); // Ensure no multiple intervals
+    // Clear any existing tracking interval
+    clearInterval(trackingInterval);
+    
+    // Update button state
+    const realTimeBtn = document.getElementById('realTimeBtn');
+    realTimeBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Tracking Active';
+    realTimeBtn.disabled = true;
 
     // Start real-time tracking with Leaflet
     trackingInterval = setInterval(async () => {
@@ -355,13 +377,41 @@ async function geocodeAddress(address) {
 }
 
 function resetUI() {
+    // Clear tracking interval
+    clearInterval(trackingInterval);
+    
+    // Reset UI elements
     document.getElementById('trackingDetails').innerHTML = `<p>Select a shipment to view tracking information</p>`;
-    document.getElementById('driverName').textContent = '-';
+    document.getElementById('driverName').textContent = 'Select a shipment to view driver details';
     document.getElementById('driverPhone').textContent = '-';
     document.getElementById('vehicleInfo').textContent = '-';
     document.getElementById('trackingStatus').querySelector('span').textContent = 'Select a shipment';
-    if (routePolyline) map.removeLayer(routePolyline);
+    document.getElementById('trackingStatus').className = 'status-badge';
+    
+    // Reset stats
+    document.getElementById('currentSpeed').textContent = '0 km/h';
+    document.getElementById('distanceTraveled').textContent = '0 km';
+    document.getElementById('progressFill').style.width = '0%';
+    
+    // Clear map layers
+    if (routePolyline) {
+        map.removeLayer(routePolyline);
+        routePolyline = null;
+    }
+    
+    // Remove all markers except truck marker
+    map.eachLayer(function(layer) {
+        if (layer instanceof L.Marker && layer !== truckMarker) {
+            map.removeLayer(layer);
+        }
+    });
+    
+    // Reset truck marker position and popup
     truckMarker.setLatLng([0, 0]);
+    truckMarker.getPopup().setContent('<div id="truckPopup">Select a shipment to track</div>');
+    
+    // Reset map view to default
+    map.setView([9.02497, 38.74689], 7);
 }
 
 /**
