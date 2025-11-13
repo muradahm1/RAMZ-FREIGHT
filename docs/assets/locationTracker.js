@@ -61,16 +61,17 @@ class LocationTracker {
                     shipment_id: this.currentShipmentId,
                     latitude: latitude,
                     longitude: longitude,
-                    speed: speed || 0
+                    speed: speed || 0,
+                    timestamp: new Date().toISOString()
                 });
 
             if (error) {
-                console.error('Error updating location:', error);
+                console.error('❌ Error updating location:', error);
             } else {
-                console.log('Location updated:', { latitude, longitude, speed });
+                console.log('✅ Location updated:', { shipmentId: this.currentShipmentId, latitude, longitude, speed });
             }
         } catch (err) {
-            console.error('Failed to update location:', err);
+            console.error('❌ Failed to update location:', err);
         }
     }
 

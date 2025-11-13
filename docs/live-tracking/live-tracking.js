@@ -263,12 +263,24 @@ function startRealTimeTracking() {
             }
             
             if (!trackingData?.length) {
-                console.log('No tracking data found for shipment:', shipmentId);
+                console.log('❌ No tracking data found for shipment:', shipmentId);
                 return;
             }
 
             const latest = trackingData[0];
-            console.log('Latest tracking data:', latest);
+            const dataAge = Date.now() - new Date(latest.timestamp).getTime();
+            console.log('📍 Latest tracking data:', {
+                id: latest.id,
+                lat: latest.latitude,
+                lng: latest.longitude,
+                timestamp: latest.timestamp,
+                ageMinutes: Math.round(dataAge / 60000)
+            });
+            
+            // Alert if data is old
+            if (dataAge > 300000) { // 5 minutes
+                console.warn('⚠️ GPS data is', Math.round(dataAge / 60000), 'minutes old');
+            }
             
             const newPos = L.latLng(latest.latitude, latest.longitude);
             
