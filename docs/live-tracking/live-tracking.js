@@ -244,10 +244,25 @@ function startRealTimeTracking() {
     const realTimeBtn = document.getElementById('realTimeBtn');
     realTimeBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Tracking Active';
     realTimeBtn.disabled = true;
+    
+    // Add stop tracking button
+    const stopBtn = document.createElement('button');
+    stopBtn.className = 'btn-secondary';
+    stopBtn.innerHTML = '<i class="fas fa-stop"></i> Stop Tracking';
+    stopBtn.onclick = () => {
+        clearInterval(trackingInterval);
+        realTimeBtn.innerHTML = '<i class="fas fa-satellite"></i> Enable Live Tracking';
+        realTimeBtn.disabled = false;
+        stopBtn.remove();
+        console.log('Tracking stopped by user');
+    };
+    realTimeBtn.parentNode.insertBefore(stopBtn, realTimeBtn.nextSibling);
 
     // Start real-time tracking with Leaflet
     trackingInterval = setInterval(async () => {
         try {
+            console.log('Fetching tracking data for shipment:', shipmentId);
+            
             const { data: trackingData, error } = await supabase
                 .from('shipment_tracking')
                 .select('*')
@@ -255,9 +270,19 @@ function startRealTimeTracking() {
                 .order('timestamp', { ascending: false })
                 .limit(1);
 
-            if (error || !trackingData?.length) return;
+            if (error) {
+                console.error('Error fetching tracking data:', error);
+                return;
+            }
+            
+            if (!trackingData?.length) {
+                console.log('No tracking data found for shipment:', shipmentId);
+                return;
+            }
 
             const latest = trackingData[0];
+            console.log('Latest tracking data:', latest);
+            
             const newPos = L.latLng(latest.latitude, latest.longitude);
             
             // Smooth marker movement
@@ -353,14 +378,21 @@ function startRealTimeTracking() {
                 }
                 
                 if (progress > 0.95) {
+                    console.log('Shipment arrived, stopping tracking');
                     clearInterval(trackingInterval);
                     document.getElementById('trackingStatus').querySelector('span').textContent = 'Arrived';
+                    const realTimeBtn = document.getElementById('realTimeBtn');
+                    realTimeBtn.innerHTML = '<i class="fas fa-check"></i> Arrived';
+                    realTimeBtn.disabled = true;
                 }
             }
         } catch (err) {
-            console.error('Error in tracking:', err);
+            console.error('Error in tracking interval:', err);
+            // Don't stop the interval on error, just log it
         }
-    }, 3000);
+    }, 5000); // Increased to 5 seconds to reduce server load
+    
+    console.log('Real-time tracking started with interval ID:', trackingInterval);
 }
 
 async function geocodeAddress(address) {
