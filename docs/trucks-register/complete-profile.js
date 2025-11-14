@@ -1,6 +1,9 @@
 import { supabase, supabaseReady } from '../assets/supabaseClient.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
+    // Disable HTML5 validation to prevent focus errors on hidden fields
+    const form = document.getElementById('completeProfileForm');
+    if (form) form.setAttribute('novalidate', 'true');
     const nextBtn = document.getElementById('nextToStep2');
     const prevBtn = document.getElementById('backToStep1');
     const submitBtn = document.getElementById('submitProfile');
