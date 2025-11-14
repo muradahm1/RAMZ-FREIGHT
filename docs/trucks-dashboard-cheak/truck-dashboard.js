@@ -217,8 +217,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             console.error('Failed to resume tracking:', err);
             localStorage.removeItem('active_tracking');
         }
-    }calStorage.removeItem('active_tracking');
-        }
     }
 
     /**
