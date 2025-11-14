@@ -118,19 +118,43 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             await supabaseReady;
             
-            // Use backend for secure registration (includes role conflict check)
-            const response = await fetch(`${backendUrl}/auth/signup`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(signupData),
+            // Direct Supabase registration for faster performance
+            const { data, error } = await supabase.auth.signUp({
+                email: signupData.email,
+                password: signupData.password,
+                options: {
+                    data: {
+                        full_name: signupData.fullName,
+                        phone: signupData.phone,
+                        company_name: signupData.companyName,
+                        business_type: signupData.businessType,
+                        user_role: 'shipper'
+                    }
+                }
             });
 
-            const result = await response.json();
+            if (error) {
+                if (error.message.includes('already registered')) {
+                    throw new Error('This email is already registered. Please try logging in instead.');
+                }
+                throw new Error(error.message);
+            }
 
-            if (!response.ok) {
-                throw new Error(result.error || 'Registration failed');
+            // Create shipper profile
+            if (data.user) {
+                const { error: profileError } = await supabase
+                    .from('shippers')
+                    .insert({
+                        user_id: data.user.id,
+                        full_name: signupData.fullName,
+                        phone: signupData.phone,
+                        company_name: signupData.companyName,
+                        business_type: signupData.businessType
+                    });
+                    
+                if (profileError) {
+                    console.error('Profile creation error:', profileError);
+                }
             }
 
             window.location.href = 'registration-success.html';
@@ -177,6 +201,18 @@ document.addEventListener('DOMContentLoaded', () => {
         if (emailInput.value && !emailRegex.test(emailInput.value)) {
             showFieldError(emailInput, 'Please enter a valid email address');
             isValid = false;
+        }
+        
+        // Check for common email typos
+        if (emailInput.value) {
+            const email = emailInput.value.toLowerCase();
+            const commonDomains = ['gmail.com', 'yahoo.com', 'hotmail.com', 'outlook.com'];
+            const domain = email.split('@')[1];
+            
+            if (domain && !commonDomains.includes(domain) && domain.length < 4) {
+                showFieldError(emailInput, 'Please check your email domain');
+                isValid = false;
+            }
         }
 
         // Password validation
