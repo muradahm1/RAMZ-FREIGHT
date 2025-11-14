@@ -183,38 +183,43 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     // Resume GPS tracking after page refresh
     async function resumeTrackingIfNeeded(user) {
-        const activeShipmentId = localStorage.getItem('active_tracking');
+        let activeShipmentId = localStorage.getItem('active_tracking');
         console.log('🔍 Checking for active tracking:', activeShipmentId);
         
+        // If no saved tracking, check for any in_transit shipments
         if (!activeShipmentId) {
-            console.log('❌ No active tracking found');
-            return;
+            try {
+                const { data: inTransitShipments } = await supabase
+                    .from('shipments')
+                    .select('id')
+                    .eq('truck_owner_id', user.id)
+                    .eq('status', 'in_transit')
+                    .limit(1);
+                    
+                if (inTransitShipments?.length > 0) {
+                    activeShipmentId = inTransitShipments[0].id;
+                    localStorage.setItem('active_tracking', activeShipmentId);
+                    console.log('🔄 Found in_transit shipment, resuming tracking:', activeShipmentId);
+                } else {
+                    console.log('❌ No in_transit shipments found');
+                    return;
+                }
+            } catch (err) {
+                console.error('Error checking for in_transit shipments:', err);
+                return;
+            }
         }
         
         try {
-            // Check if shipment is still in transit
-            const { data: shipment } = await supabase
-                .from('shipments')
-                .select('status')
-                .eq('id', activeShipmentId)
-                .eq('truck_owner_id', user.id)
-                .single();
-                
-            console.log('📦 Shipment status:', shipment?.status);
-            
-            if (shipment?.status === 'in_transit') {
-                if (locationTracker) {
-                    await locationTracker.startTracking(activeShipmentId);
-                    console.log('✅ Resumed GPS tracking for shipment:', activeShipmentId);
-                } else {
-                    console.error('❌ locationTracker not available');
-                }
+            // Start GPS tracking
+            if (locationTracker) {
+                await locationTracker.startTracking(activeShipmentId);
+                console.log('✅ GPS tracking started for shipment:', activeShipmentId);
             } else {
-                console.log('🧹 Cleaning up inactive tracking');
-                localStorage.removeItem('active_tracking');
+                console.error('❌ locationTracker not available');
             }
         } catch (err) {
-            console.error('Failed to resume tracking:', err);
+            console.error('Failed to start tracking:', err);
             localStorage.removeItem('active_tracking');
         }
     }
