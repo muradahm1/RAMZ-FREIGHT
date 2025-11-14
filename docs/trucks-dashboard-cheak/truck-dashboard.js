@@ -102,6 +102,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     populateDashboardStats(user);
     notificationManager.init(user.id, 'truck_owner');
     
+    // Resume GPS tracking if there was an active shipment
+    resumeTrackingIfNeeded(user);
+    
         // --- 5. Initialize Hamburger Menu ---
         initHamburgerMenu();
 
@@ -175,6 +178,32 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Re-apply translations after setup
         if (window.appTranslations && typeof window.appTranslations.translatePage === 'function') {
             window.appTranslations.translatePage(window.appTranslations.getLanguage());
+        }
+    }
+    
+    // Resume GPS tracking after page refresh
+    async function resumeTrackingIfNeeded(user) {
+        const activeShipmentId = localStorage.getItem('active_tracking');
+        if (!activeShipmentId) return;
+        
+        try {
+            // Check if shipment is still in transit
+            const { data: shipment } = await supabase
+                .from('shipments')
+                .select('status')
+                .eq('id', activeShipmentId)
+                .eq('truck_owner_id', user.id)
+                .single();
+                
+            if (shipment?.status === 'in_transit' && window.locationTracker) {
+                await window.locationTracker.startTracking(activeShipmentId);
+                console.log('✅ Resumed GPS tracking for shipment:', activeShipmentId);
+            } else {
+                localStorage.removeItem('active_tracking');
+            }
+        } catch (err) {
+            console.error('Failed to resume tracking:', err);
+            localStorage.removeItem('active_tracking');
         }
     }
 
@@ -421,10 +450,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             if (error) throw error;
 
-            // Start location tracking
+            // Start location tracking and save state
             if (window.locationTracker) {
                 try {
                     await window.locationTracker.startTracking(shipmentId);
+                    localStorage.setItem('active_tracking', shipmentId);
                     console.log('Location tracking started for shipment:', shipmentId);
                 } catch (locErr) {
                     console.error('Location tracking error:', locErr);
@@ -465,9 +495,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             
             if (error) throw error;
 
-            // Stop location tracking
+            // Stop location tracking and clear state
             if (window.locationTracker) {
                 await window.locationTracker.stopTracking();
+                localStorage.removeItem('active_tracking');
             }
             
             alert('Shipment marked as delivered!');
