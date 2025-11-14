@@ -100,9 +100,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
 
         // --- 4. Load Dynamic Content ---
-        loadStats(user);
-        loadActiveShipments(user);
-        loadRecentActivity(user); // This is for truck owners dashboard, not shippers. Should be removed or ignored for shippers.
+        // Load data in parallel for faster performance
+        Promise.all([
+            loadStats(user),
+            loadActiveShipments(user),
+            loadRecentActivity(user)
+        ]).catch(err => console.error('Dashboard loading error:', err)); // This is for truck owners dashboard, not shippers. Should be removed or ignored for shippers.
         // loadAvailableTrucks(); // Removed as it's not relevant for shipper dashboard
         notificationManager.init(user.id, 'shipper');
         
@@ -136,7 +139,7 @@ async function loadActiveShipments(user) {
     try {
         const { data: shipments, error } = await supabase
             .from('shipments')
-            .select('*')
+            .select('id,goods_description,origin_address,destination_address,weight_kg,status,created_at')
             .eq('shipper_id', user.id)
             .in('status', ['pending', 'accepted', 'in_transit'])
             .order('created_at', { ascending: false })
@@ -218,7 +221,7 @@ async function loadRecentActivity(user) {
     try {
         const { data: shipments, error } = await supabase
             .from('shipments')
-            .select('*')
+            .select('id,status,created_at')
             .eq('shipper_id', user.id)
             .order('created_at', { ascending: false })
             .limit(5);
@@ -307,7 +310,7 @@ async function loadStats(user) {
     try {
         const { data: shipments, error } = await supabase
             .from('shipments')
-            .select('*')
+            .select('status')
             .eq('shipper_id', user.id);
 
         if (error) throw error;

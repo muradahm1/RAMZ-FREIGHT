@@ -48,6 +48,19 @@ async function loadSupabaseCdnIfNeeded() {
       autoRefreshToken: true,
       detectSessionInUrl: true,
       storageKey: 'ramz-freight-auth'
+    },
+    db: {
+      schema: 'public'
+    },
+    global: {
+      headers: {
+        'Cache-Control': 'no-cache'
+      }
+    },
+    realtime: {
+      params: {
+        eventsPerSecond: 10
+      }
     }
   });
   return supabase;
