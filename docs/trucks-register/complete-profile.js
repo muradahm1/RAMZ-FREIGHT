@@ -211,7 +211,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             // Upload files
             const fileUrls = await uploadFiles();
 
-            // Save vehicle data
+            // Save vehicle data and update profile in parallel
             const vehicleData = {
                 user_id: user.id,
                 vehicle_type: document.getElementById('carType').value,
@@ -228,22 +228,20 @@ document.addEventListener('DOMContentLoaded', async () => {
                 vehicle_license_url: fileUrls.carLicense
             };
 
-            const { error } = await supabase
-                .from('vehicles')
-                .insert([vehicleData]);
+            // Execute both operations in parallel for speed
+            const [vehicleResult, profileResult] = await Promise.all([
+                supabase.from('vehicles').insert([vehicleData]),
+                supabase.auth.updateUser({
+                    data: {
+                        full_name: document.getElementById('basicName').value,
+                        phone: document.getElementById('basicphone').value,
+                        profile_completed: true
+                    }
+                })
+            ]);
 
-            if (error) throw error;
-
-            // Update user profile
-            const { error: profileError } = await supabase.auth.updateUser({
-                data: {
-                    full_name: document.getElementById('basicName').value,
-                    phone: document.getElementById('basicphone').value,
-                    profile_completed: true
-                }
-            });
-
-            if (profileError) throw profileError;
+            if (vehicleResult.error) throw vehicleResult.error;
+            if (profileResult.error) throw profileResult.error;
 
             alert('Profile completed successfully! Please wait for approval.');
             window.location.href = '../trucks-dashboard-cheak/truck-dashboard.html';
@@ -268,16 +266,24 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         const { data: { session } } = await supabase.auth.getSession();
         const user = session?.user;
+        const fileUrls = {};
         
-        const uploadPromises = Object.entries(fileInputs).map(async ([key, file]) => {
-            if (!file) return [key, null];
+        // Upload files sequentially to avoid overwhelming the server
+        for (const [key, file] of Object.entries(fileInputs)) {
+            if (!file) {
+                fileUrls[key] = null;
+                continue;
+            }
 
             const fileExt = file.name.split('.').pop();
             const fileName = `${user.id}/${key}_${Date.now()}.${fileExt}`;
             
             const { data, error } = await supabase.storage
                 .from('documents')
-                .upload(fileName, file);
+                .upload(fileName, file, {
+                    cacheControl: '3600',
+                    upsert: false
+                });
 
             if (error) throw error;
 
@@ -285,11 +291,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                 .from('documents')
                 .getPublicUrl(fileName);
 
-            return [key, publicUrl];
-        });
+            fileUrls[key] = publicUrl;
+        }
 
-        const results = await Promise.all(uploadPromises);
-        return Object.fromEntries(results);
+        return fileUrls;
     }
 
     function setLoading(isLoading) {
@@ -298,7 +303,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         
         const btnText = submitBtn.querySelector('.btn-text');
         if (btnText) {
-            btnText.textContent = isLoading ? 'Processing...' : 'Complete Registration';
+            if (isLoading) {
+                btnText.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+            } else {
+                btnText.textContent = 'Complete Registration';
+            }
         }
     }
 });
