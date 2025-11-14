@@ -184,7 +184,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Resume GPS tracking after page refresh
     async function resumeTrackingIfNeeded(user) {
         const activeShipmentId = localStorage.getItem('active_tracking');
-        if (!activeShipmentId) return;
+        console.log('🔍 Checking for active tracking:', activeShipmentId);
+        
+        if (!activeShipmentId) {
+            console.log('❌ No active tracking found');
+            return;
+        }
         
         try {
             // Check if shipment is still in transit
@@ -195,15 +200,24 @@ document.addEventListener('DOMContentLoaded', async () => {
                 .eq('truck_owner_id', user.id)
                 .single();
                 
-            if (shipment?.status === 'in_transit' && window.locationTracker) {
-                await window.locationTracker.startTracking(activeShipmentId);
-                console.log('✅ Resumed GPS tracking for shipment:', activeShipmentId);
+            console.log('📦 Shipment status:', shipment?.status);
+            
+            if (shipment?.status === 'in_transit') {
+                if (locationTracker) {
+                    await locationTracker.startTracking(activeShipmentId);
+                    console.log('✅ Resumed GPS tracking for shipment:', activeShipmentId);
+                } else {
+                    console.error('❌ locationTracker not available');
+                }
             } else {
+                console.log('🧹 Cleaning up inactive tracking');
                 localStorage.removeItem('active_tracking');
             }
         } catch (err) {
             console.error('Failed to resume tracking:', err);
             localStorage.removeItem('active_tracking');
+        }
+    }calStorage.removeItem('active_tracking');
         }
     }
 
@@ -451,15 +465,17 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (error) throw error;
 
             // Start location tracking and save state
-            if (window.locationTracker) {
+            if (locationTracker) {
                 try {
-                    await window.locationTracker.startTracking(shipmentId);
+                    await locationTracker.startTracking(shipmentId);
                     localStorage.setItem('active_tracking', shipmentId);
-                    console.log('Location tracking started for shipment:', shipmentId);
+                    console.log('🚀 Location tracking started for shipment:', shipmentId);
                 } catch (locErr) {
                     console.error('Location tracking error:', locErr);
                     alert('Warning: Location tracking could not start. Please enable location permissions.');
                 }
+            } else {
+                console.error('❌ locationTracker not available for starting');
             }
             
             alert('Shipment in transit! Live tracking is now active.');
@@ -496,9 +512,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (error) throw error;
 
             // Stop location tracking and clear state
-            if (window.locationTracker) {
-                await window.locationTracker.stopTracking();
+            if (locationTracker) {
+                await locationTracker.stopTracking();
                 localStorage.removeItem('active_tracking');
+                console.log('🛑 GPS tracking stopped and cleared');
             }
             
             alert('Shipment marked as delivered!');
