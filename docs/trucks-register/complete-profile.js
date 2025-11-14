@@ -1,13 +1,25 @@
 import { supabase, supabaseReady } from '../assets/supabaseClient.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
-    // Disable HTML5 validation to prevent focus errors on hidden fields
-    const form = document.getElementById('completeProfileForm');
-    if (form) form.setAttribute('novalidate', 'true');
+    // Global error handler
+    window.addEventListener('error', (e) => {
+        console.error('JavaScript Error:', e.error);
+        alert('An error occurred. Please refresh the page and try again.');
+    });
+    
     const nextBtn = document.getElementById('nextToStep2');
     const prevBtn = document.getElementById('backToStep1');
     const submitBtn = document.getElementById('submitProfile');
     const form = document.getElementById('completeProfileForm');
+    
+    // Disable HTML5 validation to prevent focus errors on hidden fields
+    if (form) form.setAttribute('novalidate', 'true');
+    
+    if (!nextBtn || !prevBtn || !submitBtn || !form) {
+        console.error('Required form elements not found');
+        alert('Form initialization failed. Please refresh the page.');
+        return;
+    }
     
     // Show loading indicator
     const showLoading = (message = 'Loading...') => {
@@ -81,24 +93,40 @@ document.addEventListener('DOMContentLoaded', async () => {
         return;
     }
 
-    // Step navigation
+    // Step navigation with error handling
     nextBtn.addEventListener('click', (e) => {
         e.preventDefault();
-        if (validateStep1()) {
-            showStep(2);
+        try {
+            if (validateStep1()) {
+                showStep(2);
+            }
+        } catch (err) {
+            console.error('Error in step navigation:', err);
+            alert('Navigation error. Please try again.');
         }
     });
 
     prevBtn.addEventListener('click', (e) => {
         e.preventDefault();
-        showStep(1);
+        try {
+            showStep(1);
+        } catch (err) {
+            console.error('Error in step navigation:', err);
+            alert('Navigation error. Please try again.');
+        }
     });
 
-    // Form submission
+    // Form submission with error handling
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
-        if (validateStep2()) {
-            await submitProfile();
+        try {
+            if (validateStep2()) {
+                await submitProfile();
+            }
+        } catch (err) {
+            console.error('Error in form submission:', err);
+            alert('Submission error: ' + err.message);
+            setLoading(false);
         }
     });
 
@@ -112,31 +140,42 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     function validateStep1() {
-        const fields = [
-            { id: 'basicName', error: 'name-error', message: 'Full name is required' },
-            { id: 'basicphone', error: 'phone-error', message: 'Phone number is required' },
-            { id: 'carType', error: 'car-type-error', message: 'Vehicle type is required' },
-            { id: 'plateNumber', error: 'plate-error', message: 'License plate is required' },
-            { id: 'vehicleModel', error: 'model-error', message: 'Vehicle model is required' },
-            { id: 'vehicleYear', error: 'year-error', message: 'Vehicle year is required' },
-            { id: 'maxLoad', error: 'load-error', message: 'Maximum load capacity is required' }
-        ];
+        try {
+            const fields = [
+                { id: 'basicName', error: 'name-error', message: 'Full name is required' },
+                { id: 'basicphone', error: 'phone-error', message: 'Phone number is required' },
+                { id: 'carType', error: 'car-type-error', message: 'Vehicle type is required' },
+                { id: 'plateNumber', error: 'plate-error', message: 'License plate is required' },
+                { id: 'vehicleModel', error: 'model-error', message: 'Vehicle model is required' },
+                { id: 'vehicleYear', error: 'year-error', message: 'Vehicle year is required' },
+                { id: 'maxLoad', error: 'load-error', message: 'Maximum load capacity is required' }
+            ];
 
-        let isValid = true;
-        
-        fields.forEach(field => {
-            const input = document.getElementById(field.id);
-            const errorEl = document.getElementById(field.error);
+            let isValid = true;
             
-            if (!input || !input.value.trim()) {
-                if (errorEl) errorEl.textContent = field.message;
-                isValid = false;
-            } else {
-                if (errorEl) errorEl.textContent = '';
-            }
-        });
+            fields.forEach(field => {
+                const input = document.getElementById(field.id);
+                const errorEl = document.getElementById(field.error);
+                
+                if (!input) {
+                    console.error('Missing input element:', field.id);
+                    isValid = false;
+                    return;
+                }
+                
+                if (!input.value.trim()) {
+                    if (errorEl) errorEl.textContent = field.message;
+                    isValid = false;
+                } else {
+                    if (errorEl) errorEl.textContent = '';
+                }
+            });
 
-        return isValid;
+            return isValid;
+        } catch (err) {
+            console.error('Error in validateStep1:', err);
+            return false;
+        }
     }
 
     function validateStep2() {
