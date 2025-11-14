@@ -102,31 +102,26 @@ document.addEventListener('DOMContentLoaded', async () => {
             payment_amount: parseFloat(formData.get('paymentAmount')) || 0
         };
 
-        const access_token = session.access_token;
-
-        // Build backend URL dynamically
-        const apiUrl = (backendUrl || '').replace(/\/$/, '') + '/shipments';
-
         try {
-            const response = await fetch(apiUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${access_token}`
-                },
-                body: JSON.stringify(shipmentData)
-            });
+            // Direct Supabase insert - much faster
+            const { data: result, error } = await supabase
+                .from('shipments')
+                .insert({
+                    ...shipmentData,
+                    shipper_id: session.user.id,
+                    status: 'pending'
+                })
+                .select()
+                .single();
 
-            const result = await response.json();
-
-            if (!response.ok) {
-                throw new Error(result.error || 'Failed to post shipment.');
+            if (error) {
+                throw new Error(error.message || 'Failed to post shipment.');
             }
 
             // Trigger notification
             if (window.notificationSystem) {
                 window.notificationSystem.newShipment({
-                    id: result.shipment?.id,
+                    id: result.id,
                     origin: shipmentData.origin_address,
                     destination: shipmentData.destination_address
                 });
@@ -140,25 +135,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         } catch (error) {
             console.error('Error creating shipment:', error);
             
-            // Save for offline sync if offline
-            if (!navigator.onLine && window.offlineSync) {
-                await window.offlineSync.savePendingSync({
-                    url: apiUrl,
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${access_token}`
-                    },
-                    data: shipmentData
-                });
-                alert('You are offline. Shipment will be posted when connection is restored.');
-                window.location.href = '../shippers-dashboard/shippers-dashboard.html';
-            } else {
-                alert(`Error: ${error.message}`);
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Post Shipment Request';
-                form.style.pointerEvents = '';
-            }
+            alert(`Error: ${error.message}`);
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Post Shipment Request';
+            form.style.pointerEvents = '';
         }
     });
 });
